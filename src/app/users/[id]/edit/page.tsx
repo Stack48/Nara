@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter, useParams, notFound } from 'next/navigation';
+import { api } from '@/lib/axios';
 import { UserDTO } from '@/types/user';
 
 export default function EditUserPage() {
@@ -12,14 +13,12 @@ export default function EditUserPage() {
   const router = useRouter();
 
   useEffect(() => {
-    fetch(`/api/users/${id}`)
-      .then(async (res) => {
-        if (res.status === 404) notFound();
-        if (!res.ok) throw new Error();
-        return res.json();
-      })
-      .then(setUser)
-      .catch(() => setError("Impossible de charger l'utilisateur"));
+    api.get<UserDTO>(`/users/${id}`)
+      .then((res: { data: UserDTO }) => setUser(res.data))
+      .catch((e: { response?: { status?: number } }) => {
+        if (e.response?.status === 404) notFound();
+        setError("Impossible de charger l'utilisateur");
+      });
   }, [id]);
 
   async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
@@ -32,17 +31,13 @@ export default function EditUserPage() {
       form.elements.namedItem('name') as HTMLInputElement
     ).value.trim();
 
-    const res = await fetch(`/api/users/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, name: nameRaw || null }),
-    });
-
-    if (res.ok) {
+    try {
+      await api.put(`/users/${id}`, { email, name: nameRaw || null });
       router.push('/users');
-    } else {
-      const data = await res.json();
-      setError(data.error ?? 'Une erreur est survenue');
+    } catch (e) {
+      const msg = (e as { response?: { data?: { error?: string } } })
+        ?.response?.data?.error;
+      setError(msg ?? 'Une erreur est survenue');
     }
   }
 

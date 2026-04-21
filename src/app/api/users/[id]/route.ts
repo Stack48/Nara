@@ -1,49 +1,31 @@
-import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-
-function isValidEmail(email: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
+import { UsersController } from "@/server/users/controller";
+import { handleError } from "@/lib/errors";
 
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const { id } = await params;
-  const user = await prisma.user.findUnique({ where: { id } });
-  if (!user) {
-    return NextResponse.json({ error: "Introuvable" }, { status: 404 });
+  try {
+    const { id } = await params;
+    const user = await UsersController.findById(id);
+    return NextResponse.json(user);
+  } catch (e) {
+    return handleError(e);
   }
-  return NextResponse.json(user);
 }
 
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const { id } = await params;
-  const body = await request.json();
-  const email = typeof body.email === "string" ? body.email.trim() : "";
-  const name =
-    typeof body.name === "string" && body.name.trim() !== ""
-      ? body.name.trim()
-      : null;
-
-  if (!email || !isValidEmail(email)) {
-    return NextResponse.json({ error: "Email invalide" }, { status: 400 });
-  }
-
   try {
-    const user = await prisma.user.update({
-      where: { id },
-      data: { email, name },
-    });
+    const { id } = await params;
+    const body = await request.json();
+    const user = await UsersController.update(id, body);
     return NextResponse.json(user);
-  } catch {
-    return NextResponse.json(
-      { error: "Mise à jour impossible (email déjà utilisé ?)" },
-      { status: 409 },
-    );
+  } catch (e) {
+    return handleError(e);
   }
 }
 
@@ -51,11 +33,11 @@ export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const { id } = await params;
   try {
-    await prisma.user.delete({ where: { id } });
+    const { id } = await params;
+    await UsersController.remove(id);
     return new NextResponse(null, { status: 204 });
-  } catch {
-    return NextResponse.json({ error: "Utilisateur introuvable" }, { status: 404 });
+  } catch (e) {
+    return handleError(e);
   }
 }

@@ -60,10 +60,15 @@ Utilisez la même `DATABASE_URL` que dans `.env.example` (`localhost` à la plac
 
 ## Structure
 
-- `src/app` — routes App Router (ex. CRUD `/users` : liste, création, édition)
-- `src/server/users` — actions serveur + requêtes Prisma pour les utilisateurs
+- `src/app` — routes App Router
+  - `users/` — pages CRUD utilisateurs (liste, création, édition) — client components
+  - `api/users/` — REST API : `GET /api/users`, `POST /api/users`
+  - `api/users/[id]/` — REST API : `GET`, `PUT`, `DELETE /api/users/:id`
+- `src/server/users/controller.ts` — logique métier et accès Prisma pour les utilisateurs
+- `src/types/user.ts` — type `UserDTO` partagé entre les pages et l’API
 - `src/lib/prisma.ts` — client Prisma (singleton)
-- `prisma/schema.prisma` — schéma et modèle d’exemple `User`
+- `src/lib/errors.ts` — classe `AppError` et helper `handleError` pour les routes API
+- `prisma/schema.prisma` — schéma de base de données (modèle `User`) et source des migrations Prisma
 - `Dockerfile` — image Next (mode `standalone`) + cible `migrate`
 - `docker-compose.yml` — `db`, `pgadmin`, `migrate`, `app-dev` (dev), `app` (profil `prod`)
 
@@ -74,13 +79,13 @@ Utilisez la même `DATABASE_URL` que dans `.env.example` (`localhost` à la plac
 - Utilisez un **préfixe** qui indique le type de travail, puis une **description courte** en **kebab-case** (minuscules, tirets).
 - Forme recommandée : `<type>/<description>`.
 
-| Préfixe | Usage |
-|--------|--------|
-| `feature/` | Nouvelle fonctionnalité |
-| `fix/` | Correction de bug |
-| `hotfix/` | Correctif urgent en production |
-| `chore/` | Tâches techniques (deps, config, CI) |
-| `docs/` | Documentation uniquement |
+| Préfixe     | Usage                                    |
+| ----------- | ---------------------------------------- |
+| `feature/`  | Nouvelle fonctionnalité                  |
+| `fix/`      | Correction de bug                        |
+| `hotfix/`   | Correctif urgent en production           |
+| `chore/`    | Tâches techniques (deps, config, CI)     |
+| `docs/`     | Documentation uniquement                 |
 | `refactor/` | Refactor sans changement de comportement |
 
 Exemples : `feature/user-profile`, `fix/login-redirect`, `chore/update-eslint`.

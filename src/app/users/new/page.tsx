@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/axios";
 
 export default function NewUserPage() {
   const [error, setError] = useState<string | null>(null);
@@ -18,17 +19,13 @@ export default function NewUserPage() {
       form.elements.namedItem("name") as HTMLInputElement
     ).value.trim();
 
-    const res = await fetch("/api/users", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, name: nameRaw || null }),
-    });
-
-    if (res.ok) {
+    try {
+      await api.post("/users", { email, name: nameRaw || null });
       router.push("/users");
-    } else {
-      const data = await res.json();
-      setError(data.error ?? "Une erreur est survenue");
+    } catch (e) {
+      const msg = (e as { response?: { data?: { error?: string } } })
+        ?.response?.data?.error;
+      setError(msg ?? "Une erreur est survenue");
     }
   }
 

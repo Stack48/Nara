@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { api } from '@/lib/axios';
 import { UserDTO } from '@/types/user';
 
 export default function UsersPage() {
@@ -9,20 +10,16 @@ export default function UsersPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/users')
-      .then(async (res) => {
-        if (!res.ok) throw new Error();
-        return res.json();
-      })
-      .then(setUsers)
+    api.get<UserDTO[]>('/users')
+      .then((res: { data: UserDTO[] }) => setUsers(res.data))
       .catch(() => setError('Impossible de charger les utilisateurs'));
   }, []);
 
   async function handleDelete(id: string) {
-    const res = await fetch(`/api/users/${id}`, { method: 'DELETE' });
-    if (res.ok) {
+    try {
+      await api.delete(`/users/${id}`);
       setUsers((prev) => prev.filter((u) => u.id !== id));
-    } else {
+    } catch {
       setError("Impossible de supprimer l'utilisateur");
     }
   }
