@@ -1,19 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { AppError } from "@/lib/errors";
+import { UserInputSchema } from "@/schemas/user";
 
-function isValidEmail(email: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-function parseBody(body: unknown): { email: string; name: string | null } {
-  const b = body as Record<string, unknown>;
-  const email = typeof b.email === "string" ? b.email.trim() : "";
-  const name =
-    typeof b.name === "string" && b.name.trim() !== ""
-      ? b.name.trim()
-      : null;
-  if (!email || !isValidEmail(email)) throw new AppError(400, "Email invalide");
-  return { email, name };
+function parseInput(body: unknown) {
+  const result = UserInputSchema.safeParse(body);
+  if (!result.success) throw new AppError(400, result.error.errors[0].message);
+  return result.data;
 }
 
 export const UsersController = {
@@ -28,7 +20,7 @@ export const UsersController = {
   },
 
   async create(body: unknown) {
-    const { email, name } = parseBody(body);
+    const { email, name } = parseInput(body);
     try {
       return await prisma.user.create({ data: { email, name } });
     } catch {
@@ -37,7 +29,7 @@ export const UsersController = {
   },
 
   async update(id: string, body: unknown) {
-    const { email, name } = parseBody(body);
+    const { email, name } = parseInput(body);
     try {
       return await prisma.user.update({ where: { id }, data: { email, name } });
     } catch {

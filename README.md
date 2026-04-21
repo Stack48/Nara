@@ -65,7 +65,7 @@ Utilisez la même `DATABASE_URL` que dans `.env.example` (`localhost` à la plac
   - `api/users/` — REST API : `GET /api/users`, `POST /api/users`
   - `api/users/[id]/` — REST API : `GET`, `PUT`, `DELETE /api/users/:id`
 - `src/server/users/controller.ts` — logique métier et accès Prisma pour les utilisateurs
-- `src/types/user.ts` — type `UserDTO` partagé entre les pages et l’API
+- `src/schemas/user.ts` — schémas Zod (`UserInputSchema`, `UserSchema`) et types inférés (`User`, `UserInput`)
 - `src/lib/prisma.ts` — client Prisma (singleton)
 - `src/lib/errors.ts` — classe `AppError` et helper `handleError` pour les routes API
 - `prisma/schema.prisma` — schéma de base de données (modèle `User`) et source des migrations Prisma

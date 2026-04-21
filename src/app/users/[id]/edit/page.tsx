@@ -4,17 +4,17 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter, useParams, notFound } from 'next/navigation';
 import { api } from '@/lib/axios';
-import { UserDTO } from '@/types/user';
+import { User } from '@/schemas/user';
 
 export default function EditUserPage() {
   const { id } = useParams<{ id: string }>();
-  const [user, setUser] = useState<UserDTO | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    api.get<UserDTO>(`/users/${id}`)
-      .then((res: { data: UserDTO }) => setUser(res.data))
+    api.get<User>(`/users/${id}`)
+      .then((res: { data: User }) => setUser(res.data))
       .catch((e: { response?: { status?: number } }) => {
         if (e.response?.status === 404) notFound();
         setError("Impossible de charger l'utilisateur");

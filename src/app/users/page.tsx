@@ -3,15 +3,15 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/axios';
-import { UserDTO } from '@/types/user';
+import { User } from '@/schemas/user';
 
 export default function UsersPage() {
-  const [users, setUsers] = useState<UserDTO[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api.get<UserDTO[]>('/users')
-      .then((res: { data: UserDTO[] }) => setUsers(res.data))
+    api.get<User[]>('/users')
+      .then((res: { data: User[] }) => setUsers(res.data))
       .catch(() => setError('Impossible de charger les utilisateurs'));
   }, []);
 
