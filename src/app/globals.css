@@ -3,10 +3,7 @@
 @theme {
   --font-syne: var(--font-syne);
   --font-arimo: var(--font-arimo);
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: system-ui, sans-serif;
+  --color-nara-black: #050505;
+  --color-nara-pink: #D90097;
 }
