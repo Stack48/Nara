@@ -23,7 +23,7 @@ export const Pv = () => {
 
                 {/* En-tête */}
                 <div className="text-center mb-20">
-                    <h2 className="font-syne text-3xl md:text-5xl font-bold uppercase leading-tight mb-6 max-w-4xl mx-auto">
+                    <h2 className="font-syne text-3xl md:text-5xl font-extrabold leading-tight mb-6 max-w-7xl mx-auto text-center text-balance tracking-tighter">
                         Ton prochain hit mérite mieux qu'un brouillon perdu.
                     </h2>
                     <p className="text-gray-400 text-lg max-w-2xl mx-auto">
