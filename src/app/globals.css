@@ -1,19 +1,11 @@
 @import "tailwindcss";
 
+@theme {
+  --font-syne: var(--font-syne);
+  --font-arimo: var(--font-arimo);
+}
+
 :root {
-  --background: #fafafa;
-  --foreground: #0a0a0a;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #fafafa;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: system-ui, sans-serif;
+  background-color: #050505;
+  color: white;
 }

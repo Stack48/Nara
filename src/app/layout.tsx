@@ -1,19 +1,23 @@
-import type { Metadata } from "next";
+import { Syne, Arimo } from 'next/font/google';
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "Nara",
-  description: "Next.js + Prisma + PostgreSQL",
-};
+const syne = Syne({
+  subsets: ['latin'],
+  variable: '--font-syne',
+  weight: ['700', '800']
+});
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+const arimo = Arimo({
+  subsets: ['latin'],
+  variable: '--font-arimo'
+});
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr">
-      <body className="antialiased">{children}</body>
+    <html lang="fr" className={`${syne.variable} ${arimo.variable} dark`}>
+      <body className="bg-[#050505] antialiased">
+        {children}
+      </body>
     </html>
   );
 }
