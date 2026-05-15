@@ -5,7 +5,8 @@
   --font-arimo: var(--font-arimo);
 }
 
-:root {
-  background-color: #050505;
-  color: white;
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: system-ui, sans-serif;
 }
