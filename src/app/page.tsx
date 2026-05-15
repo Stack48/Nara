@@ -1,4 +1,4 @@
-import { Header } from '@/components/landing/Header';
+import { Header } from '@/components/Header';
 import { Hero } from '@/components/landing/Hero';
 import { Features } from '@/components/landing/Features';
 import { Avis } from '@/components/landing/Avis';
