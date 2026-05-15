@@ -1,21 +1,21 @@
-@import url('https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400..700;1,400..700&display=swap');
-@import 'tailwindcss';
+@import url("https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400..700;1,400..700&display=swap");
+@import "tailwindcss";
 
 @theme {
-  --font-arimo: var(--font-arimo);
-  --font-unbounded: var(--font-unbounded);
+	--font-arimo: var(--font-arimo);
+	--font-unbounded: var(--font-unbounded);
 
-  --color-nara-black: #050505;
-  --color-nara-pink: #d90097;
+	--color-nara-black: #050505;
+	--color-nara-pink: #d90097;
 }
 
 /* --- POLICES CENTRALISÉES --- */
 .font-arimo {
-  font-family: var(--font-arimo);
+	font-family: var(--font-arimo);
 }
 
 .font-unbounded {
-  font-family: var(--font-unbounded);
+	font-family: var(--font-unbounded);
 }
 
 /* --- TYPOGRAPHIE GLOBALE --- */
@@ -85,7 +85,7 @@
 
 /* Ancienne classe conservée temporairement */
 .nara-title {
-  font-family: var(--font-unbounded) !important;
-  font-weight: 900 !important;
-  letter-spacing: -0.03em;
+	font-family: var(--font-unbounded) !important;
+	font-weight: 900 !important;
+	letter-spacing: -0.03em;
 }
