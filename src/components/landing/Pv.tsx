@@ -1,5 +1,61 @@
-export const Pv = () => (
-    <section className="py-20">
-        <h1>Mon Super Pv</h1>
-    </section>
-);
+export const Pv = () => {
+    const cards = [
+        {
+            title: "DISPERSION",
+            description: "Versions, brouillons, prises vocales tout finit éparpillé. Nara centralise tout au même endroit.",
+            img: "/img/dispersion.jpg",
+        },
+        {
+            title: "FRICTION",
+            description: "Voir qui travaille sur quoi, en temps réel, sans se marcher dessus. Juste toi, tes collabs et la musique.",
+            img: "/img/friction.jpg",
+        },
+        {
+            title: "DÉSORGANISATION",
+            description: "Sans structure claire, chaque session repart de zéro. Nara organise tes lyrics et tes exports en un seul endroit.",
+            img: "/img/desorganisation.jpg",
+        }
+    ];
+
+    return (
+        <section className="py-24 bg-transparent font-arimo">
+            <div className="container mx-auto px-6">
+
+                {/* En-tête */}
+                <div className="text-center mb-20">
+                    <h2 className="font-syne text-3xl md:text-5xl font-bold uppercase leading-tight mb-6 max-w-4xl mx-auto">
+                        Ton prochain hit mérite mieux qu'un brouillon perdu.
+                    </h2>
+                    <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+                        Nara réunit tout ce dont tu as besoin pour créer, sans te noyer dans la gestion.
+                    </p>
+                </div>
+
+                {/* Grille des 3 images */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+                    {cards.map((card, index) => (
+                        <div key={index} className="flex flex-col">
+                            {/* Image avec coins arrondis */}
+                            <div className="aspect-[4/5] overflow-hidden rounded-2xl mb-8 bg-neutral-900">
+                                <img
+                                    src={card.img}
+                                    alt={card.title}
+                                    className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500"
+                                />
+                            </div>
+
+                            {/* Texte sous l'image */}
+                            <h3 className="font-syne text-sm font-bold tracking-widest uppercase mb-3">
+                                {card.title}
+                            </h3>
+                            <p className="text-gray-400 text-sm leading-relaxed">
+                                {card.description}
+                            </p>
+                        </div>
+                    ))}
+                </div>
+
+            </div>
+        </section>
+    );
+};
