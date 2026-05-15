@@ -5,12 +5,17 @@ import Image from "next/image";
 import Link from "next/link";
 import ColorBends from "@/components/landing/ColorBends";
 
-const avatars = ["/artist-1.png", "/artist-2.png", "/artist-3.png", "/artist-4.png"];
+const avatars = [
+	"/artist-1.png",
+	"/artist-2.png",
+	"/artist-3.png",
+	"/artist-4.png",
+];
 const stackImages = [
 	"/artist-1.png",
 	"/artist-2.png",
 	"/artist-3.png",
-	"/artist-4.png"
+	"/artist-4.png",
 ];
 
 export const Hero = () => {
@@ -29,26 +34,39 @@ export const Hero = () => {
 			<div className="pointer-events-none absolute inset-0 z-0">
 				<ColorBends
 					colors={["#AA0063", "#D90097", "#D90097"]}
-					rotation={90} speed={0.2} scale={1} frequency={1}
-					warpStrength={1} mouseInfluence={1} noise={0.15}
-					parallax={0.5} iterations={1} intensity={1.5}
-					bandWidth={6} transparent autoRotate={0}
+					rotation={90}
+					speed={0.2}
+					scale={1}
+					frequency={1}
+					warpStrength={1}
+					mouseInfluence={1}
+					noise={0.15}
+					parallax={0.5}
+					iterations={1}
+					intensity={1.5}
+					bandWidth={6}
+					transparent
+					autoRotate={0}
 				/>
 			</div>
 
 			<div className="relative z-10 mx-auto max-w-[1180px] px-6 lg:px-8 pt-10 xl:pt-20">
 				<div className="flex flex-col lg:flex-row items-center justify-between gap-16 lg:gap-8">
-
 					{/* LEFT: Text Content */}
 					<div className="flex flex-col items-center lg:items-start text-center lg:text-left w-full lg:w-[55%] shrink-0">
 						<h1 className="nara-title-1 text-[#fff7fc]">
-							Le futur de la<br className="hidden lg:block" /> production
+							Le futur de la
+							<br className="hidden lg:block" /> production
 							<br />
-							<span className="bg-gradient-to-r from-[#FFFFFF] from-[30%] to-[#CD2A9B] to-[100%] bg-clip-text text-transparent">musicale.</span>
+							<span className="bg-gradient-to-r from-[#FFFFFF] from-[30%] to-[#CD2A9B] to-[100%] bg-clip-text text-transparent">
+								musicale.
+							</span>
 						</h1>
 
 						<p className="nara-subtitle mt-6 max-w-[500px] text-gray-300">
-							Nara centralise votre écriture, vos masters et votre gestion de projet dans un hub immersif conçu pour l&apos;excellence créative.
+							Nara centralise votre écriture, vos masters et votre
+							gestion de projet dans un hub immersif conçu pour
+							l&apos;excellence créative.
 						</p>
 
 						<Link
@@ -61,13 +79,24 @@ export const Hero = () => {
 						<div className="mt-8 flex flex-row items-center gap-4">
 							<div className="flex -space-x-2">
 								{avatars.map((src, index) => (
-									<div key={src} className="relative h-10 w-10 overflow-hidden rounded-full border-2 border-[#050506] bg-[#141014]">
-										<Image src={src} alt={`Artiste ${index + 1}`} fill sizes="40px" className="object-cover grayscale" />
+									<div
+										key={src}
+										className="relative h-10 w-10 overflow-hidden rounded-full border-2 border-[#050506] bg-[#141014]"
+									>
+										<Image
+											src={src}
+											alt={`Artiste ${index + 1}`}
+											fill
+											sizes="40px"
+											className="object-cover grayscale"
+										/>
 									</div>
 								))}
 							</div>
 							<p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#6e5f6a]">
-								Ils façonnent le son<br />avec Nara
+								Ils façonnent le son
+								<br />
+								avec Nara
 							</p>
 						</div>
 					</div>
@@ -76,22 +105,28 @@ export const Hero = () => {
 					<div className="relative w-full lg:w-[45%] flex justify-center lg:justify-end mt-12 lg:mt-0 h-[380px] sm:h-[480px] xl:h-[550px]">
 						<div className="relative w-full max-w-[320px] sm:max-w-[400px] xl:max-w-[450px] h-full flex items-center justify-center perspective-[1000px]">
 							{stackImages.map((src, index) => {
-								const offset = (index - activeIndex + stackImages.length) % stackImages.length;
+								const offset =
+									(index - activeIndex + stackImages.length) %
+									stackImages.length;
 
 								let transform = "";
 								let opacity = 1;
 								let zIndex = 10 - offset;
 
 								if (offset === 0) {
-									transform = "translateX(0) translateY(0) scale(1) rotate(0deg)";
+									transform =
+										"translateX(0) translateY(0) scale(1) rotate(0deg)";
 								} else if (offset === 1) {
-									transform = "translateX(15%) translateY(-5%) scale(0.9) rotate(4deg)";
+									transform =
+										"translateX(15%) translateY(-5%) scale(0.9) rotate(4deg)";
 									opacity = 0.7;
 								} else if (offset === 2) {
-									transform = "translateX(-15%) translateY(-10%) scale(0.8) rotate(-4deg)";
+									transform =
+										"translateX(-15%) translateY(-10%) scale(0.8) rotate(-4deg)";
 									opacity = 0.4;
 								} else {
-									transform = "translateX(0) translateY(-15%) scale(0.7) rotate(0deg)";
+									transform =
+										"translateX(0) translateY(-15%) scale(0.7) rotate(0deg)";
 									opacity = 0;
 								}
 
@@ -107,7 +142,7 @@ export const Hero = () => {
 											alt={`Vibe Artiste ${index + 1}`}
 											fill
 											sizes="(max-width: 640px) 240px, (max-width: 1280px) 300px, 360px"
-											className={`object-cover transition-all duration-700 ${offset === 0 ? 'grayscale-0' : 'grayscale'}`}
+											className={`object-cover transition-all duration-700 ${offset === 0 ? "grayscale-0" : "grayscale"}`}
 										/>
 									</div>
 								);
