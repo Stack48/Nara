@@ -1,19 +1,20 @@
 import type { Metadata } from "next";
+import "@/Components/header/header.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Nara",
-  description: "Next.js + Prisma + PostgreSQL",
+	title: "Nara",
+	description: "Next.js + Prisma + PostgreSQL",
 };
 
 export default function RootLayout({
-  children,
+	children,
 }: Readonly<{
-  children: React.ReactNode;
+	children: React.ReactNode;
 }>) {
-  return (
-    <html lang="fr">
-      <body className="antialiased">{children}</body>
-    </html>
-  );
+	return (
+		<html lang="fr">
+			<body className="antialiased">{children}</body>
+		</html>
+	);
 }
