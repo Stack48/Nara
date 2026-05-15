@@ -15,24 +15,11 @@
 		"db:studio": "prisma studio"
 	},
 	"dependencies": {
-		"@hocuspocus/provider": "^4.1.0",
-		"@hocuspocus/server": "^4.1.0",
 		"@prisma/client": "^6.7.0",
-		"@tiptap/core": "^3.23.5",
-		"@tiptap/extension-collaboration": "^3.23.5",
-		"@tiptap/extension-collaboration-caret": "^3.23.5",
-		"@tiptap/extension-placeholder": "^3.23.5",
-		"@tiptap/extension-text-style": "^3.23.5",
-		"@tiptap/react": "^3.23.5",
-		"@tiptap/starter-kit": "^3.23.5",
 		"axios": "^1.15.1",
-		"lucide-react": "^1.16.0",
 		"next": "^15.5.18",
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0",
-		"server-only": "^0.0.1",
-		"three": "^0.167.1",
-		"yjs": "^13.6.30",
 		"zod": "^4.3.6"
 	},
 	"devDependencies": {
@@ -41,7 +28,6 @@
 		"@types/node": "^20",
 		"@types/react": "^19",
 		"@types/react-dom": "^19",
-		"@types/three": "^0.184.1",
 		"eslint": "^9",
 		"eslint-config-next": "15.5.15",
 		"prisma": "^6.7.0",
