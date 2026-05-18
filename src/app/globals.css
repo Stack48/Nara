@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 @theme {
-  --font-syne: var(--font-syne);
-  --font-arimo: var(--font-arimo);
+	--font-syne: var(--font-syne);
+	--font-arimo: var(--font-arimo);
 
-  --color-nara-black: #050505;
-  --color-nara-pink: #D90097;
+	--color-nara-black: #050505;
+	--color-nara-pink: #d90097;
 }
