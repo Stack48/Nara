@@ -373,37 +373,226 @@ const Collaboration = () => {
     );
 };
 
+// --- COMPOSANT 3 : ASSISTANT RIMES ---
+const RhymeSuggestions = () => {
+    const [step, setStep] = useState(0);
+    const [typedText, setTypedText] = useState("");
+
+    const fullText = "Le réveil sonne, la ville fait du";
+
+    useEffect(() => {
+        let currentText = "";
+        let charIndex = 0;
+        let timeout: NodeJS.Timeout;
+        let isActive = true;
+
+        const runLoop = () => {
+            if (!isActive) return;
+            setStep(0);
+            currentText = "";
+            setTypedText("");
+            charIndex = 0;
+            
+            const typeSequence = () => {
+                if (!isActive) return;
+                if (charIndex < fullText.length) {
+                    currentText += fullText[charIndex];
+                    setTypedText(currentText);
+                    charIndex++;
+                    timeout = setTimeout(typeSequence, 30 + Math.random() * 50);
+                } else {
+                    setStep(1); // Fini de taper
+                    timeout = setTimeout(() => {
+                        if (!isActive) return;
+                        setStep(2); // Affichage des suggestions
+                        timeout = setTimeout(() => {
+                            if (!isActive) return;
+                            setStep(3); // Survol de la suggestion
+                            timeout = setTimeout(() => {
+                                if (!isActive) return;
+                                setStep(4); // Validation
+                                setTypedText(currentText + " bruit");
+                                timeout = setTimeout(() => {
+                                    if (!isActive) return;
+                                    setStep(5); // Attente fin
+                                    timeout = setTimeout(runLoop, 3500); // Recommence
+                                }, 500);
+                            }, 1000);
+                        }, 1200);
+                    }, 600);
+                }
+            };
+
+            timeout = setTimeout(typeSequence, 1000);
+        };
+
+        runLoop();
+
+        return () => {
+            isActive = false;
+            clearTimeout(timeout);
+        };
+    }, []);
+
+    return (
+        <div className="w-full">
+            <div className="flex flex-col md:flex-row justify-between items-start mb-12 gap-8">
+                <h2 className="font-syne text-4xl md:text-5xl font-bold leading-tight tracking-tighter text-white">
+                    La rime parfaite,<br />au bon moment.
+                </h2>
+                <div className="max-w-sm">
+                    <p className="text-[#888888] font-arimo text-sm mb-4 leading-relaxed">
+                        Ne perds plus ton flow. L'assistant intégré de Nara analyse tes couplets en temps réel et te propose des rimes riches sans jamais que tu n'aies à quitter ta page.
+                    </p>
+                    <span className="text-[#D90097] font-arimo text-sm font-bold uppercase tracking-widest cursor-default">
+                        Assistant d'écriture →
+                    </span>
+                </div>
+            </div>
+
+            <div 
+                className="relative bg-[#0A0A0A] border border-white/5 rounded-2xl overflow-hidden shadow-2xl min-h-[600px] flex flex-col"
+                style={{ 
+                    WebkitMaskImage: 'linear-gradient(to bottom, black 80%, transparent 100%)',
+                    maskImage: 'linear-gradient(to bottom, black 80%, transparent 100%)'
+                }}
+            >
+                {/* Fake App Window */}
+                <div className="flex-1 w-full flex flex-col relative z-10 bg-[#0F0F0F]">
+                    <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 bg-[#0A0A0A]">
+                        <div className="flex gap-2">
+                            <div className="w-3 h-3 rounded-full bg-[#FF5F56]"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#FFBD2E]"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#27C93F]"></div>
+                        </div>
+                        <span className="text-[11px] text-white/50 font-arimo tracking-[0.15em] uppercase">Couplet 1 - Nara Studio</span>
+                        <div className="flex gap-1">
+                            <div className="w-1 h-1 rounded-full bg-white/20"></div>
+                            <div className="w-1 h-1 rounded-full bg-white/20"></div>
+                            <div className="w-1 h-1 rounded-full bg-white/20"></div>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col md:flex-row flex-1">
+                        {/* PARTIE GAUCHE : Editeur (Personne qui écrit) */}
+                        <div className="flex-1 p-8 md:p-16 border-r border-white/5 font-arimo text-[20px] md:text-[24px] leading-[2.2] tracking-wide relative">
+                            <p className="text-white/40">
+                                J'ai des visions de grandeur la <span className={`transition-colors duration-500 font-bold ${step >= 2 ? "text-[#D90097]" : "text-white/40"}`}>nuit</span>,
+                            </p>
+                            <div className="text-white">
+                                {typedText}
+                                {/* Curseur dynamique */}
+                                <span className={`inline-block w-[2px] h-6 bg-[#D90097] align-middle ml-1 ${step === 1 || step === 5 || step === 0 ? 'animate-pulse' : 'opacity-100'}`}></span>
+                            </div>
+                            
+                            <p className="text-white/40 mt-2 opacity-30 blur-[1px]">Ils parlent tous, mais n'ont rien à dire</p>
+                            <p className="text-white/40 opacity-10 blur-[2px]">Je continue d'écrire pour m'en sortir</p>
+                            
+                            {/* Indicateur de frappe */}
+                            <div className={`absolute bottom-8 left-16 flex items-center gap-3 text-white/30 text-sm font-syne transition-opacity duration-300 ${step === 0 ? "opacity-100" : "opacity-0"}`}>
+                                <div className="flex gap-1 items-center">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-[#D90097] animate-bounce" style={{animationDelay: "0ms"}}></div>
+                                    <div className="w-1.5 h-1.5 rounded-full bg-[#D90097] animate-bounce" style={{animationDelay: "150ms"}}></div>
+                                    <div className="w-1.5 h-1.5 rounded-full bg-[#D90097] animate-bounce" style={{animationDelay: "300ms"}}></div>
+                                </div>
+                                Écriture en cours...
+                            </div>
+                        </div>
+
+                        {/* PARTIE DROITE : Assistant Sidebar */}
+                        <div className="w-full md:w-[400px] bg-[#0A0A0A] p-6 md:p-10 flex flex-col relative overflow-hidden">
+                            <div className="flex items-center gap-4 mb-10 relative z-10">
+                                <div className="w-10 h-10 rounded-xl bg-[#D90097]/20 flex items-center justify-center border border-[#D90097]/30">
+                                    <svg className="w-5 h-5 text-[#D90097]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 className="font-syne text-white text-lg font-bold tracking-wide">Dictionnaire</h3>
+                                    <p className="text-[#888888] text-xs font-arimo mt-0.5">Suggestions de rimes</p>
+                                </div>
+                            </div>
+
+                            <div className={`transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] relative z-10 ${step >= 2 ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8 pointer-events-none"}`}>
+                                <div className="bg-[#111111] border border-white/5 rounded-2xl p-6 mb-8 shadow-2xl relative overflow-hidden group">
+                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#D90097] to-purple-600"></div>
+                                    <p className="text-white/50 text-[10px] font-arimo uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                        <span className="w-2 h-2 rounded-full bg-[#D90097] animate-pulse"></span>
+                                        Analyse de la rime
+                                    </p>
+                                    <p className="font-syne text-3xl font-bold text-white mb-2 tracking-tight">« nuit »</p>
+                                    <p className="text-[#D90097] text-sm font-arimo flex items-center gap-2">
+                                        Terminaison : /ɥi/
+                                    </p>
+                                </div>
+
+                                <div className="space-y-3">
+                                    {[
+                                        { word: 'bruit', match: '99%', type: 'Nom' },
+                                        { word: 'minuit', match: '95%', type: 'Nom' },
+                                        { word: 'détruit', match: '92%', type: 'Verbe' },
+                                        { word: "s'enfuit", match: '88%', type: 'Verbe' },
+                                    ].map((item, idx) => (
+                                        <div key={idx} className={`p-4 rounded-xl font-arimo transition-all flex items-center justify-between border ${
+                                            step >= 3 && idx === 0 
+                                                ? "bg-[#D90097]/10 border-[#D90097]/30 text-white transform scale-[1.02] shadow-lg" 
+                                                : "bg-[#111111]/50 border-white/5 hover:bg-white/5 text-white/70"
+                                        }`}>
+                                            <div className="flex items-center gap-4">
+                                                <span className={`text-[17px] ${step >= 3 && idx === 0 ? "font-bold text-[#D90097]" : ""}`}>{item.word}</span>
+                                            </div>
+                                            <div className="flex items-center gap-4">
+                                                <span className="text-[11px] text-white/30 uppercase tracking-wider">{item.type}</span>
+                                                {step >= 3 && idx === 0 ? (
+                                                    <span className="text-[10px] bg-[#D90097] text-white px-2 py-1 rounded-md uppercase font-bold tracking-wider shadow-[0_0_10px_rgba(217,0,151,0.5)]">Tab ⇥</span>
+                                                ) : (
+                                                    <span className="text-[11px] text-[#888] font-mono">{item.match}</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            
+                            {/* Empty state while typing */}
+                            <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center w-full transition-all duration-500 delay-100 ${step < 2 ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
+                                <div className="w-14 h-14 rounded-full border border-white/10 flex items-center justify-center mx-auto mb-6 bg-[#111111] shadow-inner">
+                                    <div className="w-6 h-6 border-2 border-white/10 border-t-[#D90097] rounded-full animate-spin"></div>
+                                </div>
+                                <p className="text-white/40 text-sm font-arimo tracking-wide">Recherche de rimes...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Arrière-plan décoratif abstrait */}
+                <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+                    <div className={`absolute top-1/2 right-0 -translate-y-1/2 w-[500px] h-[500px] bg-[#D90097]/10 blur-[100px] rounded-full mix-blend-screen transition-opacity duration-1000 ${
+                        step >= 2 && step <= 4 ? "opacity-80 scale-110" : "opacity-30 scale-100"
+                    }`}></div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
 // --- COMPOSANT PRINCIPAL ---
 export const Features = () => {
     return (
         <section className="py-32 bg-[#050505]">
             <div className="container mx-auto px-6 space-y-40">
 
-                {/* Feature 1 */}
+                {/* Feature 1: Suggestions de rimes automatiques */}
+                <RhymeSuggestions />
+
+                {/* Feature 2: Prompteur */}
                 <Prompter />
 
-                {/* Feature 2 */}
+                {/* Feature 3: Collaboration */}
                 <Collaboration />
-
-                {/* Feature 3 (Placeholder) */}
-                <div className="w-full opacity-30 grayscale">
-                    <div className="flex flex-col md:flex-row justify-between items-start mb-12 gap-8 border-t border-white/10 pt-20">
-                        <h2 className="font-syne text-4xl md:text-5xl font-bold tracking-tighter uppercase opacity-20 italic">
-                            Feature #3 à venir
-                        </h2>
-                    </div>
-                    <div 
-                        className="h-[600px] w-full bg-[#0A0A0A] rounded-2xl border border-dashed border-white/10 flex items-center justify-center"
-                        style={{ 
-                            WebkitMaskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
-                            maskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)'
-                        }}
-                    >
-                        <p className="font-arimo text-white/20">En attente des nouvelles fonctionnalités...</p>
-                    </div>
-                </div>
 
             </div>
         </section>
     );
-};
+};
