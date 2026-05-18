@@ -44,9 +44,10 @@ const avatars = [
 ];
 
 export const Hero = () => (
-	<section className="relative isolate min-h-dvh overflow-hidden bg-[#050506] px-4 pb-0 pt-[72px] text-[#f7f2f6] sm:px-6 lg:px-8">
-		<style>
-			{`
+	<>
+		<section className="relative isolate min-h-dvh  overflow-hidden bg-[#050506] px-4 pb-0 pt-[76px] text-[#f7f2f6] sm:px-6 sm:pt-[82px] lg:px-8">
+			<style>
+				{`
 				@keyframes artistFloat {
 					0%, 100% { transform: translate3d(0, 0, 0); }
 					50% { transform: translate3d(0, -7px, 0); }
@@ -56,105 +57,116 @@ export const Hero = () => (
 					[class*="artistFloat"] { animation: none !important; }
 				}
 			`}
-		</style>
+			</style>
 
-		<div className="absolute inset-0 -z-10 bg-[#050506]" />
-		<div className="absolute inset-0 -z-10 opacity-70">
-			<ColorBends
-				colors={["#050506", "#15040f", "#4d062d", "#d9008d"]}
-				rotation={24}
-				speed={0.12}
-				scale={1.18}
-				frequency={0.72}
-				warpStrength={0.58}
-				mouseInfluence={0.18}
-				parallax={0.12}
-				noise={0.035}
-				transparent={false}
-			/>
-		</div>
-		<div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,#050506_0%,rgba(5,5,6,0.78)_34%,rgba(5,5,6,0.18)_68%,rgba(26,3,16,0.34)_100%)]" />
-		<div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_72%_22%,rgba(217,0,141,0.2),transparent_38%)]" />
-		<div className="absolute inset-x-0 bottom-0 -z-10 h-[46dvh] bg-gradient-to-t from-[#050506] via-[#050506]/72 to-transparent" />
+			<div className="pointer-events-none absolute inset-0 z-0 bg-[#050506]" />
+			<div className="pointer-events-none absolute inset-0 z-0 opacity-100">
+				<ColorBends
+					colors={["#AA0063", "#D90097", "#D90097"]}
+					rotation={90}
+					speed={0.2}
+					scale={1}
+					frequency={1}
+					warpStrength={1}
+					mouseInfluence={1}
+					noise={0.15}
+					parallax={0.5}
+					iterations={1}
+					intensity={1.5}
+					bandWidth={6}
+					transparent
+					autoRotate={0}
+					// color="#A855F7"
+				/>
+			</div>
 
-		<div className="relative mx-auto flex min-h-[calc(100dvh-72px)] w-full max-w-[1180px] flex-col">
-			<div className="pointer-events-none absolute inset-x-0 top-0 hidden h-[34dvh] md:block">
-				{artists.map((artist) => (
-					<div
-						key={artist.src}
-						className={`absolute overflow-hidden bg-[#151114] ${artist.className}`}
+			<div className="relative z-10 mx-auto flex min-h-[calc(100dvh-76px)] w-full max-w-[1180px] flex-col sm:min-h-[calc(100dvh-82px)]">
+				<div className="pointer-events-none absolute inset-x-0 top-0 hidden h-[34dvh] md:block">
+					{artists.map((artist) => (
+						<div
+							key={artist.src}
+							className={`absolute overflow-hidden bg-[#151114] ${artist.className}`}
+						>
+							<Image
+								src={artist.src}
+								alt={artist.alt}
+								fill
+								sizes="(min-width: 1024px) 160px, 112px"
+								className="object-cover grayscale"
+							/>
+						</div>
+					))}
+				</div>
+
+				<div className="relative z-10 mx-auto flex w-full max-w-[760px] flex-col items-center px-1 pt-1 text-center sm:px-0 md:pt-0">
+					<h1
+						className={`${syne.className} max-w-[min(86vw,320px)] text-[clamp(30px,8vw,34px)] font-extrabold leading-[0.94] tracking-normal text-[#fff7fc] sm:max-w-none sm:text-[clamp(42px,6.4vw,72px)] sm:leading-[0.92] md:text-[clamp(44px,4.5vw,64px)] lg:text-[clamp(48px,3.75vw,72px)]`}
 					>
-						<Image
-							src={artist.src}
-							alt={artist.alt}
-							fill
-							sizes="(min-width: 1024px) 160px, 112px"
-							className="object-cover grayscale"
-						/>
-					</div>
-				))}
-			</div>
+						<span className="block sm:hidden">Le futur de la</span>
+						<span className="block sm:hidden">production</span>
+						<span className="block text-[#e60091] sm:hidden">
+							musicale.
+						</span>
+						<span className="hidden sm:block sm:whitespace-nowrap">
+							Le futur de la production
+						</span>
+						<span className="hidden text-[#e60091] sm:block">
+							musicale.
+						</span>
+					</h1>
 
-			<div className="relative z-10 mx-auto flex max-w-[760px] flex-col items-center pt-0 text-center">
-				<h1
-					className={`${syne.className} text-[clamp(34px,3.6vw,56px)] font-extrabold leading-[0.94] tracking-normal text-[#fff7fc]`}
-				>
-					<span className="block sm:whitespace-nowrap">
-						Le futur de la production
-					</span>
-					<span className="block text-[#e60091]">musicale.</span>
-				</h1>
-
-				<p className="mt-[clamp(10px,1.4vh,18px)] max-w-[540px] text-[clamp(11px,0.9vw,14px)] leading-[1.45] text-[#a99aa4]">
-					Nara centralise votre écriture, vos masters et votre gestion
-					de projet dans un hub immersif conçu pour l&apos;excellence
-					créative.
-				</p>
-
-				<Link
-					href="/users"
-					className="mt-[clamp(18px,2.4vh,30px)] inline-flex h-[clamp(42px,5.2vh,56px)] w-full max-w-[clamp(260px,24vw,380px)] items-center justify-center rounded-[8px] bg-[#d9008d] px-5 text-[clamp(12px,0.9vw,15px)] font-bold text-[#fff7fc] transition hover:bg-[#e60091] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#e6008e]"
-				>
-					Essayer gratuitement !
-				</Link>
-
-				<div className="mt-[clamp(14px,2vh,24px)] flex flex-col items-center gap-3 sm:flex-row">
-					<div className="flex -space-x-2">
-						{avatars.map((src, index) => (
-							<div
-								key={src}
-								className="relative h-[clamp(24px,2vw,34px)] w-[clamp(24px,2vw,34px)] overflow-hidden rounded-full border border-[#191017] bg-[#171216]"
-							>
-								<Image
-									src={src}
-									alt={`Artiste ${index + 1}`}
-									fill
-									sizes="34px"
-									className="object-cover grayscale"
-								/>
-							</div>
-						))}
-					</div>
-					<p className="text-[clamp(8px,0.58vw,10px)] font-bold uppercase tracking-[0.16em] text-[#8f808b]">
-						Ils façonnent le son avec Nara
+					<p className="mt-4 max-w-[min(82vw,540px)] text-[13px] leading-[1.5] text-[#a99aa4] sm:mt-[clamp(10px,1.4vh,18px)] sm:text-[clamp(12px,1.15vw,14px)]">
+						Nara centralise votre écriture, vos masters et votre
+						gestion de projet dans un hub immersif conçu pour
+						l&apos;excellence créative.
 					</p>
-				</div>
-			</div>
 
-			<div className="relative z-10 mx-auto mt-6 w-full max-w-[min(84vw,1180px)] flex-1 md:absolute md:left-1/2 md:top-[clamp(260px,36dvh,350px)] md:mt-0 md:-translate-x-1/2">
-				<div className="absolute -inset-x-8 bottom-0 top-[18%] bg-[#d9008d]/10 blur-3xl" />
-				<div className="relative max-h-[min(55dvh,560px)] overflow-hidden rounded-t-[8px] border-x border-t border-[#1f171d] bg-[#0a080a] shadow-[0_22px_70px_rgba(0,0,0,0.38)]">
-					<Image
-						src="/app-preview.png"
-						alt="Interface de l'application Nara"
-						width={1440}
-						height={860}
-						priority
-						className="h-auto w-full object-cover object-top [-webkit-mask-image:linear-gradient(to_bottom,black_0%,black_62%,transparent_100%)] [mask-image:linear-gradient(to_bottom,black_0%,black_62%,transparent_100%)]"
-					/>
-					<div className="pointer-events-none absolute inset-x-0 bottom-0 h-[46%] bg-gradient-to-b from-transparent via-[#10070d]/78 to-[#050506]" />
+					<Link
+						href="/users"
+						className="mt-5 inline-flex h-12 w-full max-w-[min(82vw,380px)] items-center justify-center rounded-[8px] bg-[#d9008d] px-5 text-sm font-bold text-[#fff7fc] transition hover:bg-[#e60091] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#e6008e] sm:mt-[clamp(18px,2.4vh,30px)] sm:h-[clamp(44px,5.2vh,56px)] sm:text-[clamp(12px,0.9vw,15px)]"
+					>
+						Essayer gratuitement !
+					</Link>
+
+					<div className="mt-[clamp(14px,2vh,24px)] flex flex-col items-center gap-3 sm:flex-row">
+						<div className="flex -space-x-2">
+							{avatars.map((src, index) => (
+								<div
+									key={src}
+									className="relative h-[clamp(24px,2vw,34px)] w-[clamp(24px,2vw,34px)] overflow-hidden rounded-full border border-[#191017] bg-[#171216]"
+								>
+									<Image
+										src={src}
+										alt={`Artiste ${index + 1}`}
+										fill
+										sizes="34px"
+										className="object-cover grayscale"
+									/>
+								</div>
+							))}
+						</div>
+						<p className="text-[clamp(8px,0.58vw,10px)] font-bold uppercase tracking-[0.16em] text-[#8f808b]">
+							Ils façonnent le son avec Nara
+						</p>
+					</div>
+				</div>
+
+				<div className="relative z-10 mx-auto mt-7 w-full max-w-[min(96vw,1180px)] flex-1 md:absolute md:left-1/2 md:top-[clamp(270px,36dvh,350px)] md:mt-0 md:max-w-[min(84vw,1180px)] md:-translate-x-1/2">
+					<div className="absolute -inset-x-8 bottom-0 top-[18%] bg-[#d9008d]/10 blur-3xl" />
+					<div className="relative max-h-[min(44dvh,430px)] overflow-hidden rounded-t-[8px] border-x border-t border-[#1f171d] bg-[#0a080a] shadow-[0_22px_70px_rgba(0,0,0,0.38)] sm:max-h-[min(48dvh,500px)] md:max-h-[min(55dvh,560px)]">
+						<Image
+							src="/app-preview.png"
+							alt="Interface de l'application Nara"
+							width={1440}
+							height={1000}
+							priority
+							className="h-auto w-full object-cover object-top [-webkit-mask-image:linear-gradient(to_bottom,black_0%,black_62%,transparent_100%)] [mask-image:linear-gradient(to_bottom,black_0%,black_62%,transparent_100%)]"
+						/>
+						<div className="pointer-events-none absolute inset-x-0 bottom-0 h-[46%] bg-gradient-to-b from-transparent via-[#10070d]/78 to-[#050506]" />
+					</div>
 				</div>
 			</div>
-		</div>
-	</section>
+			<div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-[clamp(150px,24dvh,260px)] bg-gradient-to-b from-transparent via-[#050506]/88 to-[#050506]" />
+		</section>
+	</>
 );
