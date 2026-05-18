@@ -17,7 +17,7 @@ export const Cta = () => (
             {/*cta button*/}
             <Link
                 href="/components/landing/Pricing"
-                className="inline-block px-10 py-4 rounded-full font-bold text-white tracking-wide transition-transform hover:scale-105 bg-gradient-to-r from-[#AA0063] from-[7%] to-[#CD2A9B] to-[86%] shadow-lg mb-4"
+                className="inline-block px-12 py-5 text-lg rounded-full font-bold text-white tracking-wide transition-transform hover:scale-110 bg-gradient-to-r from-[#AA0063] from-[7%] to-[#CD2A9B] to-[86%] shadow-lg mb-4"
             >
                 Rejoindre NARA gratuitement
             </Link>
