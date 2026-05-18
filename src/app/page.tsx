@@ -1,6 +1,5 @@
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/landing/Hero";
-import { LogoCarousel } from "@/components/landing/LogoCarousel";
 import { Features } from "@/components/landing/features/Features";
 import { Avis } from "@/components/landing/Avis";
 import { Pv } from "@/components/landing/Pv";
@@ -14,7 +13,6 @@ export default function Page() {
 			<Header />
 			<main>
 				<Hero />
-				<LogoCarousel />
 				<Pv />
 				<Features />
 				<Avis />
