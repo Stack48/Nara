@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+<<<<<<< HEAD
 @theme {
   --font-syne: var(--font-syne);
   --font-arimo: var(--font-arimo);
@@ -7,3 +8,22 @@
   --color-nara-black: #050505;
   --color-nara-pink: #D90097;
 }
+=======
+:root {
+	--background: #fafafa;
+	--foreground: #0a0a0a;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--background: #0a0a0a;
+		--foreground: #fafafa;
+	}
+}
+
+body {
+	background: var(--background);
+	color: var(--foreground);
+	font-family: system-ui, sans-serif;
+}
+>>>>>>> 35f7b4b (modification du hero avec ajout de colorbends + fix Logocaroussel)
