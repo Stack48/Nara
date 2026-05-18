@@ -45,7 +45,7 @@ export const Avis = () => {
 						>
 							{/* guillemets */}
 							<span
-								className={`${tacOne.className} text-[#D90097] text-[200px] leading-[0.6] block mb-0`}
+								className={`${tacOne.className} text-[#D90097] text-[280px] leading-[0.6] block -mb-8`}
 								aria-hidden="true"
 							>
 								“
