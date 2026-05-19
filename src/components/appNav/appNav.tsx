@@ -185,7 +185,7 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 		);
 	const activeHref: string | undefined = activeNavItem?.href;
 	const ariane: BreadcrumbItem[] = activeNavItem?.breadcrumbs ?? [
-		{ label: "Dashboard" },
+		{ label: "Home" },
 	];
 
 	useEffect(() => {
