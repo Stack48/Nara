@@ -122,7 +122,7 @@ export const Hero = () => (
 					</p>
 
 					<Link
-						href="/users"
+						href="/GenaralAPP/home"
 						className="mt-5 inline-flex h-12 w-full max-w-[min(82vw,380px)] items-center justify-center rounded-[8px] bg-[#d9008d] px-5 text-sm font-bold text-[#fff7fc] transition hover:bg-[#e60091] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#e6008e] sm:mt-[clamp(18px,2.4vh,30px)] sm:h-[clamp(44px,5.2vh,56px)] sm:text-[clamp(12px,0.9vw,15px)]"
 					>
 						Essayer gratuitement !
