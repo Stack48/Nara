@@ -249,7 +249,8 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 	const ariane: BreadcrumbItem[] = activeNavItem?.breadcrumbs ?? [
 		{ label: "Home" },
 	];
-	const shouldHideChrome: boolean = isLyricsFocusMode && shouldHideLyricsChrome;
+	const shouldHideChrome: boolean =
+		isLyricsFocusMode && shouldHideLyricsChrome;
 
 	useEffect((): (() => void) => {
 		function handleLyricsFocusMode(event: Event): void {
@@ -262,7 +263,10 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 			setShouldHideLyricsChrome(focusEvent.detail?.hideChrome === true);
 		}
 
-		window.addEventListener("nara:lyrics-focus-mode", handleLyricsFocusMode);
+		window.addEventListener(
+			"nara:lyrics-focus-mode",
+			handleLyricsFocusMode,
+		);
 
 		return (): void => {
 			window.removeEventListener(
@@ -282,7 +286,8 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 
 	function handleToggleTheme(): void {
 		setAppTheme((currentTheme: AppTheme): AppTheme => {
-			const nextTheme: AppTheme = currentTheme === "light" ? "dark" : "light";
+			const nextTheme: AppTheme =
+				currentTheme === "light" ? "dark" : "light";
 			window.localStorage.setItem(appThemeStorageKey, nextTheme);
 			return nextTheme;
 		});
@@ -297,10 +302,10 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 			return;
 		}
 
-		function handleDocumentPointerDown(event: globalThis.PointerEvent): void {
-			if (
-				profileOverlayRef.current?.contains(event.target as Node)
-			) {
+		function handleDocumentPointerDown(
+			event: globalThis.PointerEvent,
+		): void {
+			if (profileOverlayRef.current?.contains(event.target as Node)) {
 				return;
 			}
 
@@ -313,7 +318,10 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 			}
 		}
 
-		window.document.addEventListener("pointerdown", handleDocumentPointerDown);
+		window.document.addEventListener(
+			"pointerdown",
+			handleDocumentPointerDown,
+		);
 		window.document.addEventListener("keydown", handleDocumentKeyDown);
 
 		return () => {
@@ -321,7 +329,10 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 				"pointerdown",
 				handleDocumentPointerDown,
 			);
-			window.document.removeEventListener("keydown", handleDocumentKeyDown);
+			window.document.removeEventListener(
+				"keydown",
+				handleDocumentKeyDown,
+			);
 		};
 	}, [closeProfileOverlay, isProfileOverlayOpen]);
 
@@ -406,270 +417,288 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 			{/* format aside toute la partie gauche, header en haut et mais en dessous de header a droite de aside */}
 			{/* flex */}
 			{!shouldHideChrome && (
-			<aside
-				className={`relative flex h-dvh min-h-0 shrink-0 flex-col items-center justify-between bg-[var(--nara-nav-bg)] pt-4 transition-[width] duration-200 ease-out ${
-					isCollapsed ? "w-[72px]" : "w-[232px]"
-				}`}
-			>
-				<div className="flex w-full flex-col items-center justify-center gap-5 px-2">
-					<div className="flex w-full items-center justify-center">
-						<Link href="/GenaralAPP/home">
-							<h1
-								className={`${syne.className} flex h-7 items-center whitespace-nowrap text-[26px] leading-none text-[var(--nara-text-primary)] transition-[width] duration-200 ${
-									isCollapsed
-										? "w-10 justify-center overflow-visible"
-										: "w-[126px] justify-start overflow-hidden"
-								}`}
-							>
-								{isCollapsed ? "N" : "NARA"}
-							</h1>
-						</Link>
-					</div>
-					<button
-						type="button"
-						aria-label={
-							isCollapsed
-								? "Agrandir la navigation"
-								: "Reduire la navigation"
-						}
-						aria-pressed={isCollapsed}
-						onClick={(): void => {
-							setIsCollapsed((currentValue: boolean): boolean => !currentValue);
-						}}
-						className="absolute right-[-14px] top-1/2 z-30 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-[7px] border border-[var(--nara-action-border)] bg-[var(--nara-action-bg)] text-[var(--nara-text-secondary)] shadow-[0_0_0_1px_rgba(0,0,0,0.12)] transition-colors hover:bg-[var(--nara-action-hover)] hover:text-[var(--nara-text-primary)]"
-					>
-						{isCollapsed ? (
-							<ChevronsRight size={14} strokeWidth={2} />
-						) : (
-							<ChevronsLeft size={14} strokeWidth={2} />
-						)}
-					</button>
-					<button
-						className={`flex h-10 w-full items-center justify-center gap-2 rounded-[7px] bg-[linear-gradient(90deg,#AA0063_0%,#D80096_100%)] transition hover:brightness-110 ${
-							isCollapsed ? "px-0" : ""
-						}`}
-						aria-label={isCollapsed ? "Create" : undefined}
-					>
-						<Plus size={iconSize} />
-						<span
-							className={`text-[13px] font-semibold transition-opacity duration-150 ${
-								isCollapsed
-									? "sr-only opacity-0"
-									: "opacity-100"
-							}`}
-						>
-							Create
-						</span>
-					</button>
-					<nav
-						ref={navRef}
-						className="relative flex w-full flex-col gap-5"
-					>
-						<span
-							data-active-nav-indicator="true"
-							aria-hidden="true"
-							className={`pointer-events-none absolute rounded-[7px] bg-[#17171C] transition-[opacity,transform,width,height] duration-200 ease-out before:absolute before:left-1 before:top-1/2 before:h-[20px] before:w-[4px] before:-translate-y-1/2 before:rounded-full before:bg-[#F3F4F6] ${
-								activeIndicator.visible
-									? "z-[1] opacity-100"
-									: "opacity-0"
-							}`}
-							style={{
-								height: activeIndicator.height,
-								transform: `translate3d(${activeIndicator.left}px, ${activeIndicator.top}px, 0)`,
-								width: activeIndicator.width,
-							}}
-						/>
-						{navSections.map((section) => (
-							<div
-								key={section.title}
-								className="relative flex flex-col gap-2"
-							>
-								<h2
-									className={`px-1 text-[15px] font-bold text-[#919191] transition-opacity duration-150 ${
-										isCollapsed
-											? "sr-only opacity-0"
-											: "opacity-100"
-									}`}
-								>
-									{section.title}
-								</h2>
-								<ul
-									className={`flex flex-col gap-1.5 ${
-										isCollapsed ? "pl-0" : "pl-3"
-									}`}
-								>
-									{section.links.map((item) => {
-										const canShowActive =
-											section.hasActiveIndicator;
-										const isActive =
-											canShowActive &&
-											activeHref === item.href;
-
-										return (
-											<li
-												key={`${section.title}-${item.href}`}
-												className="relative text-[15px] font-medium before:absolute before:inset-0 before:z-0 before:rounded-[7px] before:bg-[#17171C] before:opacity-0 before:transition-opacity before:duration-150 hover:before:opacity-100"
-											>
-												<Link
-													href={item.href}
-													ref={(
-														node: HTMLAnchorElement | null,
-													): void => {
-														if (canShowActive) {
-															linkRefs.current[
-																item.href
-															] = node;
-														}
-													}}
-													aria-current={
-														isActive
-															? "page"
-															: undefined
-													}
-													title={isCollapsed ? item.label : undefined}
-													className={`relative z-[2] flex min-h-8 items-center rounded-[7px] py-1 transition-colors duration-200 ${
-														isCollapsed
-															? "justify-center px-0"
-															: "gap-2 pl-5 pr-3"
-													} ${
-														isActive
-															? "text-[#F3F4F6]"
-															: "text-[#919191] hover:text-[#F3F4F6]"
-													}`}
-												>
-													<span className="relative z-[2] flex items-center">
-														{item.icon}
-													</span>
-													<span
-														className={`relative z-[2] overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-150 ${
-															isCollapsed
-																? "max-w-0 opacity-0"
-																: "max-w-[150px] opacity-100"
-														}`}
-													>
-														{item.label}
-													</span>
-												</Link>
-											</li>
-										);
-									})}
-								</ul>
-							</div>
-						))}
-					</nav>
-				</div>
-				<div
-					ref={profileOverlayRef}
-					className={`relative flex w-full items-center border-t border-[var(--nara-border)] px-3 py-3 ${
-						isCollapsed ? "justify-center" : "justify-center gap-2"
+				<aside
+					className={`relative flex h-dvh min-h-0 shrink-0 flex-col items-center justify-between bg-[var(--nara-nav-bg)] pt-4 transition-[width] duration-200 ease-out ${
+						isCollapsed ? "w-[72px]" : "w-[232px]"
 					}`}
 				>
-					{isProfileOverlayOpen && (
-						<div
-							role="dialog"
-							aria-label="Menu du profil"
-							className={`absolute bottom-[calc(100%+10px)] z-50 w-[286px] overflow-hidden rounded-[10px] border border-[var(--nara-border-strong)] bg-[var(--nara-surface-raised)] p-2 text-[var(--nara-text-primary)] shadow-[0_14px_30px_rgba(17,17,19,0.18)] ${
-								isCollapsed ? "left-3" : "left-3"
-							}`}
-						>
-							<div className="px-2.5 py-2">
-								<p className="truncate text-[12px] font-medium text-[var(--nara-text-secondary)]">
-									janviercharly97114@gmail.com
-								</p>
-								<div className="mt-2 flex items-center gap-2">
-									<Image
-										src="/udonis.png"
-										alt=""
-										width={32}
-										height={32}
-										className="h-8 w-8 rounded-full object-cover"
-									/>
-									<div className="min-w-0">
-										<p className="truncate text-[13px] font-bold leading-4">
-											Udonis Haslem
-										</p>
-										<p className="text-[11px] font-medium text-[var(--nara-text-secondary)]">
-											Personal account
-										</p>
-									</div>
-								</div>
-							</div>
-
-							<div className="my-1 h-px bg-[var(--nara-border)]" />
-
-							<div className="grid gap-0.5">
-								{profileActions.map(
-									(action: ProfileAction): ReactElement => (
-										<button
-											key={action.label}
-											type="button"
-											onClick={closeProfileOverlay}
-											className={`flex h-8 w-full items-center gap-2 rounded-[6px] px-2.5 text-left text-[13px] font-semibold transition-colors hover:bg-[var(--nara-action-hover)] ${
-												action.variant === "danger"
-													? "text-[var(--nara-text-primary)]"
-													: "text-[var(--nara-text-primary)]"
-											}`}
-										>
-											<span className="flex h-4 w-4 shrink-0 items-center justify-center text-[var(--nara-text-secondary)]">
-												{action.icon}
-											</span>
-											<span className="min-w-0 flex-1 truncate">
-												{action.label}
-											</span>
-											{action.shortcut && (
-												<span className="text-[12px] font-medium text-[var(--nara-text-secondary)]">
-													{action.shortcut}
-												</span>
-											)}
-											{action.trailing && (
-												<span className="text-[var(--nara-text-secondary)]">
-													{action.trailing}
-												</span>
-											)}
-										</button>
-									),
-								)}
-							</div>
+					<div className="flex w-full flex-col items-center justify-center gap-5 px-2">
+						<div className="flex w-full items-center justify-center">
+							<Link href="/GenaralAPP/home">
+								<h1
+									className={`${syne.className} flex h-7 items-center whitespace-nowrap text-[26px] leading-none text-[var(--nara-text-primary)] transition-[width] duration-200 ${
+										isCollapsed
+											? "w-10 justify-center overflow-visible"
+											: "w-[126px] justify-start overflow-hidden"
+									}`}
+								>
+									{isCollapsed ? "N" : "NARA"}
+								</h1>
+							</Link>
 						</div>
-					)}
-					<button
-						type="button"
-						aria-label="Ouvrir le menu du profil"
-						aria-expanded={isProfileOverlayOpen}
-						onClick={(): void => {
-							setIsProfileOverlayOpen(
-								(currentValue: boolean): boolean => !currentValue,
-							);
-						}}
-						className={`flex min-h-12 w-full items-center rounded-[8px] text-left transition-colors hover:bg-[var(--nara-profile-hover)] ${
-							isCollapsed ? "justify-center px-0" : "justify-center gap-2 px-1.5"
+						<button
+							type="button"
+							aria-label={
+								isCollapsed
+									? "Agrandir la navigation"
+									: "Reduire la navigation"
+							}
+							aria-pressed={isCollapsed}
+							onClick={(): void => {
+								setIsCollapsed(
+									(currentValue: boolean): boolean =>
+										!currentValue,
+								);
+							}}
+							className="absolute right-[-14px] top-1/2 z-30 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-[7px] border border-[var(--nara-action-border)] bg-[var(--nara-action-bg)] text-[var(--nara-text-secondary)] shadow-[0_0_0_1px_rgba(0,0,0,0.12)] transition-colors hover:bg-[var(--nara-action-hover)] hover:text-[var(--nara-text-primary)]"
+						>
+							{isCollapsed ? (
+								<ChevronsRight size={14} strokeWidth={2} />
+							) : (
+								<ChevronsLeft size={14} strokeWidth={2} />
+							)}
+						</button>
+						<button
+							className={`flex h-10 w-full items-center justify-center gap-2 rounded-[7px] bg-[linear-gradient(90deg,#AA0063_0%,#D80096_100%)] transition hover:brightness-110 ${
+								isCollapsed ? "px-0" : ""
+							}`}
+							aria-label={isCollapsed ? "Create" : undefined}
+						>
+							<Plus size={iconSize} />
+							<span
+								className={`text-[13px] font-semibold transition-opacity duration-150 ${
+									isCollapsed
+										? "sr-only opacity-0"
+										: "opacity-100"
+								}`}
+							>
+								Create
+							</span>
+						</button>
+						<nav
+							ref={navRef}
+							className="relative flex w-full flex-col gap-5"
+						>
+							<span
+								data-active-nav-indicator="true"
+								aria-hidden="true"
+								className={`pointer-events-none absolute rounded-[7px] bg-[#17171C] transition-[opacity,transform,width,height] duration-200 ease-out before:absolute before:left-1 before:top-1/2 before:h-[20px] before:w-[4px] before:-translate-y-1/2 before:rounded-full before:bg-[#F3F4F6] ${
+									activeIndicator.visible
+										? "z-[1] opacity-100"
+										: "opacity-0"
+								}`}
+								style={{
+									height: activeIndicator.height,
+									transform: `translate3d(${activeIndicator.left}px, ${activeIndicator.top}px, 0)`,
+									width: activeIndicator.width,
+								}}
+							/>
+							{navSections.map((section) => (
+								<div
+									key={section.title}
+									className="relative flex flex-col gap-2"
+								>
+									<h2
+										className={`px-1 text-[15px] font-bold text-[#919191] transition-opacity duration-150 ${
+											isCollapsed
+												? "sr-only opacity-0"
+												: "opacity-100"
+										}`}
+									>
+										{section.title}
+									</h2>
+									<ul
+										className={`flex flex-col gap-1.5 ${
+											isCollapsed ? "pl-0" : "pl-3"
+										}`}
+									>
+										{section.links.map((item) => {
+											const canShowActive =
+												section.hasActiveIndicator;
+											const isActive =
+												canShowActive &&
+												activeHref === item.href;
+
+											return (
+												<li
+													key={`${section.title}-${item.href}`}
+													className="relative text-[15px] font-medium before:absolute before:inset-0 before:z-0 before:rounded-[7px] before:bg-[#17171C] before:opacity-0 before:transition-opacity before:duration-150 hover:before:opacity-100"
+												>
+													<Link
+														href={item.href}
+														ref={(
+															node: HTMLAnchorElement | null,
+														): void => {
+															if (canShowActive) {
+																linkRefs.current[
+																	item.href
+																] = node;
+															}
+														}}
+														aria-current={
+															isActive
+																? "page"
+																: undefined
+														}
+														title={
+															isCollapsed
+																? item.label
+																: undefined
+														}
+														className={`relative z-[2] flex min-h-8 items-center rounded-[7px] py-1 transition-colors duration-200 ${
+															isCollapsed
+																? "justify-center px-0"
+																: "gap-2 pl-5 pr-3"
+														} ${
+															isActive
+																? "text-[#F3F4F6]"
+																: "text-[#919191] hover:text-[#F3F4F6]"
+														}`}
+													>
+														<span className="relative z-[2] flex items-center">
+															{item.icon}
+														</span>
+														<span
+															className={`relative z-[2] overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-150 ${
+																isCollapsed
+																	? "max-w-0 opacity-0"
+																	: "max-w-[150px] opacity-100"
+															}`}
+														>
+															{item.label}
+														</span>
+													</Link>
+												</li>
+											);
+										})}
+									</ul>
+								</div>
+							))}
+						</nav>
+					</div>
+					<div
+						ref={profileOverlayRef}
+						className={`relative flex w-full items-center border-t border-[var(--nara-border)] px-3 py-3 ${
+							isCollapsed
+								? "justify-center"
+								: "justify-center gap-2"
 						}`}
 					>
-						<Image
-							src="/udonis.png"
-							alt="test avatar"
-							width={48}
-							height={48}
-							className="h-12 w-12 rounded-full object-cover"
-						/>
-						<div
-							className={`min-w-0 overflow-hidden transition-[max-width,opacity] duration-150 ${
+						{isProfileOverlayOpen && (
+							<div
+								role="dialog"
+								aria-label="Menu du profil"
+								className={`absolute bottom-[calc(100%+10px)] z-50 w-[286px] overflow-hidden rounded-[10px] border border-[var(--nara-border-strong)] bg-[var(--nara-surface-raised)] p-2 text-[var(--nara-text-primary)] shadow-[0_14px_30px_rgba(17,17,19,0.18)] ${
+									isCollapsed ? "left-3" : "left-3"
+								}`}
+							>
+								<div className="px-2.5 py-2">
+									<p className="truncate text-[12px] font-medium text-[var(--nara-text-secondary)]">
+										janviercharly97114@gmail.com
+									</p>
+									<div className="mt-2 flex items-center gap-2">
+										<Image
+											src="/udonis.png"
+											alt=""
+											width={32}
+											height={32}
+											className="h-8 w-8 rounded-full object-cover"
+										/>
+										<div className="min-w-0">
+											<p className="truncate text-[13px] font-bold leading-4">
+												Udonis Haslem
+											</p>
+											<p className="text-[11px] font-medium text-[var(--nara-text-secondary)]">
+												Personal account
+											</p>
+										</div>
+									</div>
+								</div>
+
+								<div className="my-1 h-px bg-[var(--nara-border)]" />
+
+								<div className="grid gap-0.5">
+									{profileActions.map(
+										(
+											action: ProfileAction,
+										): ReactElement => (
+											<button
+												key={action.label}
+												type="button"
+												onClick={closeProfileOverlay}
+												className={`flex h-8 w-full items-center gap-2 rounded-[6px] px-2.5 text-left text-[13px] font-semibold transition-colors hover:bg-[var(--nara-action-hover)] ${
+													action.variant === "danger"
+														? "text-[var(--nara-text-primary)]"
+														: "text-[var(--nara-text-primary)]"
+												}`}
+											>
+												<span className="flex h-4 w-4 shrink-0 items-center justify-center text-[var(--nara-text-secondary)]">
+													{action.icon}
+												</span>
+												<span className="min-w-0 flex-1 truncate">
+													{action.label}
+												</span>
+												{action.shortcut && (
+													<span className="text-[12px] font-medium text-[var(--nara-text-secondary)]">
+														{action.shortcut}
+													</span>
+												)}
+												{action.trailing && (
+													<span className="text-[var(--nara-text-secondary)]">
+														{action.trailing}
+													</span>
+												)}
+											</button>
+										),
+									)}
+								</div>
+							</div>
+						)}
+						<button
+							type="button"
+							aria-label="Ouvrir le menu du profil"
+							aria-expanded={isProfileOverlayOpen}
+							onClick={(): void => {
+								setIsProfileOverlayOpen(
+									(currentValue: boolean): boolean =>
+										!currentValue,
+								);
+							}}
+							className={`flex min-h-12 w-full items-center rounded-[8px] text-left transition-colors hover:bg-[var(--nara-profile-hover)] ${
 								isCollapsed
-									? "max-w-0 opacity-0"
-									: "max-w-[140px] opacity-100"
+									? "justify-center px-0"
+									: "justify-center gap-2 px-1.5"
 							}`}
 						>
-							<p className="truncate text-[16px] font-bold">Udonis Haslem</p>
-							<span className="text-[12px] font-medium text-[var(--nara-text-secondary)]">
-								Pro Plan
-							</span>
-						</div>
-					</button>
-				</div>
-			</aside>
+							<Image
+								src="/udonis.png"
+								alt="test avatar"
+								width={48}
+								height={48}
+								className="h-12 w-12 rounded-full object-cover"
+							/>
+							<div
+								className={`min-w-0 overflow-hidden transition-[max-width,opacity] duration-150 ${
+									isCollapsed
+										? "max-w-0 opacity-0"
+										: "max-w-[140px] opacity-100"
+								}`}
+							>
+								<p className="truncate text-[16px] font-bold">
+									Udonis Haslem
+								</p>
+								<span className="text-[12px] font-medium text-[var(--nara-text-secondary)]">
+									Pro Plan
+								</span>
+							</div>
+						</button>
+					</div>
+				</aside>
 			)}
 			<section className="flex h-dvh min-h-0 w-full flex-col bg-[var(--nara-header-bg)]">
-				<header className={`${shouldHideChrome ? "hidden" : "flex"} shrink-0 items-center justify-between bg-[var(--nara-header-bg)] px-4 py-3`}>
+				<header
+					className={`${shouldHideChrome ? "hidden" : "flex"} shrink-0 items-center justify-between bg-[var(--nara-header-bg)] px-4 py-3`}
+				>
 					<nav className="filAriane flex items-center gap-2 text-[14px]">
 						{/* le dernier est automatiquement en blanc et les autres en gris */}
 						{ariane.map(
@@ -725,11 +754,13 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 				</header>
 				{/* border arrondi top left */}
 
-				<article className={`w-[calc(100%)] min-h-0 flex-1 overflow-hidden bg-[var(--nara-surface)] ${
-					shouldHideChrome
-						? "rounded-none border-0"
-						: "rounded-tl-2xl border-l border-t border-[var(--nara-border)]"
-				}`}>
+				<article
+					className={`w-[calc(100%)] min-h-0 flex-1 overflow-hidden bg-[var(--nara-surface)] ${
+						shouldHideChrome
+							? "rounded-none border-0"
+							: "rounded-tl-2xl border-l border-t border-[var(--nara-border)]"
+					}`}
+				>
 					{children}
 				</article>
 			</section>
