@@ -1413,6 +1413,7 @@ function LyricSectionBlock({
 	isLast,
 	isDragging,
 	format,
+	lineNumberColumnWidth,
 	globalToggles,
 	sectionOptions,
 	isAddMenuOpen,
@@ -1448,6 +1449,7 @@ function LyricSectionBlock({
 	isLast: boolean;
 	isDragging: boolean;
 	format: LyricsFormat;
+	lineNumberColumnWidth: number;
 	globalToggles: EditorToggle[];
 	sectionOptions: SectionOptions;
 	isAddMenuOpen: boolean;
@@ -1498,6 +1500,9 @@ function LyricSectionBlock({
 	const lineStyle: CSSProperties = getLineStyle(format);
 	const syllableMeasureStyle: CSSProperties = getSyllableMeasureStyle(format);
 	const syllableNumberStyle: CSSProperties = getSyllableNumberStyle(format);
+	const lineGridStyle: CSSProperties = {
+		gridTemplateColumns: `${lineNumberColumnWidth}px minmax(0,1fr) 34px`,
+	};
 	const wordCount: number = countSectionWords(section);
 	const showSyllables: boolean = sectionOptions.syllables && globalToggles.some(
 		(toggle: EditorToggle): boolean =>
@@ -1630,13 +1635,14 @@ function LyricSectionBlock({
 							<div
 								key={line.id}
 								data-lyrics-line="true"
-								className={`group/line grid min-h-[28px] grid-cols-[28px_minmax(0,1fr)_34px] items-center gap-3 rounded-[4px] transition-all ${
+								className={`group/line grid min-h-[28px] items-center gap-3 rounded-[4px] transition-all ${
 									draggedLine?.lineId === line.id ? "opacity-45" : "opacity-100"
 								} ${
 									selectedLineIds.has(line.id)
 										? "bg-[#2C2C48] ring-1 ring-[#6060AA]/40"
 										: ""
 								}`}
+								style={lineGridStyle}
 								onDragOver={handleLineDragOver}
 								onDrop={(event: DragEvent<HTMLElement>): void => {
 									if (!eventHasDataType(event, lineDragDataType) && !draggedLine) {
@@ -1665,7 +1671,7 @@ function LyricSectionBlock({
 										onLineDragStart(event, section.id, line.id);
 									}}
 									onDragEnd={onLineDragEnd}
-									className={`inline-flex h-6 cursor-grab items-center justify-end rounded-[3px] pr-0.5 text-right text-[16px] font-medium leading-none transition-colors hover:bg-[#222228] hover:text-white active:cursor-grabbing select-none ${
+									className={`inline-flex h-6 w-full cursor-grab items-center justify-end rounded-[3px] pr-0.5 text-right text-[16px] font-medium leading-none tabular-nums transition-colors hover:bg-[#222228] hover:text-white active:cursor-grabbing select-none ${
 										selectedLineIds.has(line.id) ? "text-white" : "text-[#F3F4F6]"
 									}`}
 								>
@@ -2135,6 +2141,20 @@ export default function LyricsEditorWorkspace({
 		(): number => countDocumentWords(document),
 		[document],
 	);
+	const lineNumberColumnWidth: number = useMemo((): number => {
+		const maxLineNumber: number = document.sections.reduce(
+			(currentMax: number, section: LyricSection): number =>
+				section.lines.reduce(
+					(lineMax: number, line: LyricLine): number =>
+						Math.max(lineMax, line.number),
+					currentMax,
+				),
+			1,
+		);
+		const digitCount: number = maxLineNumber.toString().length;
+
+		return Math.max(32, Math.min(84, digitCount * 10 + 14));
+	}, [document.sections]);
 
 	useEffect((): void => {
 		const storage: Storage | null = getClientStorage();
@@ -2887,6 +2907,7 @@ export default function LyricsEditorWorkspace({
 									isLast={index === document.sections.length - 1}
 									isDragging={draggedSectionId === section.id}
 									format={format}
+									lineNumberColumnWidth={lineNumberColumnWidth}
 									globalToggles={toggles}
 									sectionOptions={getSectionOptions(section.id)}
 									isAddMenuOpen={openAddMenuSectionId === section.id}
