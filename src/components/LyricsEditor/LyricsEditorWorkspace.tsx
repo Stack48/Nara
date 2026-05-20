@@ -2840,6 +2840,62 @@ export default function LyricsEditorWorkspace({
 		}
 	}
 
+	function handleLineAutoWrap(
+		sectionId: string,
+		lineId: string,
+		currentText: string,
+		overflowText: string,
+	): void {
+		let insertedLineId: string | null = null;
+
+		updateDocument({
+			...document,
+			sections: renumberDocument(
+				document.sections.map(
+					(section: LyricSection): LyricSection => {
+						if (section.id !== sectionId) {
+							return section;
+						}
+
+						const lineIndex: number = section.lines.findIndex(
+							(line: LyricLine): boolean => line.id === lineId,
+						);
+
+						if (lineIndex === -1) {
+							return section;
+						}
+
+						const insertedLine: LyricLine = {
+							...createBlankLine(section.id),
+							text: overflowText,
+						};
+						const nextLines: LyricLine[] = section.lines.map(
+							(line: LyricLine): LyricLine =>
+								line.id === lineId ? { ...line, text: currentText } : line,
+						);
+
+						insertedLineId = insertedLine.id;
+						nextLines.splice(lineIndex + 1, 0, insertedLine);
+
+						return {
+							...section,
+							lines: nextLines,
+						};
+					},
+				),
+			),
+		});
+
+		if (insertedLineId) {
+			setPendingFocusLineId(insertedLineId);
+			window.setTimeout((): void => {
+				if (insertedLineId) {
+					focusLineInputById(insertedLineId);
+				}
+			}, 90);
+		}
+	}
+
 	function handleDragStart(
 		event: DragEvent<HTMLButtonElement>,
 		sectionId: string,
