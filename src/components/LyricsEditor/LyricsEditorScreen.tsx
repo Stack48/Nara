@@ -49,10 +49,12 @@ export default function LyricsEditorScreen(): ReactElement {
 	}, [format.focusMode, format.hideAppChrome]);
 
 	function handleFormatChange(patch: Partial<LyricsFormat>): void {
-		setFormat((currentFormat: LyricsFormat): LyricsFormat => ({
-			...currentFormat,
-			...patch,
-		}));
+		setFormat(
+			(currentFormat: LyricsFormat): LyricsFormat => ({
+				...currentFormat,
+				...patch,
+			}),
+		);
 	}
 
 	return (

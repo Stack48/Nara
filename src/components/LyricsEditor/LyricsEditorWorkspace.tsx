@@ -335,7 +335,7 @@ function parseStoredDocument(storedValue: string | null): LyricsDocument | null 
 	}
 }
 
-function parseStoredLineComments(storedValue: string | null): LineCommentsById | null {
+functio n parseStoredLineComments(storedValue: string | null): LineCommentsById | null {
 	if (!storedValue) {
 		return null;
 	}

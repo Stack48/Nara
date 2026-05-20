@@ -111,7 +111,6 @@ const fontSizeOptions: SelectOption[] = [
 	{ label: "24", value: "24" },
 	{ label: "28", value: "28" },
 	{ label: "32", value: "32" },
-
 ];
 
 const blockSizeOptions: SelectOption[] = [
@@ -269,8 +268,7 @@ function rgbToHsl({ b, g, r }: RgbColor): HslColor {
 	let saturation = 0;
 
 	if (delta !== 0) {
-		saturation =
-			delta / (1 - Math.abs(2 * lightness - 1));
+		saturation = delta / (1 - Math.abs(2 * lightness - 1));
 
 		if (maxValue === normalizedR) {
 			hue = 60 * (((normalizedG - normalizedB) / delta) % 6);
@@ -291,8 +289,7 @@ function rgbToHsl({ b, g, r }: RgbColor): HslColor {
 function hslToRgb({ h, l, s }: HslColor): RgbColor {
 	const normalizedS: number = clampNumber(s, 0, 100) / 100;
 	const normalizedL: number = clampNumber(l, 0, 100) / 100;
-	const chroma: number =
-		(1 - Math.abs(2 * normalizedL - 1)) * normalizedS;
+	const chroma: number = (1 - Math.abs(2 * normalizedL - 1)) * normalizedS;
 	const huePrime: number = (((h % 360) + 360) % 360) / 60;
 	const x: number = chroma * (1 - Math.abs((huePrime % 2) - 1));
 	const match: number = normalizedL - chroma / 2;
@@ -331,7 +328,10 @@ function getPickerHandlePosition(percent: number): string {
 	return `${clampNumber(percent, 4, 96)}%`;
 }
 
-function areHsvColorsEqual(firstColor: HsvColor, secondColor: HsvColor): boolean {
+function areHsvColorsEqual(
+	firstColor: HsvColor,
+	secondColor: HsvColor,
+): boolean {
 	return (
 		firstColor.h === secondColor.h &&
 		firstColor.s === secondColor.s &&
@@ -375,7 +375,9 @@ function ToolbarSelect({
 	}
 
 	return (
-		<label className={`relative inline-flex h-7 items-center ${widthClassName}`}>
+		<label
+			className={`relative inline-flex h-7 items-center ${widthClassName}`}
+		>
 			<span className="sr-only">{ariaLabel}</span>
 			<select
 				aria-label={ariaLabel}
@@ -384,7 +386,12 @@ function ToolbarSelect({
 				className="h-full w-full appearance-none rounded-[4px] bg-transparent pl-0 pr-4 text-[13px] font-semibold leading-none text-[#F3F4F6] outline-none transition-colors hover:text-white focus-visible:bg-[#24242A]"
 				style={
 					previewFont
-						? { fontFamily: value === "Arimo" ? "Arimo, sans-serif" : value }
+						? {
+								fontFamily:
+									value === "Arimo"
+										? "Arimo, sans-serif"
+										: value,
+							}
 						: undefined
 				}
 			>
@@ -427,8 +434,9 @@ function IconButton({
 			aria-pressed={active}
 			onMouseDown={keepEditorSelection}
 			onClick={onClick}
-			className={`inline-flex h-7 w-7 items-center justify-center rounded-[5px] text-[#F3F4F6] transition-colors hover:bg-[#24242A] hover:text-white ${active ? "bg-[#2C2C32]" : ""
-				}`}
+			className={`inline-flex h-7 w-7 items-center justify-center rounded-[5px] text-[#F3F4F6] transition-colors hover:bg-[#24242A] hover:text-white ${
+				active ? "bg-[#2C2C32]" : ""
+			}`}
 		>
 			<Icon size={17} strokeWidth={2} />
 		</button>
@@ -457,7 +465,8 @@ function PickerSlider({
 	const percent: number = ((value - min) / (max - min)) * 100;
 
 	function updateFromPointer(event: PointerEvent<HTMLDivElement>): void {
-		const rect: DOMRect | undefined = sliderRef.current?.getBoundingClientRect();
+		const rect: DOMRect | undefined =
+			sliderRef.current?.getBoundingClientRect();
 
 		if (!rect) {
 			return;
@@ -622,7 +631,10 @@ function NumberDragInput({
 			inputMode="numeric"
 			value={draftValue}
 			onChange={(event: ChangeEvent<HTMLInputElement>): void => {
-				const nextValue: string = event.target.value.replace(/[^\d-]/g, "");
+				const nextValue: string = event.target.value.replace(
+					/[^\d-]/g,
+					"",
+				);
 				const parsedValue: number = Number.parseInt(nextValue, 10);
 
 				setDraftValue(nextValue);
@@ -709,8 +721,7 @@ function ColorPickerPopover({
 		(): HslColor => rgbToHsl(hexToRgb(normalizedColor)),
 		[normalizedColor],
 	);
-	const [colorInputMode, setColorInputMode] =
-		useState<ColorInputMode>("hex");
+	const [colorInputMode, setColorInputMode] = useState<ColorInputMode>("hex");
 	const [hexInput, setHexInput] = useState<string>(normalizedColor.slice(1));
 	const [isModeMenuOpen, setIsModeMenuOpen] = useState<boolean>(false);
 	const colorCss: string = getLyricsTextColorCss({
@@ -720,10 +731,11 @@ function ColorPickerPopover({
 
 	function setSyncedHsvColor(nextHsvColor: HsvColor): void {
 		hsvColorRef.current = nextHsvColor;
-		setHsvColor((currentHsvColor: HsvColor): HsvColor =>
-			areHsvColorsEqual(currentHsvColor, nextHsvColor)
-				? currentHsvColor
-				: nextHsvColor,
+		setHsvColor(
+			(currentHsvColor: HsvColor): HsvColor =>
+				areHsvColorsEqual(currentHsvColor, nextHsvColor)
+					? currentHsvColor
+					: nextHsvColor,
 		);
 	}
 
@@ -748,10 +760,11 @@ function ColorPickerPopover({
 				: convertedHsvColor;
 		lastPickerColorRef.current = normalizedColor;
 		hsvColorRef.current = nextHsvColor;
-		setHsvColor((currentHsvColor: HsvColor): HsvColor =>
-			areHsvColorsEqual(currentHsvColor, nextHsvColor)
-				? currentHsvColor
-				: nextHsvColor,
+		setHsvColor(
+			(currentHsvColor: HsvColor): HsvColor =>
+				areHsvColorsEqual(currentHsvColor, nextHsvColor)
+					? currentHsvColor
+					: nextHsvColor,
 		);
 	}, [normalizedColor]);
 
@@ -799,7 +812,8 @@ function ColorPickerPopover({
 	}
 
 	function updateFromColorArea(event: PointerEvent<HTMLDivElement>): void {
-		const rect: DOMRect | undefined = colorAreaRef.current?.getBoundingClientRect();
+		const rect: DOMRect | undefined =
+			colorAreaRef.current?.getBoundingClientRect();
 
 		if (!rect) {
 			return;
@@ -851,10 +865,7 @@ function ColorPickerPopover({
 		}
 	}
 
-	function handleChannelChange(
-		channelIndex: number,
-		rawValue: number,
-	): void {
+	function handleChannelChange(channelIndex: number, rawValue: number): void {
 		const maxValue: number = channelIndex === 0 ? 360 : 100;
 		const rgbMaxValue = 255;
 		const nextValue: number = clampNumber(
@@ -952,25 +963,39 @@ function ColorPickerPopover({
 					updateFromColorArea(event);
 				}}
 				onPointerUp={(event: PointerEvent<HTMLDivElement>): void => {
-					if (activeColorAreaPointerIdRef.current !== event.pointerId) {
+					if (
+						activeColorAreaPointerIdRef.current !== event.pointerId
+					) {
 						return;
 					}
 
 					activeColorAreaPointerIdRef.current = null;
 
-					if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-						event.currentTarget.releasePointerCapture(event.pointerId);
+					if (
+						event.currentTarget.hasPointerCapture(event.pointerId)
+					) {
+						event.currentTarget.releasePointerCapture(
+							event.pointerId,
+						);
 					}
 				}}
-				onPointerCancel={(event: PointerEvent<HTMLDivElement>): void => {
-					if (activeColorAreaPointerIdRef.current !== event.pointerId) {
+				onPointerCancel={(
+					event: PointerEvent<HTMLDivElement>,
+				): void => {
+					if (
+						activeColorAreaPointerIdRef.current !== event.pointerId
+					) {
 						return;
 					}
 
 					activeColorAreaPointerIdRef.current = null;
 
-					if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-						event.currentTarget.releasePointerCapture(event.pointerId);
+					if (
+						event.currentTarget.hasPointerCapture(event.pointerId)
+					) {
+						event.currentTarget.releasePointerCapture(
+							event.pointerId,
+						);
 					}
 				}}
 			>
@@ -993,7 +1018,9 @@ function ColorPickerPopover({
 			</div>
 
 			<div className="mt-3 grid grid-cols-[22px_minmax(0,1fr)] items-center gap-x-2 gap-y-2">
-				<span className="text-center text-[10px] font-bold text-[#F3F4F6]">H</span>
+				<span className="text-center text-[10px] font-bold text-[#F3F4F6]">
+					H
+				</span>
 				<PickerSlider
 					ariaLabel="Teinte"
 					backgroundImage={hueBackground}
@@ -1004,7 +1031,9 @@ function ColorPickerPopover({
 						applyHsv({ ...hsvColorRef.current, h: hue });
 					}}
 				/>
-				<span className="text-center text-[10px] font-bold text-[#F3F4F6]">A</span>
+				<span className="text-center text-[10px] font-bold text-[#F3F4F6]">
+					A
+				</span>
 				<PickerSlider
 					ariaLabel="Opacite"
 					backgroundImage={opacityBackground}
@@ -1026,12 +1055,13 @@ function ColorPickerPopover({
 					<button
 						type="button"
 						aria-expanded={isModeMenuOpen}
-						onMouseDown={(event: MouseEvent<HTMLButtonElement>): void =>
-							event.preventDefault()
-						}
+						onMouseDown={(
+							event: MouseEvent<HTMLButtonElement>,
+						): void => event.preventDefault()}
 						onClick={(): void => {
 							setIsModeMenuOpen(
-								(currentValue: boolean): boolean => !currentValue,
+								(currentValue: boolean): boolean =>
+									!currentValue,
 							);
 						}}
 						className="inline-flex h-7 w-full items-center justify-between rounded-[4px] border border-[#4A4A52] bg-[#33333A] px-2 text-[11px] font-semibold text-[#F3F4F6] outline-none transition-colors hover:bg-[#3A3A42]"
@@ -1078,7 +1108,10 @@ function ColorPickerPopover({
 					/>
 				) : (
 					channelValues.map(
-						(channelValue: number, channelIndex: number): ReactElement => (
+						(
+							channelValue: number,
+							channelIndex: number,
+						): ReactElement => (
 							<NumberDragInput
 								key={`${colorInputMode}-${channelIndex}`}
 								ariaLabel={`${selectedModeLabel} ${channelIndex + 1}`}
@@ -1092,7 +1125,10 @@ function ColorPickerPopover({
 								}
 								value={Math.round(channelValue)}
 								onChange={(nextValue: number): void => {
-									handleChannelChange(channelIndex, nextValue);
+									handleChannelChange(
+										channelIndex,
+										nextValue,
+									);
 								}}
 								className="h-7 min-w-0 rounded-[4px] border border-[#3E3E46] bg-[#33333A] px-1 text-center text-[11px] font-bold text-[#F3F4F6] outline-none focus:border-[#F3F4F6]"
 							/>
@@ -1123,46 +1159,47 @@ function ColorPickerPopover({
 			<div className="mt-3 h-px bg-[#3A3A42]" />
 
 			<div className="mt-3 grid grid-cols-8 gap-2">
-				{colorShortcuts.map(
-					(shortcutColor: string): ReactElement => {
-						const isSelected: boolean =
-							normalizeHexColor(shortcutColor) === normalizedColor;
+				{colorShortcuts.map((shortcutColor: string): ReactElement => {
+					const isSelected: boolean =
+						normalizeHexColor(shortcutColor) === normalizedColor;
 
-						return (
-							<button
-								key={shortcutColor}
-								type="button"
-								aria-label={`Couleur ${shortcutColor}`}
-								onMouseDown={(event: MouseEvent<HTMLButtonElement>): void =>
-									event.preventDefault()
-								}
-								onClick={(): void => {
-									const convertedHsvColor: HsvColor = rgbToHsv(
-										hexToRgb(shortcutColor),
-									);
-									const nextHsvColor: HsvColor =
-										convertedHsvColor.s === 0 || convertedHsvColor.v === 0
-											? {
-													...convertedHsvColor,
-													h: hsvColorRef.current.h,
-												}
-											: convertedHsvColor;
+					return (
+						<button
+							key={shortcutColor}
+							type="button"
+							aria-label={`Couleur ${shortcutColor}`}
+							onMouseDown={(
+								event: MouseEvent<HTMLButtonElement>,
+							): void => event.preventDefault()}
+							onClick={(): void => {
+								const convertedHsvColor: HsvColor = rgbToHsv(
+									hexToRgb(shortcutColor),
+								);
+								const nextHsvColor: HsvColor =
+									convertedHsvColor.s === 0 ||
+									convertedHsvColor.v === 0
+										? {
+												...convertedHsvColor,
+												h: hsvColorRef.current.h,
+											}
+										: convertedHsvColor;
 
-									lastPickerColorRef.current = shortcutColor;
-									setSyncedHsvColor(nextHsvColor);
-									onChange({
-										textColor: shortcutColor,
-										textOpacity: opacity,
-									});
-								}}
-								className={`h-4 w-4 rounded-[3px] border transition-transform hover:scale-110 ${
-									isSelected ? "border-[#F3F4F6]" : "border-[#4A4A52]"
-								}`}
-								style={{ backgroundColor: shortcutColor }}
-							/>
-						);
-					},
-				)}
+								lastPickerColorRef.current = shortcutColor;
+								setSyncedHsvColor(nextHsvColor);
+								onChange({
+									textColor: shortcutColor,
+									textOpacity: opacity,
+								});
+							}}
+							className={`h-4 w-4 rounded-[3px] border transition-transform hover:scale-110 ${
+								isSelected
+									? "border-[#F3F4F6]"
+									: "border-[#4A4A52]"
+							}`}
+							style={{ backgroundColor: shortcutColor }}
+						/>
+					);
+				})}
 			</div>
 
 			<div className="mt-3 flex items-center justify-between">
@@ -1278,14 +1315,17 @@ export default function LyricsHeader({
 			label: "Piste",
 			icon: Disc,
 			active: format.showTrackPanel,
-			onClick: () => onFormatChange({ showTrackPanel: !format.showTrackPanel }),
+			onClick: () =>
+				onFormatChange({ showTrackPanel: !format.showTrackPanel }),
 		},
 		{
 			label: "Outils",
 			icon: Badge,
 			active: format.showInspectorTools,
 			onClick: () =>
-				onFormatChange({ showInspectorTools: !format.showInspectorTools }),
+				onFormatChange({
+					showInspectorTools: !format.showInspectorTools,
+				}),
 		},
 		{
 			label: "Mode focus",
@@ -1303,10 +1343,14 @@ export default function LyricsHeader({
 						label: format.hideAppChrome
 							? "Afficher la navigation"
 							: "Cacher la navigation",
-						icon: format.hideAppChrome ? PanelLeftOpen : PanelLeftClose,
+						icon: format.hideAppChrome
+							? PanelLeftOpen
+							: PanelLeftClose,
 						active: format.hideAppChrome,
 						onClick: () =>
-							onFormatChange({ hideAppChrome: !format.hideAppChrome }),
+							onFormatChange({
+								hideAppChrome: !format.hideAppChrome,
+							}),
 					},
 				]
 			: []),
@@ -1356,12 +1400,13 @@ export default function LyricsHeader({
 						type="button"
 						aria-label="Text color"
 						aria-expanded={isColorPickerOpen}
-						onMouseDown={(event: MouseEvent<HTMLButtonElement>): void =>
-							event.preventDefault()
-						}
+						onMouseDown={(
+							event: MouseEvent<HTMLButtonElement>,
+						): void => event.preventDefault()}
 						onClick={(): void => {
 							setIsColorPickerOpen(
-								(currentValue: boolean): boolean => !currentValue,
+								(currentValue: boolean): boolean =>
+									!currentValue,
 							);
 						}}
 						className={`inline-flex h-7 w-7 items-center justify-center rounded-[5px] transition-colors hover:bg-[#24242A] ${
