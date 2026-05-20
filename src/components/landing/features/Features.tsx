@@ -580,8 +580,8 @@ const RhymeSuggestions = () => {
 // --- COMPOSANT PRINCIPAL ---
 export const Features = () => {
     return (
-        <section className="py-32 bg-[#050505]">
-            <div className="container mx-auto px-6 space-y-40">
+        <section className="py-20 md:py-32 bg-[#050505]">
+            <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-8 space-y-32 md:space-y-40">
 
                 {/* Feature 1: Suggestions de rimes automatiques */}
                 <RhymeSuggestions />
