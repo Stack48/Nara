@@ -31,8 +31,8 @@ export const Avis = () => {
     ];
 
     return (
-        <section className="py-24 bg-transparent font-arimo text-white">
-            <div className="container mx-auto px-6">
+        <section className="py-20 md:py-32 bg-transparent font-arimo text-white">
+            <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-8">
                 <h2 className="font-syne text-3xl md:text-5xl font-extrabold leading-tight mb-16 text-center tracking-tighter">
                     Ils créent avec Nara.
                 </h2>

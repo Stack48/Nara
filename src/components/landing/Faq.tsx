@@ -29,10 +29,10 @@ export const Faq = () => {
     };
 
     return (
-        <section className="py-24 px-6 w-full flex flex-col items-center">
+        <section className="py-20 md:py-32 w-full flex flex-col items-center px-4 sm:px-6 lg:px-8">
 
             {/* En-tête : Largeur totale pour que le texte centré ait de la place */}
-            <div className="w-full text-center mb-16">
+            <div className="w-full text-center mb-16 mx-auto max-w-[1180px]">
                 <h2 className="font-syne text-[32px] md:text-[48px] font-extrabold mb-4 tracking-tighter whitespace-nowrap">
                     Les réponses à tes questions.
                 </h2>
