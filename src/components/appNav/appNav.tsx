@@ -49,7 +49,9 @@ type NavSection = {
 
 type ActiveIndicator = {
 	height: number;
+	left: number;
 	top: number;
+	width: number;
 	visible: boolean;
 };
 
@@ -69,10 +71,12 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 	const linkRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
 	const [activeIndicator, setActiveIndicator] = useState<ActiveIndicator>({
 		height: 0,
+		left: 0,
 		top: 0,
+		width: 0,
 		visible: false,
 	});
-	const iconSize: number = 20;
+	const iconSize: number = 17;
 	const navSections: NavSection[] = [
 		{
 			title: "Main",
@@ -208,7 +212,9 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 
 			setActiveIndicator({
 				height: linkRect.height,
+				left: linkRect.left - navRect.left,
 				top: linkRect.top - navRect.top,
+				width: linkRect.width,
 				visible: true,
 			});
 		}
@@ -225,38 +231,39 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 		<main className="min-h-screen bg-[#0A0A0C] flex">
 			{/* format aside toute la partie gauche, header en haut et mais en dessous de header a droite de aside */}
 			{/* flex */}
-			<aside className="w-70 min-h-screen  flex flex-col justify-between items-center pt-5">
-				<div className="flex flex-col justify-center items-center gap-7 w-full px-2">
-					<h1 className={`${syne.className} text-[30px]`}>NARA</h1>
-					<button className="flex h-13 w-[calc(100%)] items-center justify-center gap-3 rounded-lg bg-[linear-gradient(90deg,#AA0063_0%,#D80096_100%)] transition hover:brightness-110">
+			<aside className="flex min-h-screen w-[232px] shrink-0 flex-col items-center justify-between pt-4">
+				<div className="flex w-full flex-col items-center justify-center gap-5 px-2">
+					<h1 className={`${syne.className} text-[26px] leading-none`}>NARA</h1>
+					<button className="flex h-10 w-full items-center justify-center gap-2 rounded-[7px] bg-[linear-gradient(90deg,#AA0063_0%,#D80096_100%)] transition hover:brightness-110">
 						<Plus size={iconSize} />
-						<span className="text-[15px] font-medium">Create</span>
+						<span className="text-[13px] font-semibold">Create</span>
 					</button>
 					<nav
 						ref={navRef}
-						className="relative flex w-full flex-col gap-7"
+						className="relative flex w-full flex-col gap-5"
 					>
 						<span
 							aria-hidden="true"
-							className={`pointer-events-none absolute inset-x-0 rounded-[4px] bg-[#260016] transition-[opacity,transform,height] duration-200 ease-out ${
+							className={`pointer-events-none absolute rounded-[7px] bg-[#17171C] transition-[opacity,transform,width,height] duration-200 ease-out before:absolute before:left-1 before:top-1/2 before:h-[20px] before:w-[4px] before:-translate-y-1/2 before:rounded-full before:bg-[#F3F4F6] ${
 								activeIndicator.visible
-									? "opacity-100"
+									? "z-[1] opacity-100"
 									: "opacity-0"
 							}`}
 							style={{
 								height: activeIndicator.height,
-								transform: `translate3d(0, ${activeIndicator.top}px, 0)`,
+								transform: `translate3d(${activeIndicator.left}px, ${activeIndicator.top}px, 0)`,
+								width: activeIndicator.width,
 							}}
 						/>
 						{navSections.map((section) => (
 							<div
 								key={section.title}
-								className="relative flex flex-col gap-3"
+								className="relative flex flex-col gap-2"
 							>
-								<h2 className="text-[20px] font-bold text-[#919191]">
+								<h2 className="px-1 text-[15px] font-bold text-[#919191]">
 									{section.title}
 								</h2>
-								<ul className="flex flex-col gap-2 pl-5">
+								<ul className="flex flex-col gap-1.5 pl-3">
 									{section.links.map((item) => {
 										const canShowActive =
 											section.hasActiveIndicator;
@@ -267,7 +274,7 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 										return (
 											<li
 												key={`${section.title}-${item.href}`}
-												className="relative text-[20px] font-medium"
+												className="relative text-[15px] font-medium before:absolute before:inset-0 before:z-0 before:rounded-[7px] before:bg-[#17171C] before:opacity-0 before:transition-opacity before:duration-150 hover:before:opacity-100"
 											>
 												<Link
 													href={item.href}
@@ -285,14 +292,16 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 															? "page"
 															: undefined
 													}
-													className={`relative z-[1] flex min-h-8 items-center gap-2 rounded-[4px] px-3 py-1 transition-colors duration-200 ${
+													className={`relative z-[2] flex min-h-8 items-center gap-2 rounded-[7px] py-1 pl-5 pr-3 transition-colors duration-200 ${
 														isActive
-															? "text-[#D80096]"
+															? "text-[#F3F4F6]"
 															: "text-[#919191] hover:text-[#F3F4F6]"
 													}`}
 												>
-													{item.icon}
-													<span>{item.label}</span>
+													<span className="relative z-[2] flex items-center">
+														{item.icon}
+													</span>
+													<span className="relative z-[2]">{item.label}</span>
 												</Link>
 											</li>
 										);
@@ -302,25 +311,25 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 						))}
 					</nav>
 				</div>
-				<div className="flex items-center justify-center gap-2 p-4 border-t border-[#2C2C32]">
+				<div className="flex w-full items-center justify-center gap-2 border-t border-[#2C2C32] px-3 py-3">
 					<Image
 						src="/udonis.png"
 						alt="test avatar"
-						width={60}
-						height={60}
-						className="h-[60px] w-[60px] rounded-full object-cover"
+						width={48}
+						height={48}
+						className="h-12 w-12 rounded-full object-cover"
 					/>
-					<div>
-						<p className="text-[20px] font-bold">Udonis Haslem</p>
-						<span className="text-[15px] font-medium text-[#A1A1AA]">
+					<div className="min-w-0">
+						<p className="truncate text-[16px] font-bold">Udonis Haslem</p>
+						<span className="text-[12px] font-medium text-[#A1A1AA]">
 							Pro Plan
 						</span>
 					</div>
 				</div>
 			</aside>
 			<section className="flex min-h-dvh w-full flex-col">
-				<header className="flex shrink-0 items-center justify-between px-4 py-4">
-					<nav className="filAriane flex items-center gap-2">
+				<header className="flex shrink-0 items-center justify-between px-4 py-3">
+					<nav className="filAriane flex items-center gap-2 text-[14px]">
 						{/* le dernier est automatiquement en blanc et les autres en gris */}
 						{ariane.map(
 							(
@@ -337,7 +346,7 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 									{/* Affiche la flèche sauf après le tout dernier élément */}
 									{index < arr.length - 1 && (
 										<ChevronRight
-											size={20}
+											size={16}
 											color="#A1A1AA"
 										/>
 									)}
@@ -345,23 +354,23 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 							),
 						)}
 					</nav>
-					<div className="flex items-center gap-4">
-						<button className="bg-[#131316] rounded-lg p-3 border border-[#2A2A30]">
+					<div className="flex items-center gap-3">
+						<button className="rounded-[7px] border border-[#2A2A30] bg-[#131316] p-2">
 							<Sun size={iconSize} />
 						</button>
 						{/* trait vertical */}
-						<div className="w-[2px] h-10 bg-[#2A2A30]"></div>
-						<button className="bg-[#131316] rounded-lg p-3 border border-[#2A2A30]">
+						<div className="h-8 w-px bg-[#2A2A30]"></div>
+						<button className="rounded-[7px] border border-[#2A2A30] bg-[#131316] p-2">
 							<Bell size={iconSize} />
 						</button>
-						<button className="bg-[#131316] rounded-lg p-3 border border-[#2A2A30]">
+						<button className="rounded-[7px] border border-[#2A2A30] bg-[#131316] p-2">
 							<Settings size={iconSize} />
 						</button>
 					</div>
 				</header>
 				{/* border arrondi top left */}
 
-				<article className="w-[calc(100%)] min-h-0 flex-1 bg-[#17171C] border-t border-l border-[#2C2C32] rounded-tl-2xl p-4">
+				<article className="w-[calc(100%)] min-h-0 flex-1 bg-[#17171C] border-t border-l border-[#2C2C32] rounded-tl-2xl overflow-hidden">
 					{children}
 				</article>
 			</section>
