@@ -9,7 +9,7 @@ import {
     useState,
     type ReactElement,
 } from "react";
-import type { LyricsFormat } from "@/components/LyricsEditor/LyricsHeader";
+import type { LyricsFormat } from "@/components/lyricsEditor/LyricsHeader";
 
 type ToggleSliderProps = {
     id: string;

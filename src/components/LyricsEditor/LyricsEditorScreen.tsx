@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, type ReactElement } from "react";
-import LyricsEditorWorkspace from "@/components/LyricsEditor/LyricsEditorWorkspace";
+import LyricsEditorWorkspace from "@/components/lyricsEditor/LyricsEditorWorkspace";
 import LyricsHeader, {
 	type LyricsFormat,
-} from "@/components/LyricsEditor/LyricsHeader";
+} from "@/components/lyricsEditor/LyricsHeader";
 
 const initialFormat: LyricsFormat = {
 	fontFamily: "Arimo",
@@ -15,7 +15,8 @@ const initialFormat: LyricsFormat = {
 	strike: false,
 	underline: false,
 	align: "left",
-	activeTool: "automation",
+	showTrackPanel: false,
+	showInspectorTools: true,
 	rhymes: false,
 	annotation: false,
 	syllables: false,
@@ -32,7 +33,7 @@ export default function LyricsEditorScreen(): ReactElement {
 	}
 
 	return (
-		<section className="flex h-[calc(100dvh-104px)] min-h-0 flex-col overflow-hidden rounded-tl-[12px] border border-[#2C2C32] bg-[#17171C]">
+		<section className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-tl-[12px] border border-[#2C2C32] bg-[#17171C]">
 			<LyricsHeader format={format} onFormatChange={handleFormatChange} />
 			<LyricsEditorWorkspace format={format} />
 		</section>

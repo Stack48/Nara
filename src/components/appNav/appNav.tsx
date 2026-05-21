@@ -266,19 +266,21 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 	}, [activeHref, isCollapsed]);
 
 	return (
-		<main className="min-h-screen bg-[#0A0A0C] flex">
+		<main className="flex h-dvh overflow-hidden bg-[#0A0A0C]">
 			{/* format aside toute la partie gauche, header en haut et mais en dessous de header a droite de aside */}
 			{/* flex */}
 			<aside
-				className={`relative flex min-h-screen shrink-0 flex-col items-center justify-between pt-4 transition-[width] duration-200 ease-out ${
+				className={`relative flex h-dvh min-h-0 shrink-0 flex-col items-center justify-between pt-4 transition-[width] duration-200 ease-out ${
 					isCollapsed ? "w-[72px]" : "w-[232px]"
 				}`}
 			>
 				<div className="flex w-full flex-col items-center justify-center gap-5 px-2">
 					<div className="flex w-full items-center justify-center">
 						<h1
-							className={`${syne.className} overflow-hidden whitespace-nowrap text-[26px] leading-none transition-[width] duration-200 ${
-								isCollapsed ? "w-[24px]" : "w-[126px]"
+							className={`${syne.className} flex h-7 items-center whitespace-nowrap text-[26px] leading-none text-[#F3F4F6] transition-[width] duration-200 ${
+								isCollapsed
+									? "w-10 justify-center overflow-visible"
+									: "w-[126px] justify-start overflow-hidden"
 							}`}
 						>
 							{isCollapsed ? "N" : "NARA"}
@@ -441,7 +443,7 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 					</div>
 				</div>
 			</aside>
-			<section className="flex min-h-dvh w-full flex-col">
+			<section className="flex h-dvh min-h-0 w-full flex-col">
 				<header className="flex shrink-0 items-center justify-between px-4 py-3">
 					<nav className="filAriane flex items-center gap-2 text-[14px]">
 						{/* le dernier est automatiquement en blanc et les autres en gris */}
