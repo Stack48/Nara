@@ -1,25 +1,21 @@
 "use client";
 
 import {
-	AudioWaveform,
-	Bot,
 	CheckSquare,
 	ChevronDown,
 	ChevronRight,
 	Copy,
 	GripVertical,
 	MessageSquare,
-	MoreHorizontal,
 	Plus,
 	Save,
 	SendHorizontal,
-	Shuffle,
-	Sparkles,
 	Trash2,
-	type LucideIcon,
 } from "lucide-react";
 import {
+	useCallback,
 	useEffect,
+	useLayoutEffect,
 	useMemo,
 	useRef,
 	useState,
@@ -27,11 +23,17 @@ import {
 	type ClipboardEvent,
 	type CSSProperties,
 	type DragEvent,
+	type FormEvent,
 	type KeyboardEvent,
 	type MouseEvent,
 	type ReactElement,
 } from "react";
-import type { LyricsFormat } from "@/components/LyricsEditor/LyricsHeader";
+import { LyricsInspector } from "@/components/lyricsEditor/LyricsInspector";
+import type { LyricsFormat } from "@/components/lyricsEditor/LyricsHeader";
+import {
+	TrackPlayer,
+	type TrackMarker,
+} from "@/components/lyricsEditor/TrackPlayer";
 
 type SectionKind = "intro" | "couplet" | "refrain" | "pont";
 
@@ -39,6 +41,7 @@ type LyricLine = {
 	id: string;
 	number: number;
 	text: string;
+	html?: string;
 	comments: number;
 };
 
@@ -67,36 +70,6 @@ type EditorToggle = {
 };
 
 type SectionOptions = Record<SectionOptionKey, boolean>;
-
-type InspectorField = {
-	label: string;
-	value: string;
-};
-
-type InspectorPanel = {
-	id: string;
-	title: string;
-	icon: LucideIcon;
-	fields: InspectorField[];
-	chips: string[];
-};
-
-type RailTool = {
-	id: string;
-	label: string;
-	icon: LucideIcon;
-	active?: boolean;
-};
-
-type ChatTab = "chat" | "comments" | "inbox";
-
-type ChatMessage = {
-	id: string;
-	author: string;
-	body: string;
-	time: string;
-	align: "left" | "right";
-};
 
 type LineComment = {
 	id: string;
@@ -149,6 +122,7 @@ const commentsStorageKey = "nara:lyrics-editor:line-comments";
 const sectionDragDataType = "application/x-nara-section";
 const lineDragDataType = "application/x-nara-line";
 const autoWrapGutterPx = 8;
+const defaultTrackDurationSeconds = 270;
 
 let measureCanvas: HTMLCanvasElement | null = null;
 
@@ -176,65 +150,6 @@ const sectionMenuToggleOrder: EditorToggleKey[] = [
 	"rhymes",
 	"syllables",
 	"annotation",
-];
-
-const inspectorPanels: InspectorPanel[] = [
-	{
-		id: "rhymes",
-		title: "Rimes",
-		icon: AudioWaveform,
-		fields: [
-			{ label: "Mot", value: "Meilleur" },
-			{ label: "Syllabes", value: "2" },
-			{ label: "Category", value: "Adj." },
-		],
-		chips: ["Veilleur", "Chanteur", "Couleur"],
-	},
-	{
-		id: "synonyms",
-		title: "Synonymes",
-		icon: Shuffle,
-		fields: [{ label: "Mot", value: "ecrire" }],
-		chips: ["Rediger", "Composer", "inscrire"],
-	},
-	{
-		id: "antonyms",
-		title: "Antonymes",
-		icon: Shuffle,
-		fields: [{ label: "Mot", value: "ecrire" }],
-		chips: ["Annihiler", "annuler", "biffer"],
-	},
-	{
-		id: "lexical",
-		title: "Champs lexical",
-		icon: Sparkles,
-		fields: [{ label: "Theme", value: "La mer" }],
-		chips: ["Vague", "Ocean", "Rivage"],
-	},
-];
-
-const railTools: RailTool[] = [
-	{ id: "wave", label: "Analyse vocale", icon: AudioWaveform, active: true },
-	{ id: "shuffle", label: "Variantes", icon: Shuffle },
-	{ id: "rhyme", label: "Rimes proches", icon: Sparkles },
-	{ id: "lexical", label: "Champs lexical", icon: Bot },
-];
-
-const initialChatMessages: ChatMessage[] = [
-	{
-		id: "message-nilu",
-		author: "Nilu",
-		body: "Bonjour",
-		time: "3:55 pm",
-		align: "left",
-	},
-	{
-		id: "message-soya",
-		author: "Soya",
-		body: "Sti",
-		time: "3:55 pm",
-		align: "right",
-	},
 ];
 
 function createInitialDocument(): LyricsDocument {
@@ -380,6 +295,7 @@ function isLyricLine(value: unknown): value is LyricLine {
 		typeof value.id === "string" &&
 		typeof value.number === "number" &&
 		typeof value.text === "string" &&
+		(value.html === undefined || typeof value.html === "string") &&
 		typeof value.comments === "number"
 	);
 }
@@ -444,52 +360,461 @@ function getClientStorage(): Storage | null {
 	}
 }
 
-function focusLineInputById(lineId: string): boolean {
-	if (typeof window === "undefined") {
-		return false;
-	}
+function placeCaretAtEnd(element: HTMLElement): void {
+	const selection: Selection | null = window.getSelection();
+	const range: Range = window.document.createRange();
 
-	const nextInput: HTMLInputElement | null =
-		window.document.querySelector<HTMLInputElement>(
-			`input[data-line-id="${lineId}"]`,
-		);
-
-	if (!nextInput) {
-		return false;
-	}
-
-	nextInput.focus();
-	nextInput.setSelectionRange(nextInput.value.length, nextInput.value.length);
-
-	return true;
+	range.selectNodeContents(element);
+	range.collapse(false);
+	selection?.removeAllRanges();
+	selection?.addRange(range);
 }
 
-function createId(prefix: string): string {
-	return `${prefix}-${Date.now().toString(36)}-${Math.random()
-		.toString(36)
-		.slice(2, 7)}`;
+function placeCaretAtStart(element: HTMLElement): void {
+	const selection: Selection | null = window.getSelection();
+	const range: Range = window.document.createRange();
+
+	range.selectNodeContents(element);
+	range.collapse(true);
+	selection?.removeAllRanges();
+	selection?.addRange(range);
 }
 
-function createBlankLine(prefix: string): LyricLine {
-	return {
-		id: createId(`${prefix}-line`),
-		number: 0,
-		text: "",
-		comments: 0,
-	};
-}
-
-function getMeasureContext(): CanvasRenderingContext2D | null {
+function getLineEditorById(lineId: string): HTMLElement | null {
 	if (typeof window === "undefined") {
 		return null;
 	}
 
-	measureCanvas ??= window.document.createElement("canvas");
-
-	return measureCanvas.getContext("2d");
+	return window.document.querySelector<HTMLElement>(
+		`[data-line-id="${lineId}"]`,
+	);
 }
 
-function getRenderedTextWidth(text: string, inputElement: HTMLInputElement): number {
+function focusLineInputById(lineId: string): boolean {
+	const nextEditor: HTMLElement | null = getLineEditorById(lineId);
+
+	if (!nextEditor) {
+		return false;
+	}
+
+	nextEditor.focus();
+	placeCaretAtEnd(nextEditor);
+
+	return true;
+}
+
+function getActiveLineEditor(): HTMLElement | null {
+	if (typeof window === "undefined") {
+		return null;
+	}
+
+	const selection: Selection | null = window.getSelection();
+	const selectedNode: Node | null = selection?.anchorNode ?? null;
+	const selectedElement: HTMLElement | null =
+		selectedNode instanceof HTMLElement
+			? selectedNode
+			: selectedNode?.parentElement ?? null;
+	const selectedEditor: HTMLElement | null =
+		selectedElement?.closest<HTMLElement>("[data-line-id]") ?? null;
+
+	if (selectedEditor) {
+		return selectedEditor;
+	}
+
+	return window.document.activeElement?.closest<HTMLElement>("[data-line-id]") ?? null;
+}
+
+function getCaretTextOffset(element: HTMLElement): number {
+	if (typeof window === "undefined") {
+		return 0;
+	}
+
+	const selection: Selection | null = window.getSelection();
+
+	if (!selection || selection.rangeCount === 0) {
+		return 0;
+	}
+
+	const range: Range = selection.getRangeAt(0);
+
+	if (!element.contains(range.startContainer)) {
+		return 0;
+	}
+
+	const beforeRange: Range = range.cloneRange();
+	beforeRange.selectNodeContents(element);
+	beforeRange.setEnd(range.startContainer, range.startOffset);
+
+	return beforeRange.toString().length;
+}
+
+function isCaretAtStart(element: HTMLElement): boolean {
+	return getCaretTextOffset(element) === 0;
+}
+
+function getEditableLineText(element: HTMLElement): string {
+	return (element.textContent ?? "")
+		.replace(/\u00a0/g, " ")
+		.replace(/\u200B/g, "");
+}
+
+function escapeHtml(value: string): string {
+	return value
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;");
+}
+
+function getLineEditorHtml(line: LyricLine): string {
+	return line.html ?? escapeHtml(line.text);
+}
+
+function sanitizeLineHtml(rawHtml: string): string {
+	if (typeof window === "undefined") {
+		return escapeHtml(rawHtml);
+	}
+
+	const template: HTMLTemplateElement = window.document.createElement("template");
+	template.innerHTML = rawHtml;
+	const allowedTags: Set<string> = new Set([
+		"B",
+		"STRONG",
+		"I",
+		"EM",
+		"U",
+		"S",
+		"STRIKE",
+		"BR",
+	]);
+
+	function sanitizeNode(node: Node): Node[] {
+		if (node.nodeType === 3) {
+			return [
+				window.document.createTextNode(
+					(node.textContent ?? "").replace(/\u200B/g, ""),
+				),
+			];
+		}
+
+		if (!(node instanceof HTMLElement)) {
+			return [];
+		}
+
+		const sanitizedChildren: Node[] = Array.from(node.childNodes).flatMap(
+			(child: Node): Node[] => sanitizeNode(child),
+		);
+
+		if (!allowedTags.has(node.tagName)) {
+			return sanitizedChildren;
+		}
+
+		const element: HTMLElement = window.document.createElement(
+			node.tagName.toLowerCase(),
+		);
+		sanitizedChildren.forEach((child: Node): void => {
+			element.appendChild(child);
+		});
+
+		if (element.tagName !== "BR" && (element.textContent ?? "").length === 0) {
+			return [];
+		}
+
+		return [element];
+	}
+
+	const fragment: DocumentFragment = window.document.createDocumentFragment();
+	Array.from(template.content.childNodes).forEach((node: Node): void => {
+		sanitizeNode(node).forEach((child: Node): void => {
+			fragment.appendChild(child);
+		});
+	});
+
+	const container: HTMLDivElement = window.document.createElement("div");
+	container.appendChild(fragment);
+
+	return container.innerHTML;
+}
+
+function getEditableLineHtml(element: HTMLElement): string {
+	const plainText: string = getEditableLineText(element);
+
+	if (plainText.length === 0) {
+		return "";
+	}
+
+	return sanitizeLineHtml(element.innerHTML);
+}
+
+function insertPlainTextAtSelection(editor: HTMLElement, text: string): void {
+	const selection: Selection | null = window.getSelection();
+
+	if (!selection || selection.rangeCount === 0) {
+		editor.appendChild(window.document.createTextNode(text));
+		placeCaretAtEnd(editor);
+		dispatchEditorInput(editor);
+		return;
+	}
+
+	const range: Range = selection.getRangeAt(0);
+
+	if (!editor.contains(range.commonAncestorContainer)) {
+		editor.appendChild(window.document.createTextNode(text));
+		placeCaretAtEnd(editor);
+		dispatchEditorInput(editor);
+		return;
+	}
+
+	range.deleteContents();
+
+	const textNode: Text = window.document.createTextNode(text);
+	range.insertNode(textNode);
+	range.setStart(textNode, text.length);
+	range.collapse(true);
+
+	selection.removeAllRanges();
+	selection.addRange(range);
+	dispatchEditorInput(editor);
+}
+
+function createInlineFormatElement(
+	command: "bold" | "italic" | "underline" | "strikeThrough",
+): HTMLElement {
+	const tagName: Record<
+		"bold" | "italic" | "underline" | "strikeThrough",
+		string
+	> = {
+		bold: "b",
+		italic: "i",
+		underline: "u",
+		strikeThrough: "s",
+	};
+
+	return window.document.createElement(tagName[command]);
+}
+
+function getInlineFormatTags(
+	command: "bold" | "italic" | "underline" | "strikeThrough",
+): Set<string> {
+	const tags: Record<
+		"bold" | "italic" | "underline" | "strikeThrough",
+		string[]
+	> = {
+		bold: ["B", "STRONG"],
+		italic: ["I", "EM"],
+		underline: ["U"],
+		strikeThrough: ["S", "STRIKE"],
+	};
+
+	return new Set(tags[command]);
+}
+
+function stripInlineFormatNodes(node: Node, tags: Set<string>): Node[] {
+	if (node.nodeType === 3) {
+		return [window.document.createTextNode(node.textContent ?? "")];
+	}
+
+	if (!(node instanceof HTMLElement)) {
+		return [];
+	}
+
+	const strippedChildren: Node[] = Array.from(node.childNodes).flatMap(
+		(child: Node): Node[] => stripInlineFormatNodes(child, tags),
+	);
+
+	if (tags.has(node.tagName)) {
+		return strippedChildren;
+	}
+
+	const clone: HTMLElement = window.document.createElement(node.tagName.toLowerCase());
+	strippedChildren.forEach((child: Node): void => {
+		clone.appendChild(child);
+	});
+
+	return [clone];
+}
+
+function unwrapInlineFormatElement(element: HTMLElement): void {
+	const parentNode: ParentNode | null = element.parentNode;
+
+	if (!parentNode) {
+		return;
+	}
+
+	while (element.firstChild) {
+		parentNode.insertBefore(element.firstChild, element);
+	}
+
+	element.remove();
+}
+
+function dispatchEditorInput(editor: HTMLElement): void {
+	editor.dispatchEvent(new window.Event("input", { bubbles: true }));
+}
+
+function applyInlineFormatCommand(
+	command: "bold" | "italic" | "underline" | "strikeThrough",
+	shouldEnable: boolean,
+): void {
+	if (typeof window === "undefined") {
+		return;
+	}
+
+	const activeEditor: HTMLElement | null = getActiveLineEditor();
+
+	if (!activeEditor) {
+		return;
+	}
+
+	const selection: Selection | null = window.getSelection();
+
+	if (!selection || selection.rangeCount === 0) {
+		return;
+	}
+
+	const range: Range = selection.getRangeAt(0);
+
+	if (!activeEditor.contains(range.commonAncestorContainer)) {
+		return;
+	}
+
+	activeEditor.focus();
+
+	if (range.collapsed) {
+		if (!shouldEnable) {
+			const tagsToStrip: Set<string> = getInlineFormatTags(command);
+			const formattedParent: HTMLElement | null =
+				(range.startContainer.nodeType === 1
+					? (range.startContainer as Element)
+					: range.startContainer.parentElement
+				)?.closest<HTMLElement>(Array.from(tagsToStrip).join(",")) ?? null;
+
+			if (formattedParent && activeEditor.contains(formattedParent)) {
+				const marker: Text = window.document.createTextNode("\u200B");
+				formattedParent.after(marker);
+				range.setStart(marker, 1);
+				range.collapse(true);
+				selection.removeAllRanges();
+				selection.addRange(range);
+
+				if ((formattedParent.textContent ?? "").replace(/\u200B/g, "").length === 0) {
+					formattedParent.remove();
+				}
+
+				dispatchEditorInput(activeEditor);
+			}
+
+			return;
+		}
+
+		const wrapper: HTMLElement = createInlineFormatElement(command);
+		const marker: Text = window.document.createTextNode("\u200B");
+		wrapper.appendChild(marker);
+		range.insertNode(wrapper);
+		range.setStart(marker, 1);
+		range.collapse(true);
+		selection.removeAllRanges();
+		selection.addRange(range);
+		dispatchEditorInput(activeEditor);
+		return;
+	}
+
+	if (shouldEnable) {
+		const wrapper: HTMLElement = createInlineFormatElement(command);
+		wrapper.appendChild(range.extractContents());
+		range.insertNode(wrapper);
+		range.selectNodeContents(wrapper);
+		selection.removeAllRanges();
+		selection.addRange(range);
+		dispatchEditorInput(activeEditor);
+		return;
+	}
+
+	const tagsToStrip: Set<string> = getInlineFormatTags(command);
+	const selectedElement: HTMLElement | null =
+		range.startContainer.nodeType === 1
+			? (range.startContainer as Element).closest<HTMLElement>(
+					Array.from(tagsToStrip).join(","),
+				)
+			: range.startContainer.parentElement?.closest<HTMLElement>(
+					Array.from(tagsToStrip).join(","),
+				) ?? null;
+
+	if (selectedElement && activeEditor.contains(selectedElement)) {
+		unwrapInlineFormatElement(selectedElement);
+		dispatchEditorInput(activeEditor);
+		return;
+	}
+
+	const selectedContent: DocumentFragment = range.extractContents();
+	const nextContent: DocumentFragment = window.document.createDocumentFragment();
+
+	Array.from(selectedContent.childNodes).forEach((node: Node): void => {
+		stripInlineFormatNodes(node, tagsToStrip).forEach((child: Node): void => {
+			nextContent.appendChild(child);
+		});
+	});
+
+	range.insertNode(nextContent);
+	selection.removeAllRanges();
+	dispatchEditorInput(activeEditor);
+}
+
+function RichLineEditor({
+	line,
+	sectionId,
+	style,
+	onFocus,
+	onPaste,
+	onInput,
+	onKeyDown,
+}: {
+	line: LyricLine;
+	sectionId: string;
+	style: CSSProperties;
+	onFocus: () => void;
+	onPaste: (event: ClipboardEvent<HTMLDivElement>) => void;
+	onInput: (event: FormEvent<HTMLDivElement>) => void;
+	onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void;
+}): ReactElement {
+	const editorRef = useRef<HTMLDivElement | null>(null);
+	const lineHtml: string = getLineEditorHtml(line);
+
+	useLayoutEffect((): void => {
+		const editor: HTMLDivElement | null = editorRef.current;
+
+		if (!editor || window.document.activeElement === editor) {
+			return;
+		}
+
+		if (editor.innerHTML !== lineHtml) {
+			editor.innerHTML = lineHtml;
+		}
+	}, [lineHtml]);
+
+	return (
+		<div
+			ref={editorRef}
+			data-line-id={line.id}
+			data-section-id={sectionId}
+			data-line-editor="true"
+			role="textbox"
+			aria-label={`Ligne ${line.number}`}
+			contentEditable
+			suppressContentEditableWarning
+			spellCheck={false}
+			onFocus={onFocus}
+			onPaste={onPaste}
+			onInput={onInput}
+			onKeyDown={onKeyDown}
+			className="min-h-[24px] w-full bg-transparent text-[#F3F4F6] outline-none transition-colors empty:before:text-[#38383C] empty:before:content-[attr(data-placeholder)] focus-visible:text-white"
+			style={style}
+			data-placeholder="Ecrire une ligne"
+		/>
+	);
+}
+
+function getRenderedTextWidth(text: string, inputElement: HTMLElement): number {
 	const context: CanvasRenderingContext2D | null = getMeasureContext();
 
 	if (!context) {
@@ -507,7 +832,7 @@ function getRenderedTextWidth(text: string, inputElement: HTMLInputElement): num
 
 function findAutoWrapSplitIndex(
 	value: string,
-	inputElement: HTMLInputElement,
+	inputElement: HTMLElement,
 ): number | null {
 	const availableWidth: number = Math.max(
 		40,
@@ -547,6 +872,30 @@ function findAutoWrapSplitIndex(
 	}
 
 	return fitIndex > 0 && fitIndex < value.length ? fitIndex : null;
+}
+function createId(prefix: string): string {
+	return `${prefix}-${Date.now().toString(36)}-${Math.random()
+		.toString(36)
+		.slice(2, 7)}`;
+}
+
+function createBlankLine(prefix: string): LyricLine {
+	return {
+		id: createId(`${prefix}-line`),
+		number: 0,
+		text: "",
+		comments: 0,
+	};
+}
+
+function getMeasureContext(): CanvasRenderingContext2D | null {
+	if (typeof window === "undefined") {
+		return null;
+	}
+
+	measureCanvas ??= window.document.createElement("canvas");
+
+	return measureCanvas.getContext("2d");
 }
 
 function countApproximateSyllables(word: string): number {
@@ -595,14 +944,11 @@ function getSyllableParts(text: string): SyllablePart[] {
 
 function createSectionDragImage(sectionElement: HTMLElement): HTMLElement {
 	const dragImage: HTMLElement = sectionElement.cloneNode(true) as HTMLElement;
-	const sourceInputs: NodeListOf<HTMLInputElement> =
-		sectionElement.querySelectorAll("input");
-	const clonedInputs: NodeListOf<HTMLInputElement> =
-		dragImage.querySelectorAll("input");
+	const clonedEditors: NodeListOf<HTMLElement> =
+		dragImage.querySelectorAll<HTMLElement>("[data-line-editor='true']");
 
-	clonedInputs.forEach((input: HTMLInputElement, index: number): void => {
-		input.value = sourceInputs[index]?.value ?? input.value;
-		input.setAttribute("readonly", "true");
+	clonedEditors.forEach((editor: HTMLElement): void => {
+		editor.contentEditable = "false";
 	});
 
 	dragImage.style.position = "fixed";
@@ -624,14 +970,11 @@ function createSectionDragImage(sectionElement: HTMLElement): HTMLElement {
 
 function createLineDragImage(lineElement: HTMLElement): HTMLElement {
 	const dragImage: HTMLElement = lineElement.cloneNode(true) as HTMLElement;
-	const sourceInput: HTMLInputElement | null =
-		lineElement.querySelector<HTMLInputElement>("input");
-	const clonedInput: HTMLInputElement | null =
-		dragImage.querySelector<HTMLInputElement>("input");
+	const clonedEditor: HTMLElement | null =
+		dragImage.querySelector<HTMLElement>("[data-line-editor='true']");
 
-	if (sourceInput && clonedInput) {
-		clonedInput.value = sourceInput.value;
-		clonedInput.setAttribute("readonly", "true");
+	if (clonedEditor) {
+		clonedEditor.contentEditable = "false";
 	}
 
 	dragImage.style.position = "fixed";
@@ -699,6 +1042,58 @@ function countDocumentWords(document: LyricsDocument): number {
 		(total: number, section: LyricSection): number =>
 			total + countSectionWords(section),
 		0,
+	);
+}
+
+function formatTrackTimeLabel(seconds: number): string {
+	const safeSeconds: number = Math.max(0, Math.round(seconds));
+	const minutes: number = Math.floor(safeSeconds / 60);
+	const remainingSeconds: number = safeSeconds % 60;
+
+	return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+}
+
+function getDefaultTrackMarkerTimeSeconds(
+	index: number,
+	durationSeconds: number,
+): number {
+	const firstMarkerSeconds = 16;
+	const markerStepSeconds = 15;
+
+	return Math.min(
+		durationSeconds - 1,
+		firstMarkerSeconds + index * markerStepSeconds,
+	);
+}
+
+function createTrackMarkers(
+	sections: LyricSection[],
+	customPositionsBySectionId: Record<string, number>,
+	durationSeconds: number,
+): TrackMarker[] {
+	const safeDurationSeconds: number = Math.max(1, durationSeconds);
+
+	return sections.map(
+		(
+			section: LyricSection,
+			index: number,
+		): TrackMarker => {
+			const positionPercent: number =
+				customPositionsBySectionId[section.id] ??
+				(getDefaultTrackMarkerTimeSeconds(index, safeDurationSeconds) /
+					safeDurationSeconds) *
+					100;
+			const timeLabel: string = formatTrackTimeLabel(
+				(safeDurationSeconds * positionPercent) / 100,
+			);
+
+			return {
+				id: section.id,
+				label: section.title,
+				positionPercent,
+				timeLabel,
+			};
+		},
 	);
 }
 
@@ -881,26 +1276,17 @@ function moveLineBetweenSections(
 }
 
 function getLineStyle(format: LyricsFormat): CSSProperties {
-	const textDecoration: string[] = [];
 	const numericFontSize: number = Number.parseInt(format.fontSize, 10);
 	const scaledFontSize: number = Number.isFinite(numericFontSize)
 		? Math.max(12, numericFontSize)
 		: 16;
 
-	if (format.underline) {
-		textDecoration.push("underline");
-	}
-
-	if (format.strike) {
-		textDecoration.push("line-through");
-	}
-
 	return {
 		fontFamily:
 			format.fontFamily === "Arimo" ? "var(--font-arimo)" : format.fontFamily,
 		fontSize: `${scaledFontSize}px`,
-		fontStyle: format.italic ? "italic" : "normal",
-		fontWeight: format.bold ? 700 : 600,
+		fontStyle: "normal",
+		fontWeight: 600,
 		lineHeight:
 			format.blockSize === "small"
 				? 1.2
@@ -908,7 +1294,8 @@ function getLineStyle(format: LyricsFormat): CSSProperties {
 					? 1.35
 					: 1.5,
 		textAlign: format.align,
-		textDecoration: textDecoration.length > 0 ? textDecoration.join(" ") : "none",
+		textDecoration: "none",
+		whiteSpace: "pre-wrap",
 	};
 }
 
@@ -917,12 +1304,16 @@ function getSyllableMeasureStyle(format: LyricsFormat): CSSProperties {
 	const measureHeight: number = Number.isFinite(numericFontSize)
 		? Math.max(11, Math.min(18, numericFontSize * 0.62))
 		: 11;
+	const rowTopOffset: number = Number.isFinite(numericFontSize)
+		? -Math.max(8, Math.min(13, numericFontSize * 0.3))
+		: -8;
 
 	return {
 		...getLineStyle(format),
 		height: `${measureHeight}px`,
 		lineHeight: 1,
 		overflow: "visible",
+		top: `${rowTopOffset}px`,
 		whiteSpace: "pre",
 		userSelect: "none",
 	};
@@ -1459,7 +1850,12 @@ function LyricSectionBlock({
 	onAddSection: (sectionId: string, kind: SectionKind) => void;
 	onAddLine: (sectionId: string) => void;
 	onInsertLineAfter: (sectionId: string, lineId: string) => void;
-	onLineChange: (sectionId: string, lineId: string, value: string) => void;
+	onLineChange: (
+		sectionId: string,
+		lineId: string,
+		value: string,
+		html?: string,
+	) => void;
 	onLineAutoWrap: (
 		sectionId: string,
 		lineId: string,
@@ -1677,11 +2073,11 @@ function LyricSectionBlock({
 								>
 									{line.number}
 								</button>
-								<div className="relative min-w-0 select-none">
+								<div className="relative min-w-0">
 									{showSyllables && line.text.trim().length > 0 && (
 										<div
 											data-syllable-row="true"
-											className="pointer-events-none absolute bottom-full left-0 right-0 text-transparent select-none"
+											className="pointer-events-none absolute left-0 right-0 text-transparent select-none"
 											style={syllableMeasureStyle}
 										>
 											{getSyllableParts(line.text).map(
@@ -1712,34 +2108,47 @@ function LyricSectionBlock({
 											)}
 										</div>
 									)}
-									<input
-										data-line-id={line.id}
-										value={line.text}
-										spellCheck={false}
+									<RichLineEditor
+										line={line}
+										sectionId={section.id}
+										style={lineStyle}
 										onFocus={onClearSelection}
-										onPaste={(event: ClipboardEvent<HTMLInputElement>): void => {
+										onPaste={(event: ClipboardEvent<HTMLDivElement>): void => {
+											const editor: HTMLDivElement = event.currentTarget;
 											const raw: string = event.clipboardData.getData("text/plain");
 											const parts: string[] = raw
 												.split(/\r?\n/)
 												.map((l: string) => l.trimEnd())
 												.filter((l: string) => l.length > 0);
-											if (parts.length <= 1) return; // comportement natif pour texte simple
+
 											event.preventDefault();
-											onLinePaste(section.id, line.id, parts);
+
+											if (parts.length > 1) {
+												onLinePaste(section.id, line.id, parts);
+												return;
+											}
+
+											insertPlainTextAtSelection(editor, raw);
+											window.setTimeout((): void => {
+												onLineChange(
+													section.id,
+													line.id,
+													getEditableLineText(editor),
+													getEditableLineHtml(editor),
+												);
+											}, 0);
 										}}
-										onChange={(event: ChangeEvent<HTMLInputElement>): void => {
-											const inputElement: HTMLInputElement = event.currentTarget;
-											const nextValue: string = inputElement.value;
+										onInput={(event: FormEvent<HTMLDivElement>): void => {
+											const editor: HTMLDivElement = event.currentTarget;
+											const nextValue: string = getEditableLineText(editor);
+											const nextHtml: string = getEditableLineHtml(editor);
 											const isTypingAtEnd: boolean =
-												(inputElement.selectionStart ?? nextValue.length) ===
-													nextValue.length &&
-												(inputElement.selectionEnd ?? nextValue.length) ===
-													nextValue.length;
+												getCaretTextOffset(editor) === nextValue.length;
 											const isGrowing: boolean = nextValue.length > line.text.length;
 
 											if (isTypingAtEnd && isGrowing) {
 												const splitIndex: number | null =
-													findAutoWrapSplitIndex(nextValue, inputElement);
+													findAutoWrapSplitIndex(nextValue, editor);
 
 												if (splitIndex !== null) {
 													const currentText: string = nextValue
@@ -1761,9 +2170,9 @@ function LyricSectionBlock({
 												}
 											}
 
-											onLineChange(section.id, line.id, nextValue);
+											onLineChange(section.id, line.id, nextValue, nextHtml);
 										}}
-										onKeyDown={(event: KeyboardEvent<HTMLInputElement>): void => {
+										onKeyDown={(event: KeyboardEvent<HTMLDivElement>): void => {
 											if (event.key === "Enter") {
 												event.preventDefault();
 												onInsertLineAfter(section.id, line.id);
@@ -1772,13 +2181,13 @@ function LyricSectionBlock({
 
 											if (event.key === "ArrowDown" || event.key === "ArrowUp") {
 												if (typeof window === "undefined") return;
-												const allInputs = Array.from(
-													window.document.querySelectorAll<HTMLInputElement>(
-														"input[data-line-id]",
+												const allEditors = Array.from(
+													window.document.querySelectorAll<HTMLElement>(
+														"[data-line-editor='true']",
 													),
 												);
-												const currentIndex = allInputs.findIndex(
-													(el) => el.dataset.lineId === line.id,
+												const currentIndex = allEditors.findIndex(
+													(editor) => editor.dataset.lineId === line.id,
 												);
 												if (currentIndex === -1) return;
 
@@ -1786,32 +2195,28 @@ function LyricSectionBlock({
 													event.key === "ArrowDown"
 														? currentIndex + 1
 														: currentIndex - 1;
-												const targetInput = allInputs[targetIndex];
-												if (!targetInput) return;
+												const targetEditor = allEditors[targetIndex];
+												if (!targetEditor) return;
 
 												event.preventDefault();
-												targetInput.focus();
-												const pos =
-													event.key === "ArrowDown"
-														? 0
-														: targetInput.value.length;
-												targetInput.setSelectionRange(pos, pos);
+												targetEditor.focus();
+												if (event.key === "ArrowDown") {
+													placeCaretAtStart(targetEditor);
+												} else {
+													placeCaretAtEnd(targetEditor);
+												}
 												return;
 											}
 
 											if (
 												event.key === "Backspace" &&
-												event.currentTarget.selectionStart === 0 &&
-												event.currentTarget.selectionEnd === 0 &&
-												line.text.length === 0
+												isCaretAtStart(event.currentTarget) &&
+												getEditableLineText(event.currentTarget).length === 0
 											) {
 												event.preventDefault();
 												onLineDelete(section.id, line.id);
 											}
 										}}
-										className="min-h-[24px] w-full bg-transparent text-[#F3F4F6] outline-none transition-colors placeholder:text-[#38383C] focus-visible:text-white"
-										style={lineStyle}
-										placeholder="Ecrire une ligne"
 									/>
 								</div>
 								<div className="relative flex justify-end select-none">
@@ -1873,244 +2278,6 @@ function LyricSectionBlock({
 	);
 }
 
-function InspectorPanelCard({ panel }: { panel: InspectorPanel }): ReactElement {
-	const Icon: LucideIcon = panel.icon;
-
-	return (
-		<section className="border-b border-[#2C2C32] p-2.5">
-			<div className="mb-2 flex items-center gap-2">
-				<Icon size={13} strokeWidth={1.8} className="text-[#F3F4F6]" />
-				<h3 className="text-[12px] font-bold text-[#F3F4F6]">{panel.title}</h3>
-			</div>
-
-			<div
-				className={`grid gap-1.5 ${
-					panel.fields.length > 1 ? "grid-cols-[1fr_55px_58px]" : "grid-cols-1"
-				}`}
-			>
-				{panel.fields.map(
-					(field: InspectorField): ReactElement => (
-						<label key={`${panel.id}-${field.label}`} className="grid gap-1">
-							<span className="text-[10px] font-medium text-[#F3F4F6]">
-								{field.label}
-							</span>
-							<input
-								readOnly
-								value={field.value}
-								className="h-5 rounded-[2px] border border-[#A1A1AA] bg-transparent px-2 text-[9px] text-[#F3F4F6] outline-none"
-							/>
-						</label>
-					),
-				)}
-			</div>
-
-			<div className="mt-2 flex items-center gap-1.5">
-				{panel.chips.map(
-					(chip: string): ReactElement => (
-						<button
-							key={`${panel.id}-${chip}`}
-							type="button"
-							className="h-5 rounded-[2px] bg-[#2C2C32] px-2 text-[9px] font-medium text-[#F3F4F6] transition-colors hover:bg-[#3A3A42]"
-						>
-							{chip}
-						</button>
-					),
-				)}
-				<button
-					type="button"
-					aria-label={`Plus d'options pour ${panel.title}`}
-					className="ml-auto inline-flex h-5 w-6 items-center justify-center rounded-[2px] bg-[#2C2C32] text-[#F3F4F6] transition-colors hover:bg-[#3A3A42]"
-				>
-					<MoreHorizontal size={12} strokeWidth={1.8} />
-				</button>
-			</div>
-
-			<button
-				type="button"
-				className="mt-2 flex w-full items-center justify-end gap-1 text-[9px] font-medium text-[#F3F4F6] transition-colors hover:text-white"
-			>
-				Voir plus
-				<ChevronRight size={10} strokeWidth={1.8} />
-			</button>
-		</section>
-	);
-}
-
-function UtilityRail(): ReactElement {
-	return (
-		<nav className="flex w-9 shrink-0 flex-col items-center gap-2 border-l border-[#2C2C32] pt-3">
-			{railTools.map(
-				(tool: RailTool): ReactElement => {
-					const Icon: LucideIcon = tool.icon;
-
-					return (
-						<button
-							key={tool.id}
-							type="button"
-							aria-label={tool.label}
-							aria-pressed={tool.active ?? false}
-							className={`inline-flex h-7 w-7 items-center justify-center rounded-[5px] border text-[#A1A1AA] transition-colors hover:text-white ${
-								tool.active
-									? "border-[#3A3A42] bg-[#2C2C32] text-[#F3F4F6]"
-									: "border-transparent bg-[#17171C]"
-							}`}
-						>
-							<Icon size={15} strokeWidth={1.8} />
-						</button>
-					);
-				},
-			)}
-		</nav>
-	);
-}
-
-function DiscussionPanel(): ReactElement {
-	const [activeTab, setActiveTab] = useState<ChatTab>("chat");
-	const [messages, setMessages] = useState<ChatMessage[]>(initialChatMessages);
-	const [draftMessage, setDraftMessage] = useState<string>("");
-
-	const tabs: { id: ChatTab; label: string }[] = [
-		{ id: "chat", label: "Chat" },
-		{ id: "comments", label: "Commentaires" },
-		{ id: "inbox", label: "Inbox" },
-	];
-
-	function sendMessage(): void {
-		const trimmedMessage: string = draftMessage.trim();
-
-		if (!trimmedMessage) {
-			return;
-		}
-
-		setMessages(
-			(currentMessages: ChatMessage[]): ChatMessage[] => [
-				...currentMessages,
-				{
-					id: createId("message"),
-					author: "Soya",
-					body: trimmedMessage,
-					time: "maintenant",
-					align: "right",
-				},
-			],
-		);
-		setDraftMessage("");
-	}
-
-	function handleMessageKeyDown(event: KeyboardEvent<HTMLInputElement>): void {
-		if (event.key === "Enter") {
-			event.preventDefault();
-			sendMessage();
-		}
-	}
-
-	return (
-		<section className="border-t border-[#2C2C32] bg-[#17171C]">
-			<div className="px-2.5 pt-2">
-				<h3 className="text-[12px] font-bold text-[#F3F4F6]">
-					Commentaire & discussion
-				</h3>
-				<div className="mt-2 flex items-center gap-4 border-b border-[#2C2C32]">
-					{tabs.map(
-						(tab: { id: ChatTab; label: string }): ReactElement => (
-							<button
-								key={tab.id}
-								type="button"
-								aria-pressed={activeTab === tab.id}
-								onClick={() => setActiveTab(tab.id)}
-								className={`pb-1.5 text-[10px] font-medium transition-colors ${
-									activeTab === tab.id
-										? "border-b border-[#F3F4F6] text-[#F3F4F6]"
-										: "text-[#A1A1AA] hover:text-white"
-								}`}
-							>
-								{tab.label}
-							</button>
-						),
-					)}
-				</div>
-			</div>
-
-			<div className="flex h-[130px] flex-col justify-between px-2.5 py-2">
-				<div className="space-y-2 overflow-y-auto pr-1">
-					{messages.map(
-						(message: ChatMessage): ReactElement => (
-							<div
-								key={message.id}
-								className={`flex ${message.align === "right" ? "justify-end" : "justify-start"}`}
-							>
-								<div
-									className={`max-w-[78%] ${
-										message.align === "right"
-											? "text-right"
-											: "grid grid-cols-[22px_minmax(0,1fr)] gap-2"
-									}`}
-								>
-									{message.align === "left" && (
-										<span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#D80096] text-[8px] font-bold text-white">
-											NL
-										</span>
-									)}
-									<div>
-										<div className="flex items-center gap-2 text-[9px] text-[#A1A1AA]">
-											<span className="font-bold text-[#F3F4F6]">
-												{message.author}
-											</span>
-											<span>{message.time}</span>
-										</div>
-										<p className="mt-1 rounded-[4px] bg-[#2C2C32] px-3 py-1.5 text-[10px] text-[#F3F4F6]">
-											{message.body}
-										</p>
-									</div>
-								</div>
-							</div>
-						),
-					)}
-				</div>
-
-				<label className="mt-2 flex h-6 items-center gap-2 bg-[#2C2C32] px-2">
-					<span className="sr-only">Ecrire un message</span>
-					<input
-						value={draftMessage}
-						placeholder="Ecrire un message"
-						onChange={(event: ChangeEvent<HTMLInputElement>): void => {
-							setDraftMessage(event.target.value);
-						}}
-						onKeyDown={handleMessageKeyDown}
-						className="min-w-0 flex-1 bg-transparent text-[10px] text-[#F3F4F6] outline-none placeholder:text-[#A1A1AA]"
-					/>
-					<button
-						type="button"
-						aria-label="Envoyer le message"
-						onClick={sendMessage}
-						className="inline-flex h-5 w-5 items-center justify-center text-[#F3F4F6] transition-colors hover:text-white"
-					>
-						<SendHorizontal size={13} strokeWidth={1.8} />
-					</button>
-				</label>
-			</div>
-		</section>
-	);
-}
-
-function InspectorColumn(): ReactElement {
-	return (
-		<aside className="flex h-full min-h-0 border-l border-[#2C2C32] bg-[#17171C]">
-			<div className="flex min-h-0 w-[284px] flex-col">
-				<div className="min-h-0 flex-1 overflow-y-auto">
-					{inspectorPanels.map(
-						(panel: InspectorPanel): ReactElement => (
-							<InspectorPanelCard key={panel.id} panel={panel} />
-						),
-					)}
-				</div>
-				<DiscussionPanel />
-			</div>
-			<UtilityRail />
-		</aside>
-	);
-}
-
 export default function LyricsEditorWorkspace({
 	format,
 }: LyricsEditorWorkspaceProps): ReactElement {
@@ -2136,10 +2303,91 @@ export default function LyricsEditorWorkspace({
 	);
 	const [selectedLineIds, setSelectedLineIds] = useState<Set<string>>(new Set());
 	const [anchorLineId, setAnchorLineId] = useState<string | null>(null);
+	const [isTrackPlaying, setIsTrackPlaying] = useState<boolean>(false);
+	const [trackCurrentTimeSeconds, setTrackCurrentTimeSeconds] =
+		useState<number>(0);
+	const [trackDurationSeconds, setTrackDurationSeconds] = useState<number>(
+		defaultTrackDurationSeconds,
+	);
+	const [trackVolumePercent, setTrackVolumePercent] = useState<number>(58);
+	const [trackMarkerPositionsBySectionId, setTrackMarkerPositionsBySectionId] =
+		useState<Record<string, number>>({});
+	const [hasVisibleInspectorPanels, setHasVisibleInspectorPanels] =
+		useState<boolean>(true);
+	const previousInlineFormatRef = useRef({
+		bold: format.bold,
+		italic: format.italic,
+		strike: format.strike,
+		underline: format.underline,
+	});
 
 	const wordCount: number = useMemo(
 		(): number => countDocumentWords(document),
 		[document],
+	);
+	const trackMarkers: TrackMarker[] = useMemo(
+		(): TrackMarker[] =>
+			createTrackMarkers(
+				document.sections,
+				trackMarkerPositionsBySectionId,
+				trackDurationSeconds,
+			),
+		[document.sections, trackDurationSeconds, trackMarkerPositionsBySectionId],
+	);
+	const handleTrackCurrentTimeChange = useCallback((seconds: number): void => {
+		setTrackCurrentTimeSeconds(
+			Math.max(0, Math.min(trackDurationSeconds, seconds)),
+		);
+	}, [trackDurationSeconds]);
+	const handleTrackDurationChange = useCallback((seconds: number): void => {
+		if (!Number.isFinite(seconds) || seconds <= 0) {
+			return;
+		}
+
+		setTrackDurationSeconds(seconds);
+		setTrackCurrentTimeSeconds((currentSeconds: number): number =>
+			Math.max(0, Math.min(seconds, currentSeconds)),
+		);
+	}, []);
+	const handleTrackVolumeChange = useCallback((volumePercent: number): void => {
+		setTrackVolumePercent(Math.max(0, Math.min(100, volumePercent)));
+	}, []);
+	const handleTrackPlaybackEnd = useCallback((): void => {
+		setIsTrackPlaying(false);
+	}, []);
+	const handleTrackToggle = useCallback((): void => {
+		setIsTrackPlaying((currentValue: boolean): boolean => {
+			if (!currentValue && trackCurrentTimeSeconds >= trackDurationSeconds) {
+				setTrackCurrentTimeSeconds(0);
+			}
+
+			return !currentValue;
+		});
+	}, [trackCurrentTimeSeconds, trackDurationSeconds]);
+	const handleLineChange = useCallback(
+		(sectionId: string, lineId: string, value: string, html?: string): void => {
+			setDocument(
+				(currentDocument: LyricsDocument): LyricsDocument => ({
+					...currentDocument,
+					sections: currentDocument.sections.map(
+						(section: LyricSection): LyricSection =>
+							section.id === sectionId
+								? {
+										...section,
+										lines: section.lines.map(
+											(line: LyricLine): LyricLine =>
+												line.id === lineId
+													? { ...line, text: value, html }
+													: line,
+										),
+									}
+								: section,
+					),
+				}),
+			);
+			setIsDirty(true);
+		},
+		[],
 	);
 	const lineNumberColumnWidth: number = useMemo((): number => {
 		const maxLineNumber: number = document.sections.reduce(
@@ -2182,10 +2430,11 @@ export default function LyricsEditorWorkspace({
 			return;
 		}
 
+		const lineIdToFocus: string = pendingFocusLineId;
 		let timeoutId: number | null = null;
 
 		function focusPendingLine(): void {
-			if (!focusLineInputById(pendingFocusLineId)) {
+			if (!focusLineInputById(lineIdToFocus)) {
 				timeoutId = window.setTimeout(focusPendingLine, 0);
 				return;
 			}
@@ -2205,6 +2454,53 @@ export default function LyricsEditorWorkspace({
 			}
 		};
 	}, [pendingFocusLineId, document]);
+
+	useEffect((): void => {
+		const previousFormat = previousInlineFormatRef.current;
+		const commands: {
+			command: "bold" | "italic" | "underline" | "strikeThrough";
+			enabled: boolean;
+		}[] = [];
+
+		if (previousFormat.bold !== format.bold) {
+			commands.push({ command: "bold", enabled: format.bold });
+		}
+
+		if (previousFormat.italic !== format.italic) {
+			commands.push({ command: "italic", enabled: format.italic });
+		}
+
+		if (previousFormat.underline !== format.underline) {
+			commands.push({ command: "underline", enabled: format.underline });
+		}
+
+		if (previousFormat.strike !== format.strike) {
+			commands.push({ command: "strikeThrough", enabled: format.strike });
+		}
+
+		previousInlineFormatRef.current = {
+			bold: format.bold,
+			italic: format.italic,
+			strike: format.strike,
+			underline: format.underline,
+		};
+
+		if (commands.length === 0) {
+			return;
+		}
+
+		commands.forEach(
+			({
+				command,
+				enabled,
+			}: {
+				command: "bold" | "italic" | "underline" | "strikeThrough";
+				enabled: boolean;
+			}): void => {
+				applyInlineFormatCommand(command, enabled);
+			},
+		);
+	}, [format.bold, format.italic, format.strike, format.underline]);
 
 	// ── Copier / couper les lignes sélectionnées ──────────────────────────
 	useEffect((): (() => void) => {
@@ -2250,11 +2546,11 @@ export default function LyricsEditorWorkspace({
 	function handleLineSelect(lineId: string, shiftKey: boolean): void {
 		if (shiftKey && anchorLineId) {
 			// Sélection par plage via l'ordre DOM
-			const allInputs = Array.from(
-				window.document.querySelectorAll<HTMLInputElement>("input[data-line-id]"),
+			const allEditors = Array.from(
+				window.document.querySelectorAll<HTMLElement>("[data-line-editor='true']"),
 			);
-			const allIds: string[] = allInputs
-				.map((el) => el.dataset.lineId ?? "")
+			const allIds: string[] = allEditors
+				.map((editor: HTMLElement): string => editor.dataset.lineId ?? "")
 				.filter(Boolean);
 			const anchorIdx = allIds.indexOf(anchorLineId);
 			const targetIdx = allIds.indexOf(lineId);
@@ -2486,28 +2782,6 @@ export default function LyricsEditorWorkspace({
 		}
 	}
 
-	function handleLineChange(
-		sectionId: string,
-		lineId: string,
-		value: string,
-	): void {
-		updateDocument({
-			...document,
-			sections: document.sections.map(
-				(section: LyricSection): LyricSection =>
-					section.id === sectionId
-						? {
-								...section,
-								lines: section.lines.map(
-									(line: LyricLine): LyricLine =>
-										line.id === lineId ? { ...line, text: value } : line,
-								),
-							}
-						: section,
-			),
-		});
-	}
-
 	function handleLineAutoWrap(
 		sectionId: string,
 		lineId: string,
@@ -2539,7 +2813,9 @@ export default function LyricsEditorWorkspace({
 						};
 						const nextLines: LyricLine[] = section.lines.map(
 							(line: LyricLine): LyricLine =>
-								line.id === lineId ? { ...line, text: currentText } : line,
+								line.id === lineId
+									? { ...line, text: currentText, html: undefined }
+									: line,
 						);
 
 						insertedLineId = insertedLine.id;
@@ -2777,7 +3053,11 @@ export default function LyricsEditorWorkspace({
 
 					const nextLines: LyricLine[] = [...section.lines];
 					// Mettre à jour la ligne courante avec la première partie
-					nextLines[lineIndex] = { ...nextLines[lineIndex], text: pastedLines[0] };
+					nextLines[lineIndex] = {
+						...nextLines[lineIndex],
+						text: pastedLines[0],
+						html: undefined,
+					};
 
 					// Insérer les lignes suivantes après
 					const newLines: LyricLine[] = pastedLines.slice(1).map(
@@ -2855,99 +3135,139 @@ export default function LyricsEditorWorkspace({
 		}, 1400);
 	}
 
+	function handleTrackMarkerPositionChange(
+		sectionId: string,
+		positionPercent: number,
+	): void {
+		setTrackMarkerPositionsBySectionId(
+			(currentPositions: Record<string, number>): Record<string, number> => ({
+				...currentPositions,
+				[sectionId]: Math.round(positionPercent * 10) / 10,
+			}),
+		);
+	}
+
+	const workspaceGridTemplateClass: string = format.showInspectorTools
+		? hasVisibleInspectorPanels
+			? "xl:grid-cols-[minmax(0,1fr)_320px]"
+			: "xl:grid-cols-[minmax(0,1fr)_37px]"
+		: "xl:grid-cols-[minmax(0,1fr)]";
+
 	return (
 		<div
 			data-lyrics-workspace="true"
-			className="grid h-full min-h-0 flex-1 grid-cols-1 overflow-hidden xl:grid-cols-[minmax(0,1fr)_320px]"
+			className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[#17171C]"
 		>
-			<main className="min-h-0 overflow-y-auto bg-[#17171C]">
-				<div className="flex min-h-full flex-col px-6 py-3 lg:px-8">
-					<div className="mb-8 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-						<div className="flex items-center gap-3">
-							<h1 className="text-[17px] font-bold text-[#F3F4F6]">
-								{document.title}
-							</h1>
-							<button
-								type="button"
-								onClick={handleSave}
-								className="inline-flex h-6 items-center gap-1.5 rounded-[4px] border border-[#2C2C32] px-2 text-[10px] font-semibold text-[#F3F4F6] transition-colors hover:border-[#4A4A52] hover:bg-[#1C1C22]"
-							>
-								<Save size={12} strokeWidth={1.8} />
-								{saveState === "saved" ? "Sauvegarde" : "Sauvegarder"}
-							</button>
-							{isDirty && (
-								<span className="text-[10px] font-medium text-[#A1A1AA]">
-									Modifie
+			<div
+				className={`grid min-h-0 flex-1 grid-cols-1 overflow-hidden ${workspaceGridTemplateClass}`}
+			>
+				<main className="min-h-0 overflow-y-auto bg-[#17171C]">
+					<div className="flex min-h-full flex-col px-6 py-3 lg:px-8">
+						<div className="mb-8 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+							<div className="flex items-center gap-3">
+								<h1 className="text-[17px] font-bold text-[#F3F4F6]">
+									{document.title}
+								</h1>
+								<button
+									type="button"
+									onClick={handleSave}
+									className="inline-flex h-6 items-center gap-1.5 rounded-[4px] border border-[#2C2C32] px-2 text-[10px] font-semibold text-[#F3F4F6] transition-colors hover:border-[#4A4A52] hover:bg-[#1C1C22]"
+								>
+									<Save size={12} strokeWidth={1.8} />
+									{saveState === "saved" ? "Sauvegarde" : "Sauvegarder"}
+								</button>
+								{isDirty && (
+									<span className="text-[10px] font-medium text-[#A1A1AA]">
+										Modifie
+									</span>
+								)}
+							</div>
+
+							<div className="flex flex-wrap items-center justify-end gap-4">
+								{toggles.map(
+									(toggle: EditorToggle): ReactElement => (
+										<ToggleSwitch
+											key={toggle.key}
+											toggle={toggle}
+											onToggle={handleToggle}
+										/>
+									),
+								)}
+								<span className="text-[10px] font-bold text-[#F3F4F6]">
+									{wordCount} mots
 								</span>
-							)}
+							</div>
 						</div>
 
-						<div className="flex flex-wrap items-center justify-end gap-4">
-							{toggles.map(
-								(toggle: EditorToggle): ReactElement => (
-									<ToggleSwitch
-										key={toggle.key}
-										toggle={toggle}
-										onToggle={handleToggle}
+						<div className="w-full max-w-[1120px]">
+							{document.sections.map(
+								(section: LyricSection, index: number): ReactElement => (
+									<LyricSectionBlock
+										key={section.id}
+										section={section}
+										isLast={index === document.sections.length - 1}
+										isDragging={draggedSectionId === section.id}
+										format={format}
+										lineNumberColumnWidth={lineNumberColumnWidth}
+										globalToggles={toggles}
+										sectionOptions={getSectionOptions(section.id)}
+										isAddMenuOpen={openAddMenuSectionId === section.id}
+										isOptionsMenuOpen={openOptionsMenuSectionId === section.id}
+										draggedLine={draggedLine}
+										selectedLineIds={selectedLineIds}
+										lineCommentsById={lineCommentsById}
+										onLineSelect={handleLineSelect}
+										onClearSelection={handleClearSelection}
+										onToggleAddMenu={handleToggleAddMenu}
+										onToggleOptionsMenu={handleToggleOptionsMenu}
+										onAddSection={handleAddSectionAfter}
+										onAddLine={handleAddLine}
+										onInsertLineAfter={handleInsertLineAfter}
+										onLineDelete={handleDeleteLine}
+										onLineChange={handleLineChange}
+										onLineAutoWrap={handleLineAutoWrap}
+										onLinePaste={handleLinePaste}
+										onAddLineComment={handleAddLineComment}
+										onToggleSectionOption={handleToggleSectionOption}
+										onDuplicate={handleDuplicateSection}
+										onDelete={handleDeleteSection}
+										onValidate={handleValidateSection}
+										onSectionKindChange={handleSectionKindChange}
+										onDragStart={handleDragStart}
+										onDragEnd={handleDragEnd}
+										onDrop={handleDrop}
+										onLineDragStart={handleLineDragStart}
+										onLineDragEnd={handleLineDragEnd}
+										onLineDrop={handleLineDrop}
 									/>
 								),
 							)}
-							<span className="text-[10px] font-bold text-[#F3F4F6]">
-								{wordCount} mots
-							</span>
 						</div>
 					</div>
+				</main>
 
-					<div className="w-full max-w-[1120px]">
-						{document.sections.map(
-							(section: LyricSection, index: number): ReactElement => (
-								<LyricSectionBlock
-									key={section.id}
-									section={section}
-									isLast={index === document.sections.length - 1}
-									isDragging={draggedSectionId === section.id}
-									format={format}
-									lineNumberColumnWidth={lineNumberColumnWidth}
-									globalToggles={toggles}
-									sectionOptions={getSectionOptions(section.id)}
-									isAddMenuOpen={openAddMenuSectionId === section.id}
-									isOptionsMenuOpen={openOptionsMenuSectionId === section.id}
-									draggedLine={draggedLine}
-									selectedLineIds={selectedLineIds}
-									lineCommentsById={lineCommentsById}
-									onLineSelect={handleLineSelect}
-									onClearSelection={handleClearSelection}
-									onToggleAddMenu={handleToggleAddMenu}
-									onToggleOptionsMenu={handleToggleOptionsMenu}
-									onAddSection={handleAddSectionAfter}
-									onAddLine={handleAddLine}
-									onInsertLineAfter={handleInsertLineAfter}
-									onLineDelete={handleDeleteLine}
-									onLineChange={handleLineChange}
-									onLineAutoWrap={handleLineAutoWrap}
-									onLinePaste={handleLinePaste}
-									onAddLineComment={handleAddLineComment}
-									onToggleSectionOption={handleToggleSectionOption}
-									onDuplicate={handleDuplicateSection}
-									onDelete={handleDeleteSection}
-									onValidate={handleValidateSection}
-									onSectionKindChange={handleSectionKindChange}
-									onDragStart={handleDragStart}
-									onDragEnd={handleDragEnd}
-									onDrop={handleDrop}
-									onLineDragStart={handleLineDragStart}
-									onLineDragEnd={handleLineDragEnd}
-									onLineDrop={handleLineDrop}
-								/>
-							),
-						)}
+				{format.showInspectorTools && (
+					<div className="min-h-0">
+						<LyricsInspector onVisibilityChange={setHasVisibleInspectorPanels} />
 					</div>
-				</div>
-			</main>
-
-			<div className="min-h-0">
-				<InspectorColumn />
+				)}
 			</div>
+
+			{format.showTrackPanel && (
+				<TrackPlayer
+					currentTimeSeconds={trackCurrentTimeSeconds}
+					durationSeconds={trackDurationSeconds}
+					isPlaying={isTrackPlaying}
+					markers={trackMarkers}
+					onCurrentTimeChange={handleTrackCurrentTimeChange}
+					onDurationChange={handleTrackDurationChange}
+					onMarkerPositionChange={handleTrackMarkerPositionChange}
+					onPlaybackEnd={handleTrackPlaybackEnd}
+					onTogglePlay={handleTrackToggle}
+					onVolumeChange={handleTrackVolumeChange}
+					volumePercent={trackVolumePercent}
+				/>
+			)}
 		</div>
 	);
 }
