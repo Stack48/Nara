@@ -4,20 +4,18 @@ import {
 	AlignCenter,
 	AlignLeft,
 	AlignRight,
+	Badge,
 	Bold,
-	Bolt,
 	ChevronDown,
 	Disc,
 	Italic,
-	MessagesSquare,
 	Strikethrough,
 	Underline,
 	type LucideIcon,
 } from "lucide-react";
-import type { ChangeEvent, ReactElement } from "react";
+import type { ChangeEvent, MouseEvent, ReactElement } from "react";
 
 export type TextAlign = "left" | "center" | "right";
-export type HeaderTool = "focus" | "automation" | "messages";
 
 export type LyricsFormat = {
 	fontFamily: string;
@@ -28,7 +26,8 @@ export type LyricsFormat = {
 	strike: boolean;
 	underline: boolean;
 	align: TextAlign;
-	activeTool: HeaderTool;
+	showTrackPanel: boolean;
+	showInspectorTools: boolean;
 	rhymes: boolean;
 	annotation: boolean;
 	syllables: boolean;
@@ -75,12 +74,7 @@ const fontSizeOptions: SelectOption[] = [
 	{ label: "24", value: "24" },
 	{ label: "28", value: "28" },
 	{ label: "32", value: "32" },
-	{ label: "36", value: "36" },
-	{ label: "40", value: "40" },
-	{ label: "48", value: "48" },
-	{ label: "56", value: "56" },
-	{ label: "64", value: "64" },
-	{ label: "72", value: "72" },
+
 ];
 
 const blockSizeOptions: SelectOption[] = [
@@ -153,11 +147,16 @@ function IconButton({
 	active,
 	onClick,
 }: ToolbarButton): ReactElement {
+	function keepEditorSelection(event: MouseEvent<HTMLButtonElement>): void {
+		event.preventDefault();
+	}
+
 	return (
 		<button
 			type="button"
 			aria-label={label}
 			aria-pressed={active}
+			onMouseDown={keepEditorSelection}
 			onClick={onClick}
 			className={`inline-flex h-7 w-7 items-center justify-center rounded-[5px] text-[#F3F4F6] transition-colors hover:bg-[#24242A] hover:text-white ${active ? "bg-[#2C2C32]" : ""
 				}`}
@@ -221,22 +220,17 @@ export default function LyricsHeader({
 
 	const rightTools: ToolbarButton[] = [
 		{
-			label: "Focus",
+			label: "Piste",
 			icon: Disc,
-			active: format.activeTool === "focus",
-			onClick: () => onFormatChange({ activeTool: "focus" }),
+			active: format.showTrackPanel,
+			onClick: () => onFormatChange({ showTrackPanel: !format.showTrackPanel }),
 		},
 		{
-			label: "Automation",
-			icon: Bolt,
-			active: format.activeTool === "automation",
-			onClick: () => onFormatChange({ activeTool: "automation" }),
-		},
-		{
-			label: "Messages",
-			icon: MessagesSquare,
-			active: format.activeTool === "messages",
-			onClick: () => onFormatChange({ activeTool: "messages" }),
+			label: "Outils",
+			icon: Badge,
+			active: format.showInspectorTools,
+			onClick: () =>
+				onFormatChange({ showInspectorTools: !format.showInspectorTools }),
 		},
 	];
 
