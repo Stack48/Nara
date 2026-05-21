@@ -2871,7 +2871,9 @@ export default function LyricsEditorWorkspace({
 						};
 						const nextLines: LyricLine[] = section.lines.map(
 							(line: LyricLine): LyricLine =>
-								line.id === lineId ? { ...line, text: currentText } : line,
+								line.id === lineId
+									? { ...line, text: currentText, html: undefined }
+									: line,
 						);
 
 						insertedLineId = insertedLine.id;

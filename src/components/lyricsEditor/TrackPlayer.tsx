@@ -52,7 +52,10 @@ export type TrackPlayerProps = {
 	musicAssets?: MusicAssetTrack[];
 	onCurrentTimeChange?: (seconds: number) => void;
 	onDurationChange?: (seconds: number) => void;
-	onMarkerPositionChange?: (markerId: string, positionPercent: number) => void;
+	onMarkerPositionChange?: (
+		markerId: string,
+		positionPercent: number,
+	) => void;
 	onPlaybackEnd?: () => void;
 	onTrackChange?: (track: MusicAssetTrack) => void;
 	onTogglePlay: () => void;
@@ -135,7 +138,8 @@ function isSupportedTrackFile(file: File): boolean {
 		"wav",
 		"webm",
 	]);
-	const fileExtension: string = file.name.split(".").pop()?.toLowerCase() ?? "";
+	const fileExtension: string =
+		file.name.split(".").pop()?.toLowerCase() ?? "";
 
 	return (
 		file.type.startsWith("audio/") ||
@@ -167,9 +171,13 @@ export function TrackPlayer({
 	const timelineRef = useRef<HTMLDivElement | null>(null);
 	const volumeSliderRef = useRef<HTMLDivElement | null>(null);
 	const currentTimeRef = useRef<number>(currentTimeSeconds);
-	const previousAudibleVolumeRef = useRef<number>(volumePercent > 0 ? volumePercent : 58);
+	const previousAudibleVolumeRef = useRef<number>(
+		volumePercent > 0 ? volumePercent : 58,
+	);
 	const fileObjectUrlRef = useRef<string | null>(null);
-	const [draggingMarkerId, setDraggingMarkerId] = useState<string | null>(null);
+	const [draggingMarkerId, setDraggingMarkerId] = useState<string | null>(
+		null,
+	);
 	const [isCoverDragActive, setIsCoverDragActive] = useState<boolean>(false);
 	const [isPickerOpen, setIsPickerOpen] = useState<boolean>(false);
 	const [isSeeking, setIsSeeking] = useState<boolean>(false);
@@ -177,7 +185,8 @@ export function TrackPlayer({
 	const [selectedTrack, setSelectedTrack] = useState<MusicAssetTrack | null>(
 		null,
 	);
-	const effectiveAudioSrc: string | undefined = selectedTrack?.audioSrc ?? audioSrc;
+	const effectiveAudioSrc: string | undefined =
+		selectedTrack?.audioSrc ?? audioSrc;
 	const effectiveCoverSrc: string = selectedTrack?.coverSrc ?? coverSrc;
 	const effectiveTitle: string = selectedTrack?.title ?? title;
 	const hasAudioSource: boolean =
@@ -187,7 +196,9 @@ export function TrackPlayer({
 		0,
 		Math.min(safeDurationSeconds, currentTimeSeconds),
 	);
-	const currentTimeLabel: string = formatTrackTimeLabel(clampedCurrentTimeSeconds);
+	const currentTimeLabel: string = formatTrackTimeLabel(
+		clampedCurrentTimeSeconds,
+	);
 	const totalTimeLabel: string = formatTrackTimeLabel(safeDurationSeconds);
 	const clampedProgress: number =
 		(clampedCurrentTimeSeconds / safeDurationSeconds) * 100;
@@ -233,7 +244,9 @@ export function TrackPlayer({
 			return;
 		}
 
-		if (Math.abs(audioElement.currentTime - clampedCurrentTimeSeconds) > 0.4) {
+		if (
+			Math.abs(audioElement.currentTime - clampedCurrentTimeSeconds) > 0.4
+		) {
 			audioElement.currentTime = clampedCurrentTimeSeconds;
 		}
 	}, [clampedCurrentTimeSeconds, hasAudioSource]);
@@ -319,7 +332,10 @@ export function TrackPlayer({
 	function seekBySeconds(offsetSeconds: number): void {
 		const nextSeconds: number = Math.max(
 			0,
-			Math.min(safeDurationSeconds, clampedCurrentTimeSeconds + offsetSeconds),
+			Math.min(
+				safeDurationSeconds,
+				clampedCurrentTimeSeconds + offsetSeconds,
+			),
 		);
 
 		if (hasAudioSource && audioRef.current) {
@@ -330,7 +346,8 @@ export function TrackPlayer({
 	}
 
 	function getVolumePercentFromPointer(clientX: number): number {
-		const volumeSliderElement: HTMLDivElement | null = volumeSliderRef.current;
+		const volumeSliderElement: HTMLDivElement | null =
+			volumeSliderRef.current;
 
 		if (!volumeSliderElement) {
 			return clampedVolume;
@@ -348,10 +365,15 @@ export function TrackPlayer({
 	}
 
 	function adjustVolumeByPercent(offsetPercent: number): void {
-		onVolumeChange?.(Math.max(0, Math.min(100, clampedVolume + offsetPercent)));
+		onVolumeChange?.(
+			Math.max(0, Math.min(100, clampedVolume + offsetPercent)),
+		);
 	}
 
-	function selectTrack(track: MusicAssetTrack, shouldRevokeLocalUrl: boolean): void {
+	function selectTrack(
+		track: MusicAssetTrack,
+		shouldRevokeLocalUrl: boolean,
+	): void {
 		if (shouldRevokeLocalUrl) {
 			revokeLocalTrackUrl();
 		}
@@ -396,9 +418,9 @@ export function TrackPlayer({
 		event.preventDefault();
 		setIsCoverDragActive(false);
 
-		const file: File | undefined = Array.from(event.dataTransfer.files).find(
-			isSupportedTrackFile,
-		);
+		const file: File | undefined = Array.from(
+			event.dataTransfer.files,
+		).find(isSupportedTrackFile);
 
 		if (file) {
 			selectFileTrack(file);
@@ -425,10 +447,15 @@ export function TrackPlayer({
 		event.preventDefault();
 		event.currentTarget.setPointerCapture(event.pointerId);
 		setDraggingMarkerId(markerId);
-		onMarkerPositionChange?.(markerId, getPointerPositionPercent(event.clientX));
+		onMarkerPositionChange?.(
+			markerId,
+			getPointerPositionPercent(event.clientX),
+		);
 	}
 
-	function handleMarkerPointerMove(event: PointerEvent<HTMLButtonElement>): void {
+	function handleMarkerPointerMove(
+		event: PointerEvent<HTMLButtonElement>,
+	): void {
 		if (!draggingMarkerId) {
 			return;
 		}
@@ -439,7 +466,9 @@ export function TrackPlayer({
 		);
 	}
 
-	function handleMarkerPointerEnd(event: PointerEvent<HTMLButtonElement>): void {
+	function handleMarkerPointerEnd(
+		event: PointerEvent<HTMLButtonElement>,
+	): void {
 		if (event.currentTarget.hasPointerCapture(event.pointerId)) {
 			event.currentTarget.releasePointerCapture(event.pointerId);
 		}
@@ -510,14 +539,18 @@ export function TrackPlayer({
 		}
 	}
 
-	function handleVolumePointerDown(event: PointerEvent<HTMLDivElement>): void {
+	function handleVolumePointerDown(
+		event: PointerEvent<HTMLDivElement>,
+	): void {
 		event.preventDefault();
 		event.currentTarget.setPointerCapture(event.pointerId);
 		setIsAdjustingVolume(true);
 		setVolumeFromPointer(event.clientX);
 	}
 
-	function handleVolumePointerMove(event: PointerEvent<HTMLDivElement>): void {
+	function handleVolumePointerMove(
+		event: PointerEvent<HTMLDivElement>,
+	): void {
 		if (!isAdjustingVolume) {
 			return;
 		}
@@ -612,15 +645,25 @@ export function TrackPlayer({
 						type="button"
 						aria-label="Choisir une piste audio"
 						onClick={(): void => setIsPickerOpen(true)}
-						onDragEnter={(event: DragEvent<HTMLButtonElement>): void => {
+						onDragEnter={(
+							event: DragEvent<HTMLButtonElement>,
+						): void => {
 							event.preventDefault();
 							setIsCoverDragActive(true);
 						}}
-						onDragOver={(event: DragEvent<HTMLButtonElement>): void => {
+						onDragOver={(
+							event: DragEvent<HTMLButtonElement>,
+						): void => {
 							event.preventDefault();
 						}}
-						onDragLeave={(event: DragEvent<HTMLButtonElement>): void => {
-							if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+						onDragLeave={(
+							event: DragEvent<HTMLButtonElement>,
+						): void => {
+							if (
+								!event.currentTarget.contains(
+									event.relatedTarget as Node | null,
+								)
+							) {
 								setIsCoverDragActive(false);
 							}
 						}}
@@ -662,13 +705,21 @@ export function TrackPlayer({
 							</TransportButton>
 							<button
 								type="button"
-								aria-label={isPlaying ? "Mettre en pause" : "Lire la piste"}
+								aria-label={
+									isPlaying
+										? "Mettre en pause"
+										: "Lire la piste"
+								}
 								aria-pressed={isPlaying}
 								onClick={onTogglePlay}
 								className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[var(--nara-track-play-bg)] text-[var(--nara-track-play-text)] transition-colors hover:opacity-90"
 							>
 								{isPlaying ? (
-									<Pause size={16} fill="currentColor" strokeWidth={2} />
+									<Pause
+										size={16}
+										fill="currentColor"
+										strokeWidth={2}
+									/>
 								) : (
 									<Play
 										size={16}
@@ -689,11 +740,18 @@ export function TrackPlayer({
 				</div>
 
 				<div className="min-w-0 px-0 lg:px-3">
-					<div ref={timelineRef} className="relative h-[96px] select-none touch-none">
+					<div
+						ref={timelineRef}
+						className="relative h-[96px] select-none touch-none"
+					>
 						{markers.map(
-							(marker: TrackMarker, index: number): ReactElement => {
+							(
+								marker: TrackMarker,
+								index: number,
+							): ReactElement => {
 								const isTopLane: boolean = index % 2 === 0;
-								const accentColor: string = marker.accentColor ?? "#DA069A";
+								const accentColor: string =
+									marker.accentColor ?? "#DA069A";
 
 								return (
 									<button
@@ -703,32 +761,46 @@ export function TrackPlayer({
 										onPointerDown={(
 											event: PointerEvent<HTMLButtonElement>,
 										): void => {
-											handleMarkerPointerDown(event, marker.id);
+											handleMarkerPointerDown(
+												event,
+												marker.id,
+											);
 										}}
 										onPointerMove={handleMarkerPointerMove}
 										onPointerUp={handleMarkerPointerEnd}
 										onPointerCancel={handleMarkerPointerEnd}
 										className={`absolute z-10 h-[42px] w-[72px] -translate-x-1/2 cursor-ew-resize bg-transparent text-center outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-[var(--nara-track-text)] ${
-											isTopLane ? "top-[6px]" : "bottom-[6px]"
+											isTopLane
+												? "top-[6px]"
+												: "bottom-[6px]"
 										}`}
-										style={{ left: `${marker.positionPercent}%` }}
+										style={{
+											left: `${marker.positionPercent}%`,
+										}}
 									>
 										<span
 											aria-hidden="true"
 											className={`absolute left-1/2 z-20 h-2.5 w-2.5 -translate-x-1/2 rounded-full ${
-												isTopLane ? "bottom-[-5px]" : "top-[-5px]"
+												isTopLane
+													? "bottom-[-5px]"
+													: "top-[-5px]"
 											}`}
 											style={{
 												backgroundColor: accentColor,
-												boxShadow: "0 0 0 2px var(--nara-track-bg)",
+												boxShadow:
+													"0 0 0 2px var(--nara-track-bg)",
 											}}
 										/>
 										<span
 											aria-hidden="true"
 											className={`absolute left-1/2 z-10 h-[14px] w-px -translate-x-1/2 ${
-												isTopLane ? "bottom-[5px]" : "top-[5px]"
+												isTopLane
+													? "bottom-[5px]"
+													: "top-[5px]"
 											}`}
-											style={{ backgroundColor: accentColor }}
+											style={{
+												backgroundColor: accentColor,
+											}}
 										/>
 										<span
 											className={`pointer-events-none absolute left-1/2 flex w-[104px] -translate-x-1/2 flex-col items-center ${
@@ -752,7 +824,9 @@ export function TrackPlayer({
 							aria-label="Position de lecture"
 							aria-valuemin={0}
 							aria-valuemax={safeDurationSeconds}
-							aria-valuenow={Math.round(clampedCurrentTimeSeconds)}
+							aria-valuenow={Math.round(
+								clampedCurrentTimeSeconds,
+							)}
 							aria-valuetext={`${currentTimeLabel} sur ${totalTimeLabel}`}
 							tabIndex={0}
 							onPointerDown={handleSeekPointerDown}
@@ -777,7 +851,11 @@ export function TrackPlayer({
 					<div className="flex w-[104px] shrink-0 items-center gap-2">
 						<button
 							type="button"
-							aria-label={clampedVolume > 0 ? "Couper le son" : "Remettre le son"}
+							aria-label={
+								clampedVolume > 0
+									? "Couper le son"
+									: "Remettre le son"
+							}
 							onClick={handleVolumeIconClick}
 							className="inline-flex h-5 w-5 items-center justify-center rounded-[4px] text-[var(--nara-track-control)] transition-colors hover:bg-[var(--nara-track-control-hover-bg)] hover:text-[var(--nara-track-control-hover-text)]"
 						>
@@ -805,10 +883,10 @@ export function TrackPlayer({
 							className="h-[12px] flex-1 cursor-pointer touch-none rounded-full outline-none focus-visible:ring-1 focus-visible:ring-[var(--nara-track-text)]"
 						>
 							<div className="mt-[4.5px] h-[3px] rounded-full bg-[var(--nara-track-volume-bg)]">
-							<div
-								className="h-full rounded-full bg-[var(--nara-track-volume-fill)]"
-								style={{ width: `${clampedVolume}%` }}
-							/>
+								<div
+									className="h-full rounded-full bg-[var(--nara-track-volume-fill)]"
+									style={{ width: `${clampedVolume}%` }}
+								/>
 							</div>
 						</div>
 					</div>
@@ -827,7 +905,9 @@ export function TrackPlayer({
 						onClick={(event): void => event.stopPropagation()}
 					>
 						<div className="mb-3 flex items-center justify-between">
-							<p className="text-[13px] font-semibold">Choisir une piste</p>
+							<p className="text-[13px] font-semibold">
+								Choisir une piste
+							</p>
 							<button
 								type="button"
 								aria-label="Fermer"
@@ -843,7 +923,11 @@ export function TrackPlayer({
 							onClick={openFileDialog}
 							className="flex w-full items-center gap-3 rounded-[8px] border border-[#2C2C32] bg-[#0D0D10] px-3 py-2.5 text-left transition-colors hover:border-[#4A4A52] hover:bg-[#111116]"
 						>
-							<FileAudio size={18} strokeWidth={1.8} className="text-[#DA069A]" />
+							<FileAudio
+								size={18}
+								strokeWidth={1.8}
+								className="text-[#DA069A]"
+							/>
 							<span className="min-w-0">
 								<span className="block text-[12px] font-semibold">
 									Depuis fichiers
@@ -862,14 +946,21 @@ export function TrackPlayer({
 							{musicAssets.length > 0 ? (
 								<div className="flex max-h-[180px] flex-col gap-1 overflow-y-auto">
 									{musicAssets.map(
-										(asset: MusicAssetTrack): ReactElement => (
+										(
+											asset: MusicAssetTrack,
+										): ReactElement => (
 											<button
 												type="button"
 												key={asset.id}
-												onClick={(): void => selectTrack(asset, true)}
+												onClick={(): void =>
+													selectTrack(asset, true)
+												}
 												className="flex items-center gap-2 rounded-[7px] px-2 py-2 text-left transition-colors hover:bg-[#222229]"
 											>
-												<Music size={15} strokeWidth={1.8} />
+												<Music
+													size={15}
+													strokeWidth={1.8}
+												/>
 												<span className="truncate text-[12px]">
 													{asset.title}
 												</span>
