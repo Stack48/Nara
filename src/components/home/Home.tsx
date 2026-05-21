@@ -167,9 +167,6 @@ export const Home = () => {
                                 <h3 className="font-bold text-xs tracking-widest uppercase text-white">
                                     Structure
                                 </h3>
-                                <span className="bg-[#D90097]/10 border border-[#D90097]/30 text-[#D90097] text-[10px] font-bold px-3 py-1 rounded uppercase">
-                                    20% Finished
-                                </span>
                             </div>
 
                             {/* Couplet 1 */}
@@ -177,7 +174,7 @@ export const Home = () => {
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <CircleCheck
-                                            className="text-emerald-400"
+                                            className="text-emerald-300"
                                             size={18}
                                             strokeWidth={2.5}
                                         />
@@ -185,12 +182,9 @@ export const Home = () => {
                                             Couplet 1
                                         </span>
                                     </div>
-                                    <span className="text-emerald-400 text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 px-2 py-0.5 rounded">
+                                    <span className="text-emerald-300 text-[10px] font-bold uppercase tracking-wider bg-emerald-300/15 px-2 py-0.5 rounded">
                                         Ecrit
                                     </span>
-                                </div>
-                                <div className="h-1.5 w-full bg-neutral-800 rounded-full overflow-hidden">
-                                    <div className="h-full w-full bg-gradient-to-r from-emerald-500 to-emerald-300 rounded-full"></div>
                                 </div>
                             </div>
 
@@ -199,7 +193,7 @@ export const Home = () => {
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <CircleMinus
-                                            className="text-blue-500"
+                                            className="text-sky-300"
                                             size={18}
                                             strokeWidth={2.5}
                                         />
@@ -207,12 +201,9 @@ export const Home = () => {
                                             Pre-Chorus
                                         </span>
                                     </div>
-                                    <span className="text-blue-400 text-[10px] font-bold uppercase tracking-wider bg-blue-500/10 px-2 py-0.5 rounded">
+                                    <span className="text-sky-300 text-[10px] font-bold uppercase tracking-wider bg-sky-300/15 px-2 py-0.5 rounded">
                                         Brouillon
                                     </span>
-                                </div>
-                                <div className="h-1.5 w-full bg-neutral-800 rounded-full overflow-hidden">
-                                    <div className="h-full w-[65%] bg-gradient-to-r from-blue-600 to-blue-400 rounded-full"></div>
                                 </div>
                             </div>
 
@@ -221,7 +212,7 @@ export const Home = () => {
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <CircleMinus
-                                            className="text-orange-400"
+                                            className="text-orange-300"
                                             size={18}
                                             strokeWidth={2.5}
                                         />
@@ -229,12 +220,9 @@ export const Home = () => {
                                             Chorus
                                         </span>
                                     </div>
-                                    <span className="text-orange-400 text-[10px] font-bold uppercase tracking-wider bg-orange-400/10 px-2 py-0.5 rounded">
+                                    <span className="text-orange-300 text-[10px] font-bold uppercase tracking-wider bg-orange-300/15 px-2 py-0.5 rounded">
                                         A retravailler
                                     </span>
-                                </div>
-                                <div className="h-1.5 w-full bg-neutral-800 rounded-full overflow-hidden">
-                                    <div className="h-full w-[35%] bg-gradient-to-r from-orange-500 to-orange-300 rounded-full shadow-[0_0_10px_rgba(249,115,22,0.5)]"></div>
                                 </div>
                             </div>
 
@@ -243,14 +231,14 @@ export const Home = () => {
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <Circle
-                                            className="text-neutral-500"
+                                            className="text-[#8A8A93]"
                                             size={18}
                                         />
-                                        <span className="text-neutral-400 font-bold text-sm">
+                                        <span className="text-[#8A8A93] font-bold text-sm">
                                             Verse 2
                                         </span>
                                     </div>
-                                    <span className="text-neutral-400 text-[10px] font-bold uppercase tracking-wider bg-neutral-500/10 px-2 py-0.5 rounded">
+                                    <span className="text-[#8A8A93] text-[10px] font-bold uppercase tracking-wider bg-[#8A8A93]/15 px-2 py-0.5 rounded">
                                         Vide
                                     </span>
                                 </div>
@@ -262,14 +250,14 @@ export const Home = () => {
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <Circle
-                                            className="text-neutral-500"
+                                            className="text-[#8A8A93]"
                                             size={18}
                                         />
-                                        <span className="text-neutral-400 font-bold text-sm">
+                                        <span className="text-[#8A8A93] font-bold text-sm">
                                             Bridge
                                         </span>
                                     </div>
-                                    <span className="text-neutral-400 text-[10px] font-bold uppercase tracking-wider bg-neutral-500/10 px-2 py-0.5 rounded">
+                                    <span className="text-[#8A8A93] text-[10px] font-bold uppercase tracking-wider bg-[#8A8A93]/15 px-2 py-0.5 rounded">
                                         Vide
                                     </span>
                                 </div>
@@ -371,8 +359,8 @@ export const Home = () => {
                                 </span>
                                 <span>2.5 Go / 5 Go</span>
                             </div>
-                            <div className="h-2 bg-[#71005F] rounded-full w-full overflow-hidden">
-                                <div className="bg-[#D90097] h-full w-[73%] rounded-full"></div>
+                            <div className="h-2 bg-neutral-800 rounded-full w-full overflow-hidden">
+                                <div className="bg-neutral-300 h-full w-[73%] rounded-full"></div>
                             </div>
                         </div>
 
