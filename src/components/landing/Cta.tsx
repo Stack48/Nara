@@ -3,13 +3,12 @@ import Link from "next/link";
 export const Cta = () => (
     <section className="py-20 md:py-32 bg-transparent font-arimo text-white">
         <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
-            <h2 className="font-syne text-3xl md:text-5xl font-extrabold leading-tight mb-6 tracking-tighter text-balance">
+            <h2 className="nara-title text-3xl md:text-5xl leading-tight mb-6 tracking-tighter text-balance">
                 Ton studio. Partout. Tout le temps.
             </h2>
 
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto mb-10">
-                Rejoins des milliers d'artistes qui ont décidé de créer sans
-                friction.
+            <p className="text-gray-200 text-xl md:text-2xl max-w-2xl mx-auto mb-10">
+                Rejoins des milliers d'artistes qui ont décidé de créer sans friction.
             </p>
 
             {/* link */}

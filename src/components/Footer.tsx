@@ -21,7 +21,7 @@ export const Footer = () => {
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-10 mb-16">
                     {/* bloc gauche : logo */}
                     <div className="md:col-span-5 flex flex-col gap-5">
-                        <span className="font-syne text-2xl font-black tracking-wider uppercase bg-gradient-to-r from-[#FFFFFF] from-[30%] to-[#CD2A9B] to-[100%] bg-clip-text text-transparent w-fit">
+                        <span className="font-unbounded text-2xl font-black tracking-wider uppercase bg-gradient-to-r from-[#FFFFFF] from-[30%] to-[#CD2A9B] to-[100%] bg-clip-text text-transparent w-fit">
                             NARA
                         </span>
                         <p className="text-gray-400 text-sm max-w-sm leading-relaxed">
@@ -33,7 +33,7 @@ export const Footer = () => {
 
                     {/* nav */}
                     <div className="md:col-span-2 md:col-start-7 flex flex-col gap-4">
-                        <h4 className="font-syne text-xs font-bold tracking-widest uppercase text-white">
+                        <h4 className="font-unbounded text-xs font-bold tracking-widest uppercase text-white">
                             NAVIGATION
                         </h4>
                         <ul className="flex flex-col gap-3 text-sm text-gray-400">
@@ -52,7 +52,7 @@ export const Footer = () => {
 
                     {/* communauté */}
                     <div className="md:col-span-2 flex flex-col gap-4">
-                        <h4 className="font-syne text-xs font-bold tracking-widest uppercase text-white">
+                        <h4 className="font-unbounded text-xs font-bold tracking-widest uppercase text-white">
                             COMMUNAUTÉ
                         </h4>
                         <ul className="flex flex-col gap-3 text-sm text-gray-400">
@@ -71,7 +71,7 @@ export const Footer = () => {
 
                     {/* légal */}
                     <div className="md:col-span-2 flex flex-col gap-4">
-                        <h4 className="font-syne text-xs font-bold tracking-widest uppercase text-white">
+                        <h4 className="font-unbounded text-xs font-bold tracking-widest uppercase text-white">
                             LÉGAL
                         </h4>
                         <ul className="flex flex-col gap-3 text-sm text-gray-400">

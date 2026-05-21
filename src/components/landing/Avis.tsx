@@ -1,6 +1,8 @@
 import { Tac_One } from "next/font/google";
 import Image from "next/image"; // Optimisation Next.js
-import avisProfil from "../../assets/avis-profil.jpg";
+import photo1 from "../../assets/landing/avis1.png";
+import photo2 from "../../assets/landing/avis2.png";
+import photo3 from "../../assets/landing/avis3.png";
 
 const tacOne = Tac_One({
     weight: "400",
@@ -12,28 +14,28 @@ export const Avis = () => {
     const reviews = [
         {
             text: "NARA m'a fait gagner un temps fou. Fini les sessions de recherche avant chaque studio.",
-            name: "Terrence Thornton",
-            role: "Auteur-Compositeur",
-            img: avisProfil,
+            name: "Anya",
+            role: "Auteure-Compositrice",
+            img: photo1,
         },
         {
             text: "Je gère mes projets avec mes beatmakers sans friction. Tout le monde voit la même version en temps réel.",
-            name: "Malika",
-            role: "Productrice indé",
-            img: avisProfil,
+            name: "Zakaria",
+            role: "Producteur indé",
+            img: photo2,
         },
         {
             text: "Avant je perdais des idées tous les jours. Maintenant elles sont toutes là, classées, prêtes.",
-            name: "Marion",
+            name: "Paul",
             role: "Artiste indé",
-            img: avisProfil,
+            img: photo3,
         },
     ];
 
     return (
         <section className="py-20 md:py-32 bg-transparent font-arimo text-white">
             <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-8">
-                <h2 className="font-syne text-3xl md:text-5xl font-extrabold leading-tight mb-16 text-center tracking-tighter">
+                <h2 className="nara-title text-3xl md:text-5xl leading-tight mb-16 text-center tracking-tighter">
                     Ils créent avec Nara.
                 </h2>
 

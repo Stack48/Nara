@@ -1,13 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Syne } from "next/font/google";
 import ColorBends from "@/components/landing/ColorBends";
-
-const syne = Syne({
-	subsets: ["latin"],
-	weight: ["700", "800"],
-	display: "swap",
-});
 
 const avatars = ["/artist-1.png", "/artist-2.png", "/artist-3.png", "/artist-4.png"];
 
@@ -48,13 +41,13 @@ export const Hero = () => (
 
 				{/* Centre */}
 				<div className="flex flex-col items-center text-center shrink-0">
-					<h1 className={`${syne.className} font-extrabold leading-[1.05] text-[#fff7fc] text-[clamp(30px,3.6vw,64px)] whitespace-nowrap`}>
+					<h1 className={`nara-title leading-[1.05] text-[#fff7fc] text-[clamp(30px,3.6vw,64px)] whitespace-nowrap`}>
 						Le futur de la production
 						<br />
 						<span className="text-[#e60091]">musicale.</span>
 					</h1>
 
-					<p className="mt-5 max-w-[500px] text-[15px] leading-[1.65] text-[#a08898]">
+					<p className="mt-5 max-w-[500px] text-lg leading-[1.65] text-gray-300">
 						Nara centralise votre écriture, vos masters et votre gestion de projet
 						<br />dans un hub immersif conçu pour l&apos;excellence créative.
 					</p>
@@ -108,13 +101,13 @@ export const Hero = () => (
 
 		{/* ── MOBILE (< lg) ── */}
 		<div className="relative z-10 flex min-h-[100dvh] flex-col justify-center px-6 pb-14 pt-10 lg:hidden">
-			<h1 className={`${syne.className} text-[40px] font-extrabold leading-[1.05] text-[#fff7fc]`}>
+			<h1 className={`nara-title text-[40px] leading-[1.05] text-[#fff7fc]`}>
 				Le futur de la
 				<br />production
 				<br /><span className="text-[#e60091]">musicale.</span>
 			</h1>
 
-			<p className="mt-5 text-[15px] leading-[1.65] text-[#a08898]">
+			<p className="mt-5 text-lg leading-[1.65] text-gray-300">
 				Nara centralise votre écriture, vos masters et votre gestion de projet dans un hub immersif conçu pour l&apos;excellence créative.
 			</p>
 

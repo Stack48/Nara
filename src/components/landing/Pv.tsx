@@ -1,19 +1,23 @@
+import pv1 from "../../assets/landing/pv1.png"
+import pv2 from "../../assets/landing/pv2.png"
+import pv3 from "../../assets/landing/pv3.png"
+
 export const Pv = () => {
     const cards = [
         {
             title: "DISPERSION",
             description: "Versions, brouillons, prises vocales tout finit éparpillé. Nara centralise tout au même endroit.",
-            img: "/img/dispersion.jpg",
+            img: pv1.src,
         },
         {
             title: "FRICTION",
             description: "Voir qui travaille sur quoi, en temps réel, sans se marcher dessus. Juste toi, tes collabs et la musique.",
-            img: "/img/friction.jpg",
+            img: pv2.src,
         },
         {
             title: "DÉSORGANISATION",
             description: "Sans structure claire, chaque session repart de zéro. Nara organise tes lyrics et tes exports en un seul endroit.",
-            img: "/img/desorganisation.jpg",
+            img: pv3.src,
         }
     ];
 
@@ -23,10 +27,10 @@ export const Pv = () => {
 
                 {/* En-tête */}
                 <div className="text-center mb-20">
-                    <h2 className="font-syne text-3xl md:text-5xl font-extrabold leading-tight mb-6 max-w-7xl mx-auto text-center text-balance tracking-tighter">
+                    <h2 className="nara-title text-3xl md:text-5xl leading-tight mb-6 max-w-7xl mx-auto text-center text-balance tracking-tighter">
                         Ton prochain hit mérite mieux qu'un brouillon perdu.
                     </h2>
-                    <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+                    <p className="text-gray-300 text-xl max-w-2xl mx-auto">
                         Nara réunit tout ce dont tu as besoin pour créer, sans te noyer dans la gestion.
                     </p>
                 </div>
@@ -45,7 +49,7 @@ export const Pv = () => {
                             </div>
 
                             {/* Texte sous l'image */}
-                            <h3 className="font-syne text-sm font-bold tracking-widest uppercase mb-3">
+                            <h3 className="font-unbounded text-sm font-bold tracking-widest uppercase mb-3">
                                 {card.title}
                             </h3>
                             <p className="text-gray-400 text-sm leading-relaxed">

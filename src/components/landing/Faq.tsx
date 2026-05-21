@@ -33,7 +33,7 @@ export const Faq = () => {
 
             {/* En-tête : Largeur totale pour que le texte centré ait de la place */}
             <div className="w-full text-center mb-16 mx-auto max-w-[1180px]">
-                <h2 className="font-syne text-[32px] md:text-[48px] font-extrabold mb-4 tracking-tighter whitespace-nowrap">
+                <h2 className="nara-title text-[32px] md:text-[48px] mb-4 tracking-tighter sm:whitespace-nowrap text-balance">
                     Les réponses à tes questions.
                 </h2>
                 <p className="text-gray-400 text-sm md:text-base font-arimo">
@@ -52,7 +52,7 @@ export const Faq = () => {
                             onClick={() => toggleFaq(index)}
                             className="w-full flex items-center justify-between p-7 text-left focus:outline-none"
                         >
-                            <span className="font-syne text-[14px] md:text-[18px] font-extrabold pr-8">
+                            <span className="font-unbounded font-medium text-[14px] md:text-[18px] pr-8">
                                 {item.question}
                             </span>
                             <svg
@@ -70,8 +70,8 @@ export const Faq = () => {
 
                         <div
                             className={`transition-all duration-500 ease-in-out ${openIndex === index
-                                    ? "max-h-96 opacity-100 p-7 pt-0"
-                                    : "max-h-0 opacity-0 pointer-events-none"
+                                ? "max-h-96 opacity-100 p-7 pt-0"
+                                : "max-h-0 opacity-0 pointer-events-none"
                                 }`}
                         >
                             <p className="text-gray-400 font-arimo text-sm md:text-base leading-relaxed">

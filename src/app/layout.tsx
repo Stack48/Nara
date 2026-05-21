@@ -1,19 +1,11 @@
 import type { Metadata } from 'next';
-import { Syne, Arimo } from 'next/font/google'; // On importe les deux
+import { Unbounded } from 'next/font/google';
 import './globals.css';
 
-// Configuration de Syne
-const syne = Syne({
+const unbounded = Unbounded({
   subsets: ['latin'],
-  variable: '--font-syne',
-  weight: ['700', '800'],
-});
-
-// Configuration d'Arimo
-const arimo = Arimo({
-  subsets: ['latin'],
-  variable: '--font-arimo', // Le nom qu'on a mis dans le CSS
-  weight: ['400', '500', '600', '700'],
+  variable: '--font-unbounded',
+  weight: ['300', '400', '500', '600', '700', '800', '900'],
 });
 
 export const metadata: Metadata = {
@@ -27,11 +19,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang='fr' className='dark'>
-      {/* On applique les variables et la police par défaut (Arimo) */}
-      <body
-        className={`${syne.variable} ${arimo.variable} font-arimo antialiased bg-[#050505] text-white`}
-      >
+    <html lang='fr' className={`dark ${unbounded.variable}`}>
+      {/* Polices centralisées dans globals.css */}
+      <body className='font-arimo antialiased bg-[#050505] text-white'>
         {children}
       </body>
     </html>

@@ -1,29 +1,26 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400..700;1,400..700&display=swap');
+@import 'tailwindcss';
 
-<<<<<<< HEAD
 @theme {
-  --font-syne: var(--font-syne);
-  --font-arimo: var(--font-arimo);
+  --font-arimo: 'Arimo', sans-serif;
+  --font-unbounded: var(--font-unbounded);
 
   --color-nara-black: #050505;
-  --color-nara-pink: #D90097;
-}
-=======
-:root {
-	--background: #fafafa;
-	--foreground: #0a0a0a;
+  --color-nara-pink: #d90097;
 }
 
-@media (prefers-color-scheme: dark) {
-	:root {
-		--background: #0a0a0a;
-		--foreground: #fafafa;
-	}
+/* --- POLICES CENTRALISÉES --- */
+.font-arimo {
+  font-family: var(--font-arimo);
 }
 
-body {
-	background: var(--background);
-	color: var(--foreground);
-	font-family: system-ui, sans-serif;
+.font-unbounded {
+  font-family: var(--font-unbounded);
 }
->>>>>>> 35f7b4b (modification du hero avec ajout de colorbends + fix Logocaroussel)
+
+/* Grands titres */
+.nara-title {
+  font-family: var(--font-unbounded) !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.03em;
+}
