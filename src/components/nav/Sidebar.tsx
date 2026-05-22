@@ -26,9 +26,9 @@ export const Sidebar = ({ collapsed, toggleSidebar }: SidebarProps) => {
     const navLinks = [
         { label: "Home", href: "/", icon: Home },
         { label: "Drafts", href: "/drafts", icon: BookDashed },
-        { label: "My Projects", href: "/projects", icon: FolderOpen },
-        { label: "Shared with me", href: "/shared", icon: Users },
-        { label: "Deleted", href: "/deleted", icon: Trash2 },
+        { label: "My Projects", href: "#", icon: FolderOpen },
+        { label: "Shared with me", href: "#", icon: Users },
+        { label: "Deleted", href: "#", icon: Trash2 },
     ];
 
     // OPTIMISATION : Centralisation de la classe de visibilité pour les textes

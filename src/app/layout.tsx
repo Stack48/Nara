@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Syne, Arimo } from "next/font/google"; // On importe les deux
+import { Layout } from "@/components/nav/Layout";
 import "./globals.css";
 
 // Configuration de Syne
@@ -30,9 +31,11 @@ export default function RootLayout({
         <html lang="fr" className="dark">
             {/* On applique les variables et la police par défaut (Arimo) */}
             <body
-                className={`${syne.variable} ${arimo.variable} font-arimo antialiased bg-[#050505] text-white}`}
+                className={`${syne.variable} ${arimo.variable} font-arimo antialiased bg-[#050505] text-white`}
             >
-                {children}
+                <Layout>
+                    {children}
+                </Layout>
             </body>
         </html>
     );
