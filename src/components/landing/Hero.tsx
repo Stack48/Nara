@@ -44,7 +44,7 @@ export const Hero = () => {
 						<h1 className="nara-title-1 text-[#fff7fc]">
 							Le futur de la<br className="hidden lg:block" /> production
 							<br />
-							<span className="text-[#e60091]">musicale.</span>
+							<span className="bg-gradient-to-r from-[#FFFFFF] from-[30%] to-[#CD2A9B] to-[100%] bg-clip-text text-transparent">musicale.</span>
 						</h1>
 
 						<p className="nara-subtitle mt-6 max-w-[500px] text-gray-300">

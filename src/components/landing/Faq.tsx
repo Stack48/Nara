@@ -9,22 +9,22 @@ export const Faq = () => {
         {
             question: "Est-ce que Nara fonctionne avec mes outils actuels ?",
             answer: "Absolument. Nara est conçu pour centraliser tes fichiers peu importe ton DAW (Ableton, FL Studio, Logic, etc.).",
-            color: "bg-[#D90097]" // Nara Pink (Brand)
+            color: "bg-[#F9A8D4]" // Pastel Pink
         },
         {
             question: "Puis-je collaborer gratuitement ?",
             answer: "Oui, Nara propose un plan gratuit pour permettre aux artistes de tester la collaboration fluide.",
-            color: "bg-[#8B5CF6]" // Violet (Analogous)
+            color: "bg-[#D8B4FE]" // Pastel Purple
         },
         {
             question: "Mes fichiers sont-ils en sécurité ?",
             answer: "La sécurité est notre priorité. Tes créations sont chiffrées et stockées sur des serveurs sécurisés.",
-            color: "bg-[#06B6D4]" // Cyan (Complementary tech pop)
+            color: "bg-[#67E8F9]" // Pastel Cyan
         },
         {
             question: "Nara est-il fait pour moi si je débute ?",
             answer: "C'est l'outil idéal pour partir sur de bonnes bases et organiser tes sessions dès le début.",
-            color: "bg-[#F43F5E]" // Rose Red (Warm accent)
+            color: "bg-[#FDA4AF]" // Pastel Rose
         }
     ];
 
