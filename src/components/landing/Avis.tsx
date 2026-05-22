@@ -33,51 +33,59 @@ export const Avis = () => {
     ];
 
     return (
-        <section className="py-20 md:py-32 bg-transparent font-arimo text-white">
+        <section className="py-24 md:py-32 bg-transparent font-arimo text-white relative z-10">
             <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-8">
-                <h2 className="nara-title text-3xl md:text-5xl leading-tight mb-16 text-center tracking-tighter">
-                    Ils créent avec Nara.
-                </h2>
+                
+                <div className="flex flex-col items-center mb-16">
+                    <div className="mb-6">
+                        <span className="nara-badge">
+                            Témoignages
+                        </span>
+                    </div>
+                    <h2 className="nara-title-2 text-center">
+                        Ils créent avec Nara.
+                    </h2>
+                </div>
 
                 {/* avis */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {reviews.map((review, index) => (
                         <div
                             key={index}
-                            className="bg-neutral-900 rounded-2xl p-8 flex flex-col"
+                            className="bg-white/[0.02] border border-white/10 rounded-[2rem] p-8 md:p-10 flex flex-col relative overflow-hidden group hover:border-[#D90097]/30 transition-all duration-500 hover:bg-white/[0.04]"
                         >
-                            {/* guillemets */}
+                            {/* guillemets (plus subtils) */}
                             <span
-                                className={`${tacOne.className} text-[#D90097] text-[150px] leading-[0.6] block -mb-8`}
+                                className={`${tacOne.className} text-[#D90097]/15 text-[120px] leading-[0.6] block -mb-6 transition-colors duration-500 group-hover:text-[#D90097]/30`}
                                 aria-hidden="true"
                             >
                                 “
                             </span>
 
                             {/* txt */}
-                            <p className="text-gray-300 text-lg italic leading-relaxed mb-4 flex-1">
+                            <p className="nara-subtitle text-gray-300 italic mb-10 flex-1 relative z-10">
                                 {review.text}
                             </p>
 
                             {/* profil */}
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-5 pt-6 border-t border-white/10">
                                 {/* img */}
-                                <div className="w-14 h-14 overflow-hidden rounded-full bg-neutral-800 flex-shrink-0 relative">
+                                <div className="w-12 h-12 overflow-hidden rounded-full bg-neutral-800 flex-shrink-0 relative border border-white/20">
                                     <Image
                                         src={review.img}
                                         alt={`Photo de ${review.name}`}
                                         fill
-                                        className="object-cover"
-                                        sizes="56px"
+                                        className="object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
+                                        sizes="48px"
                                     />
                                 </div>
 
                                 {/* name + role */}
                                 <div className="flex flex-col">
-                                    <span className="font-bold text-sm tracking-wide">
+                                    <span className="nara-body font-bold text-white">
                                         {review.name}
                                     </span>
-                                    <span className="text-gray-400 text-xs mt-0.5">
+                                    <span className="nara-body text-gray-400 opacity-70 mt-1">
                                         {review.role}
                                     </span>
                                 </div>

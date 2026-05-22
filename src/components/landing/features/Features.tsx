@@ -34,16 +34,16 @@ const Prompter = () => {
 
     return (
         <div className="w-full">
-            <div className="flex flex-col md:flex-row justify-between items-start mb-12 gap-8">
-                <h3 className="font-unbounded font-light text-3xl md:text-[45px] leading-tight tracking-tight text-white">
+            <div className="flex flex-col md:flex-row justify-between items-start mb-8 md:mb-12 gap-6 md:gap-8">
+                <h3 className="nara-title-3 text-white mb-4">
                     Tes lyrics,<br />toujours sous les yeux.
                 </h3>
                 <div className="max-w-sm">
-                    <p className="text-gray-300 font-arimo text-lg mb-4 leading-relaxed">
+                    <p className="nara-subtitle text-gray-300 mb-4">
                         Le mode Prompteur affiche tes lyrics ligne par ligne, au rythme de ta performance.
                         Concentre-toi sur ta voix, pas sur ton téléphone.
                     </p>
-                    <span className="text-[#D90097] font-arimo text-sm font-bold uppercase tracking-widest cursor-default">
+                    <span className="nara-body text-[#D90097] font-bold uppercase tracking-widest cursor-default">
                         Prompteur →
                     </span>
                 </div>
@@ -80,7 +80,7 @@ const Prompter = () => {
                     ></div>
                 </div>
 
-                <div className="flex flex-col md:flex-row p-8 md:p-16 md:pb-32 gap-16 items-start relative z-10 bg-transparent flex-1">
+                <div className="flex flex-col md:flex-row p-6 sm:p-8 md:p-16 md:pb-32 gap-8 md:gap-16 items-start relative z-10 bg-transparent flex-1">
                     <div className="flex-1 w-full space-y-10">
                         {lyrics.map((line, index) => {
                             let stateClasses = "";
@@ -207,15 +207,15 @@ const Collaboration = () => {
 
     return (
         <div className="w-full">
-            <div className="flex flex-col md:flex-row justify-between items-start mb-12 gap-8">
-                <h3 className="font-unbounded font-light text-3xl md:text-[45px] leading-tight tracking-tight text-white">
+            <div className="flex flex-col md:flex-row justify-between items-start mb-8 md:mb-12 gap-6 md:gap-8">
+                <h3 className="nara-title-3 text-white mb-4">
                     Crée ensemble, en<br />temps réel.
                 </h3>
                 <div className="max-w-sm">
-                    <p className="text-gray-300 font-arimo text-lg mb-4 leading-relaxed">
+                    <p className="nara-subtitle text-gray-300 mb-4">
                         Nara transforme l'écriture en une expérience multijoueur. Vois les curseurs de tes collaborateurs se déplacer sur la page, modifiez les rimes ensemble et laissez des notes directement sur les paroles.
                     </p>
-                    <span className="text-[#D90097] font-arimo text-sm font-bold uppercase tracking-widest cursor-default">
+                    <span className="nara-body text-[#D90097] font-bold uppercase tracking-widest cursor-default">
                         Collaboration Studio →
                     </span>
                 </div>
@@ -368,15 +368,15 @@ const RhymeSuggestions = () => {
 
     return (
         <div className="w-full">
-            <div className="flex flex-col md:flex-row justify-between items-start mb-12 gap-8">
-                <h3 className="font-unbounded font-light text-3xl md:text-[45px] leading-tight tracking-tight text-white">
+            <div className="flex flex-col md:flex-row justify-between items-start mb-8 md:mb-12 gap-6 md:gap-8">
+                <h3 className="nara-title-3 text-white mb-4">
                     La rime parfaite,<br />au bon moment.
                 </h3>
                 <div className="max-w-sm">
-                    <p className="text-gray-300 font-arimo text-lg mb-4 leading-relaxed">
+                    <p className="nara-subtitle text-gray-300 mb-4">
                         Ne perds plus ton flow. L'assistant intégré de Nara analyse tes couplets en temps réel et te propose des rimes riches sans jamais que tu n'aies à quitter ta page.
                     </p>
-                    <span className="text-[#D90097] font-arimo text-sm font-bold uppercase tracking-widest cursor-default">
+                    <span className="nara-body text-[#D90097] font-bold uppercase tracking-widest cursor-default">
                         Assistant d'écriture →
                     </span>
                 </div>
@@ -449,7 +449,7 @@ const RhymeSuggestions = () => {
                                         Analyse de la rime
                                     </p>
                                     <p className="font-unbounded text-3xl font-bold text-white mb-2 tracking-tight">« nuit »</p>
-                                    <p className="text-[#D90097] text-sm font-arimo flex items-center gap-2">
+                                    <p className="nara-body text-[#D90097] font-bold flex items-center gap-2">
                                         Terminaison : /ɥi/
                                     </p>
                                 </div>
@@ -508,14 +508,19 @@ export const Features = () => {
         <section className="py-20 md:py-32 bg-[#050505]">
             <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-8">
                 
-                <div className="text-center mb-20 md:mb-32">
-                    <h2 className="nara-title text-4xl md:text-6xl text-white mb-6 tracking-tighter">Conçu pour l'excellence.</h2>
-                    <p className="font-arimo text-gray-300 text-lg md:text-xl max-w-2xl mx-auto">
+                <div className="text-center mb-24 md:mb-32">
+                    <div className="mb-6 flex justify-center">
+                        <span className="nara-badge">
+                            Fonctionnalités
+                        </span>
+                    </div>
+                    <h2 className="nara-title-2 text-white mb-6">Conçu pour l'excellence.</h2>
+                    <p className="nara-subtitle text-gray-300 max-w-2xl mx-auto">
                         Des fonctionnalités taillées sur mesure pour sublimer ton processus créatif.
                     </p>
                 </div>
 
-                <div className="space-y-32 md:space-y-40">
+                <div className="space-y-16 md:space-y-40">
                     {/* Feature 1: Suggestions de rimes automatiques */}
                     <RhymeSuggestions />
 

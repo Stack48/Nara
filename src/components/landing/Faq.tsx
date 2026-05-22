@@ -8,19 +8,23 @@ export const Faq = () => {
     const questions = [
         {
             question: "Est-ce que Nara fonctionne avec mes outils actuels ?",
-            answer: "Absolument. Nara est conçu pour centraliser tes fichiers peu importe ton DAW (Ableton, FL Studio, Logic, etc.)."
+            answer: "Absolument. Nara est conçu pour centraliser tes fichiers peu importe ton DAW (Ableton, FL Studio, Logic, etc.).",
+            color: "bg-[#D90097]" // Nara Pink (Brand)
         },
         {
             question: "Puis-je collaborer gratuitement ?",
-            answer: "Oui, Nara propose un plan gratuit pour permettre aux artistes de tester la collaboration fluide."
+            answer: "Oui, Nara propose un plan gratuit pour permettre aux artistes de tester la collaboration fluide.",
+            color: "bg-[#8B5CF6]" // Violet (Analogous)
         },
         {
             question: "Mes fichiers sont-ils en sécurité ?",
-            answer: "La sécurité est notre priorité. Tes créations sont chiffrées et stockées sur des serveurs sécurisés."
+            answer: "La sécurité est notre priorité. Tes créations sont chiffrées et stockées sur des serveurs sécurisés.",
+            color: "bg-[#06B6D4]" // Cyan (Complementary tech pop)
         },
         {
             question: "Nara est-il fait pour moi si je débute ?",
-            answer: "C'est l'outil idéal pour partir sur de bonnes bases et organiser tes sessions dès le début."
+            answer: "C'est l'outil idéal pour partir sur de bonnes bases et organiser tes sessions dès le début.",
+            color: "bg-[#F43F5E]" // Rose Red (Warm accent)
         }
     ];
 
@@ -29,34 +33,44 @@ export const Faq = () => {
     };
 
     return (
-        <section className="py-20 md:py-32 w-full flex flex-col items-center px-4 sm:px-6 lg:px-8">
+        <section className="py-24 md:py-32 w-full flex flex-col items-center px-4 sm:px-6 lg:px-8 relative z-10">
 
-            {/* En-tête : Largeur totale pour que le texte centré ait de la place */}
-            <div className="w-full text-center mb-16 mx-auto max-w-[1180px]">
-                <h2 className="nara-title text-[32px] md:text-[48px] mb-4 tracking-tighter sm:whitespace-nowrap text-balance">
+            {/* En-tête */}
+            <div className="w-full text-center mb-20 mx-auto max-w-[1180px]">
+                <div className="mb-6 flex justify-center">
+                    <span className="nara-badge">FAQ</span>
+                </div>
+                <h2 className="nara-title-2 mb-6 sm:whitespace-nowrap">
                     Les réponses à tes questions.
                 </h2>
-                <p className="text-gray-400 text-sm md:text-base font-arimo">
+                <p className="nara-subtitle text-gray-400">
                     Tout ce que tu veux savoir avant de te lancer.
                 </p>
             </div>
 
-            {/* Liste Accordéon : Largeur contrôlée et centrée avec mx-auto */}
-            <div className="w-full max-w-[1000px] mx-auto space-y-4">
+            {/* Liste Accordéon Editorial */}
+            <div className="w-full max-w-[1000px] mx-auto border-t border-white/20">
                 {questions.map((item, index) => (
                     <div
                         key={index}
-                        className="bg-[#0A0A0A] rounded-2xl border border-white/5 overflow-hidden transition-all duration-300"
+                        className="border-b border-white/20 group hover:bg-white/[0.02] transition-colors duration-300"
                     >
                         <button
                             onClick={() => toggleFaq(index)}
-                            className="w-full flex items-center justify-between p-7 text-left focus:outline-none"
+                            className="w-full flex items-center justify-between py-6 px-4 md:px-6 text-left focus:outline-none"
                         >
-                            <span className="font-unbounded font-medium text-[14px] md:text-[18px] pr-8">
-                                {item.question}
-                            </span>
+                            <div className="flex items-center gap-4 md:gap-8 flex-1">
+                                <span className="nara-title-4 text-white/50 w-8 md:w-16">
+                                    {String(index + 1).padStart(2, '0')}
+                                </span>
+                                <div className={`w-4 h-4 md:w-5 md:h-5 ${item.color} flex-shrink-0`}></div>
+                                <span className="nara-title-4 text-white">
+                                    {item.question}
+                                </span>
+                            </div>
+                            
                             <svg
-                                className={`w-5 h-5 text-white/50 transition-transform duration-300 ${openIndex === index ? "rotate-90" : ""}`}
+                                className={`w-6 h-6 text-white/50 transition-transform duration-300 flex-shrink-0 ${openIndex === index ? "rotate-90" : ""}`}
                                 viewBox="0 0 24 24"
                                 fill="none"
                                 stroke="currentColor"
@@ -69,14 +83,17 @@ export const Faq = () => {
                         </button>
 
                         <div
-                            className={`transition-all duration-500 ease-in-out ${openIndex === index
-                                ? "max-h-96 opacity-100 p-7 pt-0"
-                                : "max-h-0 opacity-0 pointer-events-none"
-                                }`}
+                            className={`transition-all duration-500 ease-in-out overflow-hidden ${
+                                openIndex === index
+                                    ? "max-h-96 opacity-100 pb-8"
+                                    : "max-h-0 opacity-0"
+                            }`}
                         >
-                            <p className="text-gray-400 font-arimo text-sm md:text-base leading-relaxed">
-                                {item.answer}
-                            </p>
+                            <div className="pl-[72px] md:pl-[120px] pr-8">
+                                <p className="nara-subtitle text-gray-400">
+                                    {item.answer}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 ))}

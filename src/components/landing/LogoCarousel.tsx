@@ -28,7 +28,7 @@ export const LogoCarousel = () => (
 
 		<div className="pointer-events-none absolute inset-x-0 -top-24 h-28 bg-gradient-to-b from-transparent to-[#050506]" />
 		<div className="mx-auto max-w-[1180px]">
-			<p className="mb-6 px-4 text-center text-[clamp(13px,1.35vw,18px)] leading-snug text-[#d4c9d1] sm:mb-8 sm:px-6">
+			<p className="nara-body mb-6 px-4 text-center text-[#d4c9d1] sm:mb-8 sm:px-6">
 				Trusted by leading companies worldwide
 			</p>
 
