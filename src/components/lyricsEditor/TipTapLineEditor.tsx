@@ -111,7 +111,9 @@ function getCurrentSelectionRect(): TipTapTextSelection["rect"] | null {
 		return createPlainRect(boundingRect);
 	}
 
-	const firstRect: DOMRect | undefined = Array.from(range.getClientRects())[0];
+	const firstRect: DOMRect | undefined = Array.from(
+		range.getClientRects(),
+	)[0];
 
 	return firstRect ? createPlainRect(firstRect) : null;
 }
@@ -151,7 +153,10 @@ function normalizeTextStyleColor(
 			hexValue.length === 3
 				? `#${hexValue
 						.split("")
-						.map((character: string): string => character + character)
+						.map(
+							(character: string): string =>
+								character + character,
+						)
 						.join("")
 						.toUpperCase()}`
 				: `#${hexValue.toUpperCase()}`;
@@ -171,7 +176,12 @@ function normalizeTextStyleColor(
 		const green: number = Math.min(Math.max(Number(rgbaMatch[2]), 0), 255);
 		const blue: number = Math.min(Math.max(Number(rgbaMatch[3]), 0), 255);
 		const alpha: number = rgbaMatch[4] ? Number(rgbaMatch[4]) : 1;
-		const textColor: string = `#${((1 << 24) + (red << 16) + (green << 8) + blue)
+		const textColor: string = `#${(
+			(1 << 24) +
+			(red << 16) +
+			(green << 8) +
+			blue
+		)
 			.toString(16)
 			.slice(1)
 			.toUpperCase()}`;
@@ -198,7 +208,10 @@ function getNearbyTextColorSnapshot(
 		return null;
 	}
 
-	function readTextColor(from: number, to: number): unknown | null | undefined {
+	function readTextColor(
+		from: number,
+		to: number,
+	): unknown | null | undefined {
 		let color: unknown | null = null;
 		let hasText = false;
 
@@ -209,8 +222,8 @@ function getNearbyTextColorSnapshot(
 
 			hasText = true;
 			color =
-				node.marks.find((mark): boolean => mark.type === textStyleMark)?.attrs
-					.color ?? null;
+				node.marks.find((mark): boolean => mark.type === textStyleMark)
+					?.attrs.color ?? null;
 
 			return false;
 		});
@@ -230,10 +243,15 @@ function getNearbyTextColorSnapshot(
 
 	const colorAfter: unknown | null | undefined =
 		cursorPosition < doc.content.size
-			? readTextColor(cursorPosition, Math.min(doc.content.size, cursorPosition + 1))
+			? readTextColor(
+					cursorPosition,
+					Math.min(doc.content.size, cursorPosition + 1),
+				)
 			: undefined;
 
-	return colorAfter !== undefined ? normalizeTextStyleColor(colorAfter) : null;
+	return colorAfter !== undefined
+		? normalizeTextStyleColor(colorAfter)
+		: null;
 }
 
 function getFormatSnapshot(
@@ -242,11 +260,10 @@ function getFormatSnapshot(
 ): Partial<LyricsFormat> {
 	const textStyleAttributes: Record<string, unknown> =
 		editor.getAttributes("textStyle");
-	const colorSnapshot =
-		options.preferNearbyTextColor
-			? getNearbyTextColorSnapshot(editor) ??
-				normalizeTextStyleColor(textStyleAttributes.color)
-			: normalizeTextStyleColor(textStyleAttributes.color);
+	const colorSnapshot = options.preferNearbyTextColor
+		? (getNearbyTextColorSnapshot(editor) ??
+			normalizeTextStyleColor(textStyleAttributes.color))
+		: normalizeTextStyleColor(textStyleAttributes.color);
 
 	return {
 		bold: editor.isActive("bold"),
@@ -354,10 +371,9 @@ export default function TipTapLineEditor({
 				"data-line-editor": "true",
 				"data-line-id": lineId,
 				"data-section-id": sectionId,
-				"class":
-					"relative z-10 min-h-[24px] w-full cursor-text select-text bg-transparent text-[#F3F4F6] outline-none transition-colors focus-visible:text-white [&_.ProseMirror]:min-h-[24px] [&_.ProseMirror]:outline-none [&_p]:m-0",
-				"role": "textbox",
-				"spellcheck": "false",
+				class: "relative z-10 min-h-[24px] w-full cursor-text select-text bg-transparent text-[#F3F4F6] outline-none transition-colors focus-visible:text-white [&_.ProseMirror]:min-h-[24px] [&_.ProseMirror]:outline-none [&_p]:m-0",
+				role: "textbox",
+				spellcheck: "false",
 			},
 			handleKeyDown: (_view, event): boolean => {
 				if (event.key === "Enter") {
@@ -436,7 +452,9 @@ export default function TipTapLineEditor({
 			const isTypingAtEnd = isSelectionAtTextEnd(updatedEditor);
 
 			previousTextRef.current = nextText;
-			previousContentRef.current = JSON.stringify(updatedEditor.getJSON());
+			previousContentRef.current = JSON.stringify(
+				updatedEditor.getJSON(),
+			);
 			setIsEmpty(nextIsEmpty);
 
 			latestPropsRef.current.onChange({
@@ -494,7 +512,11 @@ export default function TipTapLineEditor({
 	useEffect((): void => {
 		const nextContentValue = JSON.stringify(content);
 
-		if (!editor || editor.isFocused || previousContentRef.current === nextContentValue) {
+		if (
+			!editor ||
+			editor.isFocused ||
+			previousContentRef.current === nextContentValue
+		) {
 			return;
 		}
 

@@ -442,7 +442,8 @@ function getVisibleLineById(
 	for (const section of sections) {
 		const line =
 			getVisibleSectionLines(section).find(
-				(sectionLine: TipTapLyricLine): boolean => sectionLine.id === lineId,
+				(sectionLine: TipTapLyricLine): boolean =>
+					sectionLine.id === lineId,
 			) ?? null;
 
 		if (line) {
@@ -471,7 +472,8 @@ function preserveLocalFocusedLine(
 
 			if (
 				!visibleLines.some(
-					(line: TipTapLyricLine): boolean => line.id === activeLineId,
+					(line: TipTapLyricLine): boolean =>
+						line.id === activeLineId,
 				)
 			) {
 				return section;
@@ -519,7 +521,9 @@ function setVisibleSectionLines(
 	return {
 		...section,
 		alternatives: section.alternatives.map(
-			(alternative: TipTapSectionAlternative): TipTapSectionAlternative =>
+			(
+				alternative: TipTapSectionAlternative,
+			): TipTapSectionAlternative =>
 				alternative.id === activeAlternative.id
 					? { ...alternative, lines }
 					: alternative,
@@ -530,7 +534,10 @@ function setVisibleSectionLines(
 function getSectionAccentColor(index: number): string {
 	const safeIndex: number = Math.max(0, index);
 
-	return sectionAccentPalette[safeIndex % sectionAccentPalette.length] ?? "#DA069A";
+	return (
+		sectionAccentPalette[safeIndex % sectionAccentPalette.length] ??
+		"#DA069A"
+	);
 }
 
 function isStoredAccentColor(value: unknown): value is string {
@@ -568,17 +575,15 @@ function createSectionFromText(
 		...nextSection,
 		lines:
 			lines.length > 0
-				? lines.map((lineText: string): TipTapLyricLine =>
-						createLine(kind, lineText),
+				? lines.map(
+						(lineText: string): TipTapLyricLine =>
+							createLine(kind, lineText),
 					)
 				: [createLine(kind)],
 	};
 }
 
-function replaceLineText(
-	line: TipTapLyricLine,
-	text: string,
-): TipTapLyricLine {
+function replaceLineText(line: TipTapLyricLine, text: string): TipTapLyricLine {
 	return {
 		...line,
 		content: createParagraphContent(text),
@@ -693,21 +698,29 @@ function createSectionsFromFocusText(
 		return [];
 	}
 
-	return blocks.map((blockText: string, index: number): TipTapLyricSection => {
-		const sourceSection = sourceSections[index];
+	return blocks.map(
+		(blockText: string, index: number): TipTapLyricSection => {
+			const sourceSection = sourceSections[index];
 
-		if (sourceSection) {
-			return setVisibleSectionLines(
-				sourceSection,
-				createLinesFromPlainText(sourceSection, blockText),
+			if (sourceSection) {
+				return setVisibleSectionLines(
+					sourceSection,
+					createLinesFromPlainText(sourceSection, blockText),
+				);
+			}
+
+			return createSectionFromText(
+				"untitled",
+				blockText,
+				accentOffset + index,
 			);
-		}
-
-		return createSectionFromText("untitled", blockText, accentOffset + index);
-	});
+		},
+	);
 }
 
-function renumberDocument(sections: TipTapLyricSection[]): TipTapLyricSection[] {
+function renumberDocument(
+	sections: TipTapLyricSection[],
+): TipTapLyricSection[] {
 	let lineNumber = 1;
 	const kindCounts: Record<SectionKind, number> = {
 		untitled: 0,
@@ -717,33 +730,38 @@ function renumberDocument(sections: TipTapLyricSection[]): TipTapLyricSection[] 
 		pont: 0,
 	};
 
-	return sections.map((section: TipTapLyricSection, index: number): TipTapLyricSection => {
-		kindCounts[section.kind] += 1;
-		const title =
-			kindCounts[section.kind] > 1
-				? `${sectionLabels[section.kind]} ${kindCounts[section.kind]}`
-				: sectionLabels[section.kind];
-		const activeAlternative = getActiveAlternative(section);
-		const visibleLines = getVisibleSectionLines(section).map(
-			(line: TipTapLyricLine): TipTapLyricLine => ({
-				...line,
-				number: lineNumber++,
-			}),
-		);
+	return sections.map(
+		(section: TipTapLyricSection, index: number): TipTapLyricSection => {
+			kindCounts[section.kind] += 1;
+			const title =
+				kindCounts[section.kind] > 1
+					? `${sectionLabels[section.kind]} ${kindCounts[section.kind]}`
+					: sectionLabels[section.kind];
+			const activeAlternative = getActiveAlternative(section);
+			const visibleLines = getVisibleSectionLines(section).map(
+				(line: TipTapLyricLine): TipTapLyricLine => ({
+					...line,
+					number: lineNumber++,
+				}),
+			);
 
-		return {
-			...section,
-			accentColor: section.accentColor || getSectionAccentColor(index),
-			title,
-			lines: activeAlternative ? section.lines : visibleLines,
-			alternatives: section.alternatives.map(
-				(alternative: TipTapSectionAlternative): TipTapSectionAlternative =>
-					alternative.id === activeAlternative?.id
-						? { ...alternative, lines: visibleLines }
-						: alternative,
-			),
-		};
-	});
+			return {
+				...section,
+				accentColor:
+					section.accentColor || getSectionAccentColor(index),
+				title,
+				lines: activeAlternative ? section.lines : visibleLines,
+				alternatives: section.alternatives.map(
+					(
+						alternative: TipTapSectionAlternative,
+					): TipTapSectionAlternative =>
+						alternative.id === activeAlternative?.id
+							? { ...alternative, lines: visibleLines }
+							: alternative,
+				),
+			};
+		},
+	);
 }
 
 function createInitialDocument(): TipTapLyricsDocument {
@@ -762,8 +780,14 @@ function createInitialDocument(): TipTapLyricsDocument {
 				lines: [
 					createLine("intro", "Sed ut perspiciatis unde omnis"),
 					createLine("intro", "Doloremque laudantium,"),
-					createLine("intro", "Iste natus error sit voluptatem accusantium"),
-					createLine("intro", "Totam rem aperiam, eaque ipsa veritatis"),
+					createLine(
+						"intro",
+						"Iste natus error sit voluptatem accusantium",
+					),
+					createLine(
+						"intro",
+						"Totam rem aperiam, eaque ipsa veritatis",
+					),
 				],
 			},
 			{
@@ -776,8 +800,14 @@ function createInitialDocument(): TipTapLyricsDocument {
 				lines: [
 					createLine("couplet", "Sed ut perspiciatis unde omnis"),
 					createLine("couplet", "Doloremque laudantium,"),
-					createLine("couplet", "Iste natus error sit voluptatem accusantium"),
-					createLine("couplet", "Totam rem aperiam, eaque ipsa veritatis"),
+					createLine(
+						"couplet",
+						"Iste natus error sit voluptatem accusantium",
+					),
+					createLine(
+						"couplet",
+						"Totam rem aperiam, eaque ipsa veritatis",
+					),
 				],
 			},
 			{
@@ -790,8 +820,14 @@ function createInitialDocument(): TipTapLyricsDocument {
 				lines: [
 					createLine("refrain", "Sed ut perspiciatis unde omnis"),
 					createLine("refrain", "Doloremque laudantium,"),
-					createLine("refrain", "Iste natus error sit voluptatem accusantium"),
-					createLine("refrain", "Totam rem aperiam, eaque ipsa veritatis"),
+					createLine(
+						"refrain",
+						"Iste natus error sit voluptatem accusantium",
+					),
+					createLine(
+						"refrain",
+						"Totam rem aperiam, eaque ipsa veritatis",
+					),
 				],
 			},
 		]),
@@ -810,7 +846,8 @@ function isRemotePresence(value: unknown): value is RemotePresence {
 		typeof value.name === "string" &&
 		typeof value.initial === "string" &&
 		typeof value.color === "string" &&
-		(typeof value.cursorOffset === "number" || value.cursorOffset === null) &&
+		(typeof value.cursorOffset === "number" ||
+			value.cursorOffset === null) &&
 		typeof value.projectId === "string" &&
 		(typeof value.sectionId === "string" || value.sectionId === null) &&
 		(typeof value.lineId === "string" || value.lineId === null) &&
@@ -851,7 +888,9 @@ function isPresenceMessage(value: unknown): value is PresenceMessage {
 		return isDocumentUpdatePayload(value.payload);
 	}
 
-	return value.type === "presence:leave" && typeof value.sessionId === "string";
+	return (
+		value.type === "presence:leave" && typeof value.sessionId === "string"
+	);
 }
 
 function isRealtimeSnapshot(value: unknown): value is RealtimeSnapshot {
@@ -901,7 +940,9 @@ function isLineCommentsById(value: unknown): value is LineCommentsById {
 }
 
 function isSectionKind(value: unknown): value is SectionKind {
-	return typeof value === "string" && sectionKinds.includes(value as SectionKind);
+	return (
+		typeof value === "string" && sectionKinds.includes(value as SectionKind)
+	);
 }
 
 function isJsonContent(value: unknown): value is JSONContent {
@@ -918,19 +959,30 @@ function parseStoredLines(
 
 	const lines = value
 		.map((lineValue: unknown): TipTapLyricLine | null => {
-			if (!isRecord(lineValue) || typeof lineValue.id !== "string" || !isJsonContent(lineValue.content)) {
+			if (
+				!isRecord(lineValue) ||
+				typeof lineValue.id !== "string" ||
+				!isJsonContent(lineValue.content)
+			) {
 				return null;
 			}
 
 			return {
 				id: lineValue.id,
-				number: typeof lineValue.number === "number" ? lineValue.number : 0,
+				number:
+					typeof lineValue.number === "number" ? lineValue.number : 0,
 				content: lineValue.content,
-				comments: typeof lineValue.comments === "number" ? lineValue.comments : 0,
+				comments:
+					typeof lineValue.comments === "number"
+						? lineValue.comments
+						: 0,
 				text: typeof lineValue.text === "string" ? lineValue.text : "",
 			};
 		})
-		.filter((line: TipTapLyricLine | null): line is TipTapLyricLine => line !== null);
+		.filter(
+			(line: TipTapLyricLine | null): line is TipTapLyricLine =>
+				line !== null,
+		);
 
 	return lines.length > 0 ? lines : [createLine(kind)];
 }
@@ -944,31 +996,42 @@ function parseStoredAlternatives(
 	}
 
 	return value
-		.map((alternativeValue: unknown, index: number): TipTapSectionAlternative | null => {
-			if (!isRecord(alternativeValue)) {
-				return null;
-			}
+		.map(
+			(
+				alternativeValue: unknown,
+				index: number,
+			): TipTapSectionAlternative | null => {
+				if (!isRecord(alternativeValue)) {
+					return null;
+				}
 
-			return {
-				createdBy: typeof alternativeValue.createdBy === "string"
-					? alternativeValue.createdBy
-					: "Equipe",
-				id: typeof alternativeValue.id === "string"
-					? alternativeValue.id
-					: createId(`${kind}-alternative`),
-				label: typeof alternativeValue.label === "string"
-					? alternativeValue.label
-					: `Alternative ${index + 1}`,
-				lines: parseStoredLines(alternativeValue.lines, kind),
-			};
-		})
+				return {
+					createdBy:
+						typeof alternativeValue.createdBy === "string"
+							? alternativeValue.createdBy
+							: "Equipe",
+					id:
+						typeof alternativeValue.id === "string"
+							? alternativeValue.id
+							: createId(`${kind}-alternative`),
+					label:
+						typeof alternativeValue.label === "string"
+							? alternativeValue.label
+							: `Alternative ${index + 1}`,
+					lines: parseStoredLines(alternativeValue.lines, kind),
+				};
+			},
+		)
 		.filter(
-			(alternative: TipTapSectionAlternative | null): alternative is TipTapSectionAlternative =>
-				alternative !== null,
+			(
+				alternative: TipTapSectionAlternative | null,
+			): alternative is TipTapSectionAlternative => alternative !== null,
 		);
 }
 
-function parseStoredDocument(value: string | null): TipTapLyricsDocument | null {
+function parseStoredDocument(
+	value: string | null,
+): TipTapLyricsDocument | null {
 	if (!value) {
 		return null;
 	}
@@ -981,34 +1044,62 @@ function parseStoredDocument(value: string | null): TipTapLyricsDocument | null 
 		}
 
 		const sections = parsedValue.sections
-			.map((sectionValue: unknown, index: number): TipTapLyricSection | null => {
-				if (!isRecord(sectionValue) || !isSectionKind(sectionValue.kind) || !Array.isArray(sectionValue.lines)) {
-					return null;
-				}
+			.map(
+				(
+					sectionValue: unknown,
+					index: number,
+				): TipTapLyricSection | null => {
+					if (
+						!isRecord(sectionValue) ||
+						!isSectionKind(sectionValue.kind) ||
+						!Array.isArray(sectionValue.lines)
+					) {
+						return null;
+					}
 
-				const alternatives = parseStoredAlternatives(sectionValue.alternatives, sectionValue.kind);
-				const activeAlternativeId =
-					typeof sectionValue.activeAlternativeId === "string" &&
-					alternatives.some(
-						(alternative: TipTapSectionAlternative): boolean =>
-							alternative.id === sectionValue.activeAlternativeId,
-					)
-						? sectionValue.activeAlternativeId
-						: null;
+					const alternatives = parseStoredAlternatives(
+						sectionValue.alternatives,
+						sectionValue.kind,
+					);
+					const activeAlternativeId =
+						typeof sectionValue.activeAlternativeId === "string" &&
+						alternatives.some(
+							(alternative: TipTapSectionAlternative): boolean =>
+								alternative.id ===
+								sectionValue.activeAlternativeId,
+						)
+							? sectionValue.activeAlternativeId
+							: null;
 
-				return {
-					accentColor: isStoredAccentColor(sectionValue.accentColor)
-						? sectionValue.accentColor
-						: getSectionAccentColor(index),
-					activeAlternativeId,
-					alternatives,
-					id: typeof sectionValue.id === "string" ? sectionValue.id : createId(sectionValue.kind),
-					kind: sectionValue.kind,
-					title: typeof sectionValue.title === "string" ? sectionValue.title : sectionLabels[sectionValue.kind],
-					lines: parseStoredLines(sectionValue.lines, sectionValue.kind),
-				};
-			})
-			.filter((section: TipTapLyricSection | null): section is TipTapLyricSection => section !== null);
+					return {
+						accentColor: isStoredAccentColor(
+							sectionValue.accentColor,
+						)
+							? sectionValue.accentColor
+							: getSectionAccentColor(index),
+						activeAlternativeId,
+						alternatives,
+						id:
+							typeof sectionValue.id === "string"
+								? sectionValue.id
+								: createId(sectionValue.kind),
+						kind: sectionValue.kind,
+						title:
+							typeof sectionValue.title === "string"
+								? sectionValue.title
+								: sectionLabels[sectionValue.kind],
+						lines: parseStoredLines(
+							sectionValue.lines,
+							sectionValue.kind,
+						),
+					};
+				},
+			)
+			.filter(
+				(
+					section: TipTapLyricSection | null,
+				): section is TipTapLyricSection => section !== null,
+			);
 
 		if (sections.length === 0) {
 			return null;
@@ -1016,16 +1107,24 @@ function parseStoredDocument(value: string | null): TipTapLyricsDocument | null 
 
 		return {
 			id: typeof parsedValue.id === "string" ? parsedValue.id : "my-way",
-			title: typeof parsedValue.title === "string" ? parsedValue.title : "My Way",
+			title:
+				typeof parsedValue.title === "string"
+					? parsedValue.title
+					: "My Way",
 			sections: renumberDocument(sections),
-			updatedAt: typeof parsedValue.updatedAt === "string" ? parsedValue.updatedAt : null,
+			updatedAt:
+				typeof parsedValue.updatedAt === "string"
+					? parsedValue.updatedAt
+					: null,
 		};
 	} catch {
 		return null;
 	}
 }
 
-function parseStoredLineComments(value: string | null): LineCommentsById | null {
+function parseStoredLineComments(
+	value: string | null,
+): LineCommentsById | null {
 	if (!value) {
 		return null;
 	}
@@ -1057,7 +1156,8 @@ function countWords(text: string): number {
 
 function countSectionWords(section: TipTapLyricSection): number {
 	return getVisibleSectionLines(section).reduce(
-		(total: number, line: TipTapLyricLine): number => total + countWords(line.text),
+		(total: number, line: TipTapLyricLine): number =>
+			total + countWords(line.text),
 		0,
 	);
 }
@@ -1191,10 +1291,12 @@ function getRhymeKey(word: string): string | null {
 		return knownEnding;
 	}
 
-	const finalSound: string | undefined = normalizedWord.match(/[aeiouy]+[^aeiouy]*$/)?.[0];
-	const key: string = finalSound && finalSound.length >= 2
-		? finalSound
-		: normalizedWord.slice(-2);
+	const finalSound: string | undefined =
+		normalizedWord.match(/[aeiouy]+[^aeiouy]*$/)?.[0];
+	const key: string =
+		finalSound && finalSound.length >= 2
+			? finalSound
+			: normalizedWord.slice(-2);
 
 	return key.length > 4 ? key.slice(-4) : key;
 }
@@ -1231,38 +1333,59 @@ function getLineRhymeCandidate(
 function createRhymeHighlights(
 	sections: TipTapLyricSection[],
 ): RhymeHighlightsByLineId {
-	const candidates: Array<RhymeHighlight & { lineId: string }> = sections.flatMap(
-		(section: TipTapLyricSection): Array<RhymeHighlight & { lineId: string }> =>
-			getVisibleSectionLines(section)
-				.map(getLineRhymeCandidate)
-				.filter(
-					(candidate: (RhymeHighlight & { lineId: string }) | null): candidate is RhymeHighlight & { lineId: string } =>
-						candidate !== null,
-				),
-	);
+	const candidates: Array<RhymeHighlight & { lineId: string }> =
+		sections.flatMap(
+			(
+				section: TipTapLyricSection,
+			): Array<RhymeHighlight & { lineId: string }> =>
+				getVisibleSectionLines(section)
+					.map(getLineRhymeCandidate)
+					.filter(
+						(
+							candidate:
+								| (RhymeHighlight & { lineId: string })
+								| null,
+						): candidate is RhymeHighlight & { lineId: string } =>
+							candidate !== null,
+					),
+		);
 	const countsByKey = new Map<string, number>();
 
-	candidates.forEach((candidate: RhymeHighlight & { lineId: string }): void => {
-		countsByKey.set(candidate.key, (countsByKey.get(candidate.key) ?? 0) + 1);
-	});
+	candidates.forEach(
+		(candidate: RhymeHighlight & { lineId: string }): void => {
+			countsByKey.set(
+				candidate.key,
+				(countsByKey.get(candidate.key) ?? 0) + 1,
+			);
+		},
+	);
 
 	const colorsByKey = new Map<string, string>();
 	let colorIndex = 0;
 
-	candidates.forEach((candidate: RhymeHighlight & { lineId: string }): void => {
-		if ((countsByKey.get(candidate.key) ?? 0) < 2 || colorsByKey.has(candidate.key)) {
-			return;
-		}
+	candidates.forEach(
+		(candidate: RhymeHighlight & { lineId: string }): void => {
+			if (
+				(countsByKey.get(candidate.key) ?? 0) < 2 ||
+				colorsByKey.has(candidate.key)
+			) {
+				return;
+			}
 
-		colorsByKey.set(
-			candidate.key,
-			rhymeAccentPalette[colorIndex % rhymeAccentPalette.length] ?? "#FF5C72",
-		);
-		colorIndex += 1;
-	});
+			colorsByKey.set(
+				candidate.key,
+				rhymeAccentPalette[colorIndex % rhymeAccentPalette.length] ??
+					"#FF5C72",
+			);
+			colorIndex += 1;
+		},
+	);
 
 	return candidates.reduce(
-		(highlightsByLineId: RhymeHighlightsByLineId, candidate: RhymeHighlight & { lineId: string }): RhymeHighlightsByLineId => {
+		(
+			highlightsByLineId: RhymeHighlightsByLineId,
+			candidate: RhymeHighlight & { lineId: string },
+		): RhymeHighlightsByLineId => {
 			const color: string | undefined = colorsByKey.get(candidate.key);
 
 			if (!color) {
@@ -1340,8 +1463,10 @@ function isSelectionOnFullTextLines(
 		return false;
 	}
 
-	const startsAtLineBoundary = startIndex === 0 || value[startIndex - 1] === "\n";
-	const endsAtLineBoundary = endIndex === value.length || value[endIndex] === "\n";
+	const startsAtLineBoundary =
+		startIndex === 0 || value[startIndex - 1] === "\n";
+	const endsAtLineBoundary =
+		endIndex === value.length || value[endIndex] === "\n";
 
 	return startsAtLineBoundary && endsAtLineBoundary;
 }
@@ -1383,7 +1508,10 @@ function createSearchMatchRanges(
 	let searchIndex = 0;
 
 	while (searchIndex < lowerText.length) {
-		const matchIndex: number = lowerText.indexOf(lowerLookupTerm, searchIndex);
+		const matchIndex: number = lowerText.indexOf(
+			lowerLookupTerm,
+			searchIndex,
+		);
 
 		if (matchIndex === -1) {
 			break;
@@ -1408,10 +1536,18 @@ function getLineStyle(format: LyricsFormat): CSSProperties {
 	const fontSize = Number.isFinite(numericFontSize) ? numericFontSize : 16;
 
 	return {
-		fontFamily: format.fontFamily === "Arimo" ? "var(--font-arimo)" : format.fontFamily,
+		fontFamily:
+			format.fontFamily === "Arimo"
+				? "var(--font-arimo)"
+				: format.fontFamily,
 		fontSize,
 		fontWeight: 500,
-		lineHeight: format.blockSize === "small" ? 1.35 : format.blockSize === "normal" ? 1.55 : 1.75,
+		lineHeight:
+			format.blockSize === "small"
+				? 1.35
+				: format.blockSize === "normal"
+					? 1.55
+					: 1.75,
 		textAlign: format.align,
 	};
 }
@@ -1444,7 +1580,9 @@ function getSyllableNumberStyle(format: LyricsFormat): CSSProperties {
 
 	return {
 		fontFamily:
-			format.fontFamily === "Arimo" ? "var(--font-arimo)" : format.fontFamily,
+			format.fontFamily === "Arimo"
+				? "var(--font-arimo)"
+				: format.fontFamily,
 		fontSize: `${syllableFontSize}px`,
 		fontStyle: "normal",
 		fontWeight: 600,
@@ -1458,8 +1596,12 @@ function moveSection(
 	sourceId: string,
 	targetId: string,
 ): TipTapLyricSection[] {
-	const sourceIndex = sections.findIndex((section) => section.id === sourceId);
-	const targetIndex = sections.findIndex((section) => section.id === targetId);
+	const sourceIndex = sections.findIndex(
+		(section) => section.id === sourceId,
+	);
+	const targetIndex = sections.findIndex(
+		(section) => section.id === targetId,
+	);
 
 	if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) {
 		return sections;
@@ -1484,11 +1626,16 @@ function moveLine(
 	targetLineId: string,
 	placement: LineDropPlacement,
 ): TipTapLyricSection[] {
-	if (source.sectionId === targetSectionId && source.lineId === targetLineId) {
+	if (
+		source.sectionId === targetSectionId &&
+		source.lineId === targetLineId
+	) {
 		return sections;
 	}
 
-	const sourceSection = sections.find((section) => section.id === source.sectionId);
+	const sourceSection = sections.find(
+		(section) => section.id === source.sectionId,
+	);
 	const movedLine = sourceSection
 		? getVisibleSectionLines(sourceSection).find(
 				(line: TipTapLyricLine): boolean => line.id === source.lineId,
@@ -1526,11 +1673,12 @@ function moveLine(
 			const targetIndex = visibleLines.findIndex(
 				(line: TipTapLyricLine): boolean => line.id === targetLineId,
 			);
-			const insertIndex = targetIndex < 0
-				? visibleLines.length
-				: placement === "before"
-					? targetIndex
-					: targetIndex + 1;
+			const insertIndex =
+				targetIndex < 0
+					? visibleLines.length
+					: placement === "before"
+						? targetIndex
+						: targetIndex + 1;
 			const lines = [...visibleLines];
 
 			lines.splice(insertIndex, 0, movedLine);
@@ -1543,16 +1691,20 @@ function moveLine(
 }
 
 function createSectionDragImage(sectionElement: HTMLElement): HTMLElement {
-	const dragImage: HTMLElement = sectionElement.cloneNode(true) as HTMLElement;
+	const dragImage: HTMLElement = sectionElement.cloneNode(
+		true,
+	) as HTMLElement;
 	const themeRoot: HTMLElement | null =
 		sectionElement.closest<HTMLElement>(".nara-app");
 	const themeStyles: CSSStyleDeclaration = window.getComputedStyle(
 		themeRoot ?? window.document.documentElement,
 	);
 	const previewBackground: string =
-		themeStyles.getPropertyValue("--nara-surface-raised").trim() || "#17171C";
+		themeStyles.getPropertyValue("--nara-surface-raised").trim() ||
+		"#17171C";
 	const previewBorder: string =
-		themeStyles.getPropertyValue("--nara-border-strong").trim() || "#3A3A42";
+		themeStyles.getPropertyValue("--nara-border-strong").trim() ||
+		"#3A3A42";
 	const previewText: string =
 		themeStyles.getPropertyValue("--nara-text-primary").trim() || "#F3F4F6";
 	const clonedEditors: NodeListOf<HTMLElement> =
@@ -1594,9 +1746,11 @@ function createLineDragImage(lineElement: HTMLElement): HTMLElement {
 		themeRoot ?? window.document.documentElement,
 	);
 	const previewBackground: string =
-		themeStyles.getPropertyValue("--nara-surface-raised").trim() || "#17171C";
+		themeStyles.getPropertyValue("--nara-surface-raised").trim() ||
+		"#17171C";
 	const previewBorder: string =
-		themeStyles.getPropertyValue("--nara-border-strong").trim() || "#3A3A42";
+		themeStyles.getPropertyValue("--nara-border-strong").trim() ||
+		"#3A3A42";
 	const previewText: string =
 		themeStyles.getPropertyValue("--nara-text-primary").trim() || "#F3F4F6";
 	const clonedEditor: HTMLElement | null =
@@ -1648,7 +1802,8 @@ function placeCaretInsideElement(
 	const paragraph: HTMLElement | null =
 		placement === "start"
 			? element.querySelector<HTMLElement>("p")
-			: Array.from(element.querySelectorAll<HTMLElement>("p")).at(-1) ?? null;
+			: (Array.from(element.querySelectorAll<HTMLElement>("p")).at(-1) ??
+				null);
 	const target: HTMLElement = paragraph ?? element;
 
 	range.selectNodeContents(target);
@@ -1680,28 +1835,31 @@ function createTrackMarkers(
 ): TrackMarker[] {
 	const safeDurationSeconds: number = Math.max(1, durationSeconds);
 
-	return sections.map((section: TipTapLyricSection, index: number): TrackMarker => {
-		const defaultSeconds: number = Math.min(
-			safeDurationSeconds - 1,
-			16 + index * 15,
-		);
-		const positionPercent: number =
-			customPositionsBySectionId[section.id] ??
-			(defaultSeconds / safeDurationSeconds) * 100;
-		const seconds: number = (safeDurationSeconds * positionPercent) / 100;
-		const minutes: number = Math.floor(seconds / 60);
-		const remainingSeconds: string = Math.round(seconds % 60)
-			.toString()
-			.padStart(2, "0");
+	return sections.map(
+		(section: TipTapLyricSection, index: number): TrackMarker => {
+			const defaultSeconds: number = Math.min(
+				safeDurationSeconds - 1,
+				16 + index * 15,
+			);
+			const positionPercent: number =
+				customPositionsBySectionId[section.id] ??
+				(defaultSeconds / safeDurationSeconds) * 100;
+			const seconds: number =
+				(safeDurationSeconds * positionPercent) / 100;
+			const minutes: number = Math.floor(seconds / 60);
+			const remainingSeconds: string = Math.round(seconds % 60)
+				.toString()
+				.padStart(2, "0");
 
-		return {
-			accentColor: section.accentColor,
-			id: section.id,
-			label: section.title,
-			positionPercent,
-			timeLabel: `${minutes}:${remainingSeconds}`,
-		};
-	});
+			return {
+				accentColor: section.accentColor,
+				id: section.id,
+				label: section.title,
+				positionPercent,
+				timeLabel: `${minutes}:${remainingSeconds}`,
+			};
+		},
+	);
 }
 
 function getSectionLabel(kind: SectionKind): string {
@@ -1728,11 +1886,7 @@ function getFocusSectionInitial(kind: SectionKind): string {
 	return labels[kind];
 }
 
-function SwitchTrack({
-	enabled,
-}: {
-	enabled: boolean;
-}): ReactElement {
+function SwitchTrack({ enabled }: { enabled: boolean }): ReactElement {
 	return (
 		<span
 			aria-hidden="true"
@@ -1826,7 +1980,8 @@ function SectionVariantSwitcher({
 			</button>
 			{alternatives.map(
 				(alternative: TipTapSectionAlternative): ReactElement => {
-					const isActive: boolean = activeAlternativeId === alternative.id;
+					const isActive: boolean =
+						activeAlternativeId === alternative.id;
 
 					return (
 						<div
@@ -1992,10 +2147,16 @@ function SectionOptionsMenu({
 				<div className="my-3 h-px bg-[#666670]" />
 
 				<div className="grid gap-2 text-[12px] text-[#F3F4F6]">
-					<button type="button" className="text-left transition-colors hover:text-white">
+					<button
+						type="button"
+						className="text-left transition-colors hover:text-white"
+					>
 						Global Comment
 					</button>
-					<button type="button" className="text-left transition-colors hover:text-white">
+					<button
+						type="button"
+						className="text-left transition-colors hover:text-white"
+					>
 						Comment
 					</button>
 				</div>
@@ -2008,7 +2169,8 @@ function SectionOptionsMenu({
 						aria-expanded={isHistoryOpen}
 						onClick={(): void => {
 							setIsHistoryOpen(
-								(currentValue: boolean): boolean => !currentValue,
+								(currentValue: boolean): boolean =>
+									!currentValue,
 							);
 						}}
 						className="flex items-center justify-between text-left transition-colors hover:text-white"
@@ -2031,7 +2193,9 @@ function SectionOptionsMenu({
 				<div className="mt-[160px] hidden w-[244px] rounded-[18px] border border-[#5A5A63] bg-[#2B2B31] px-5 py-4 shadow-[0_18px_36px_rgba(0,0,0,0.35)] xl:block">
 					<div className="flex items-center justify-between text-[13px] text-[#F3F4F6]">
 						<span>Creer par Nilu</span>
-						<span className="font-semibold text-[#A1A1AA]">17hours</span>
+						<span className="font-semibold text-[#A1A1AA]">
+							17hours
+						</span>
 					</div>
 					<div className="mt-4 text-[13px] text-[#F3F4F6]">
 						Derniere modification
@@ -2041,7 +2205,9 @@ function SectionOptionsMenu({
 							<span className="h-2 w-2 rounded-full bg-white" />
 							Maya
 						</span>
-						<span className="font-semibold text-[#A1A1AA]">2hours</span>
+						<span className="font-semibold text-[#A1A1AA]">
+							2hours
+						</span>
 					</div>
 				</div>
 			)}
@@ -2120,7 +2286,9 @@ function SectionKindPicker({
 					className="absolute left-0 top-[calc(100%+7px)] z-40 w-[148px] overflow-hidden rounded-[10px] border border-[#4A4A52] bg-[#202026] p-1 shadow-[0_18px_34px_rgba(0,0,0,0.45)]"
 				>
 					{editableSectionKinds.map(
-						(kind: Exclude<SectionKind, "untitled">): ReactElement => {
+						(
+							kind: Exclude<SectionKind, "untitled">,
+						): ReactElement => {
 							const isSelected: boolean = section.kind === kind;
 
 							return (
@@ -2241,7 +2409,10 @@ function RhymeHighlightOverlay({
 				className="inline rounded-[4px] px-[2px]"
 				style={{
 					WebkitBoxDecorationBreak: "clone",
-					backgroundColor: createPastelRhymeColor(highlight.color, 0.32),
+					backgroundColor: createPastelRhymeColor(
+						highlight.color,
+						0.32,
+					),
 					boxDecorationBreak: "clone",
 					boxShadow: `0 0 0 1px ${createPastelRhymeColor(highlight.color, 0.18)}`,
 				}}
@@ -2282,7 +2453,10 @@ function RemoteCursorOverlay({
 					const beforeCursor = text.slice(0, cursorOffset);
 
 					return (
-						<span key={presence.sessionId} className="absolute left-0 top-0">
+						<span
+							key={presence.sessionId}
+							className="absolute left-0 top-0"
+						>
 							<span className="whitespace-pre-wrap text-transparent">
 								{beforeCursor}
 							</span>
@@ -2299,7 +2473,9 @@ function RemoteCursorOverlay({
 									}}
 								>
 									{presence.name}
-									{presences.length > 1 ? ` ${index + 1}` : ""}
+									{presences.length > 1
+										? ` ${index + 1}`
+										: ""}
 								</span>
 							</span>
 						</span>
@@ -2316,7 +2492,9 @@ type FocusLineMapping = {
 	lineIndex: number;
 };
 
-function getFocusLineMappings(sections: TipTapLyricSection[]): FocusLineMapping[] {
+function getFocusLineMappings(
+	sections: TipTapLyricSection[],
+): FocusLineMapping[] {
 	const mappings: FocusLineMapping[] = [];
 	let currentLineIndex = 0;
 
@@ -2380,7 +2558,8 @@ function FocusLyricsDocument({
 
 		const selectedText = textarea.value.slice(startIndex, endIndex);
 		const selectedWord = normalizeSelectedLookupWord(selectedText);
-		const rowIndex = textarea.value.slice(0, startIndex).split("\n").length - 1;
+		const rowIndex =
+			textarea.value.slice(0, startIndex).split("\n").length - 1;
 		const selectionRect = createRectFromElement(
 			textarea,
 			rowIndex,
@@ -2388,8 +2567,9 @@ function FocusLyricsDocument({
 			focusTextareaLineHeightPx,
 		);
 		const fallbackSectionId = document.sections[0]?.id ?? "focus-document";
-		const fallbackLineId =
-			document.sections[0] ? getVisibleSectionLines(document.sections[0])[0]?.id : null;
+		const fallbackLineId = document.sections[0]
+			? getVisibleSectionLines(document.sections[0])[0]?.id
+			: null;
 
 		if (isSelectionOnFullTextLines(textarea.value, startIndex, endIndex)) {
 			onSelectionChange({
@@ -2444,66 +2624,71 @@ function FocusLyricsDocument({
 					height: textareaHeight,
 				}}
 			>
-				{mappings.map(({ line, section, lineIndex }): ReactElement | null => {
-					const rhymeHighlight = rhymeHighlightsByLineId[line.id];
-					const visibleRhymeHighlight =
-						showRhymes &&
-						line.text.trim().length > 0 &&
-						rhymeHighlight !== undefined
-							? rhymeHighlight
-							: null;
-					const lineText = textareaLines[lineIndex] ?? line.text;
-					const searchMatchRanges = createSearchMatchRanges(lineText, normalizedLookupTerm);
-					const remotePresencesForLine = remotePresences.filter(
-						(presence: RemotePresence): boolean =>
-							presence.sectionId === section.id &&
-							presence.lineId === line.id,
-					);
+				{mappings.map(
+					({ line, section, lineIndex }): ReactElement | null => {
+						const rhymeHighlight = rhymeHighlightsByLineId[line.id];
+						const visibleRhymeHighlight =
+							showRhymes &&
+							line.text.trim().length > 0 &&
+							rhymeHighlight !== undefined
+								? rhymeHighlight
+								: null;
+						const lineText = textareaLines[lineIndex] ?? line.text;
+						const searchMatchRanges = createSearchMatchRanges(
+							lineText,
+							normalizedLookupTerm,
+						);
+						const remotePresencesForLine = remotePresences.filter(
+							(presence: RemotePresence): boolean =>
+								presence.sectionId === section.id &&
+								presence.lineId === line.id,
+						);
 
-					if (
-						!visibleRhymeHighlight &&
-						searchMatchRanges.length === 0 &&
-						remotePresencesForLine.length === 0
-					) {
-						return null;
-					}
+						if (
+							!visibleRhymeHighlight &&
+							searchMatchRanges.length === 0 &&
+							remotePresencesForLine.length === 0
+						) {
+							return null;
+						}
 
-					const lineTop = lineIndex * focusTextareaLineHeightPx;
+						const lineTop = lineIndex * focusTextareaLineHeightPx;
 
-					return (
-						<div
-							key={line.id}
-							className="absolute right-0"
-							style={{
-								left: focusTextareaLeftPaddingPx,
-								top: focusTextareaTopPaddingPx + lineTop,
-								height: focusTextareaLineHeightPx,
-							}}
-						>
-							{searchMatchRanges.length > 0 && (
-								<SearchHighlightOverlay
-									lineStyle={lineStyle}
-									ranges={searchMatchRanges}
-									text={lineText}
-								/>
-							)}
-							{visibleRhymeHighlight && (
-								<RhymeHighlightOverlay
-									highlight={visibleRhymeHighlight}
-									lineStyle={lineStyle}
-									text={lineText}
-								/>
-							)}
-							{remotePresencesForLine.length > 0 && (
-								<RemoteCursorOverlay
-									lineStyle={lineStyle}
-									presences={remotePresencesForLine}
-									text={lineText}
-								/>
-							)}
-						</div>
-					);
-				})}
+						return (
+							<div
+								key={line.id}
+								className="absolute right-0"
+								style={{
+									left: focusTextareaLeftPaddingPx,
+									top: focusTextareaTopPaddingPx + lineTop,
+									height: focusTextareaLineHeightPx,
+								}}
+							>
+								{searchMatchRanges.length > 0 && (
+									<SearchHighlightOverlay
+										lineStyle={lineStyle}
+										ranges={searchMatchRanges}
+										text={lineText}
+									/>
+								)}
+								{visibleRhymeHighlight && (
+									<RhymeHighlightOverlay
+										highlight={visibleRhymeHighlight}
+										lineStyle={lineStyle}
+										text={lineText}
+									/>
+								)}
+								{remotePresencesForLine.length > 0 && (
+									<RemoteCursorOverlay
+										lineStyle={lineStyle}
+										presences={remotePresencesForLine}
+										text={lineText}
+									/>
+								)}
+							</div>
+						);
+					},
+				)}
 			</div>
 
 			<div
@@ -2606,7 +2791,9 @@ function SelectionLookupToolbar({
 			{isTransformSelection ? (
 				<>
 					{editableSectionKinds.map(
-						(kind: Exclude<SectionKind, "untitled">): ReactElement => (
+						(
+							kind: Exclude<SectionKind, "untitled">,
+						): ReactElement => (
 							<button
 								key={`transform-${kind}`}
 								type="button"
@@ -2707,7 +2894,11 @@ function LineCommentOverlay({
 
 	return (
 		<>
-			<div aria-hidden="true" className="fixed inset-0 z-40" onClick={onClose} />
+			<div
+				aria-hidden="true"
+				className="fixed inset-0 z-40"
+				onClick={onClose}
+			/>
 			<div
 				role="dialog"
 				aria-label={`Commentaires sur la ligne ${lineNumber}`}
@@ -2755,9 +2946,9 @@ function LineCommentOverlay({
 						autoFocus
 						value={draft}
 						placeholder="Ecrire un message"
-						onChange={(event: ChangeEvent<HTMLInputElement>): void =>
-							setDraft(event.target.value)
-						}
+						onChange={(
+							event: ChangeEvent<HTMLInputElement>,
+						): void => setDraft(event.target.value)}
 						onKeyDown={handleKeyDown}
 						className="min-w-0 flex-1 bg-transparent text-[13px] text-[var(--nara-comment-text)] outline-none placeholder:text-[var(--nara-comment-muted)]"
 					/>
@@ -2780,21 +2971,40 @@ export default function LyricsEditorWorkspaceTiptap({
 	format,
 	onFormatChange,
 }: LyricsEditorWorkspaceTiptapProps): ReactElement {
-	const [document, setDocument] = useState<TipTapLyricsDocument>(createInitialDocument);
-	const [lineCommentsById, setLineCommentsById] = useState<LineCommentsById>({});
+	const [document, setDocument] = useState<TipTapLyricsDocument>(
+		createInitialDocument,
+	);
+	const [lineCommentsById, setLineCommentsById] = useState<LineCommentsById>(
+		{},
+	);
 	const [toggles, setToggles] = useState<EditorToggle[]>(initialToggles);
 	const [saveState, setSaveState] = useState<SaveState>("idle");
 	const [isDirty, setIsDirty] = useState<boolean>(false);
-	const [draggedSectionId, setDraggedSectionId] = useState<string | null>(null);
+	const [draggedSectionId, setDraggedSectionId] = useState<string | null>(
+		null,
+	);
 	const [draggedLine, setDraggedLine] = useState<LineDragState | null>(null);
-	const [openAddMenuSectionId, setOpenAddMenuSectionId] = useState<string | null>(null);
-	const [openOptionsMenuSectionId, setOpenOptionsMenuSectionId] = useState<string | null>(null);
-	const [openKindMenuSectionId, setOpenKindMenuSectionId] = useState<string | null>(null);
-	const [openCommentLineId, setOpenCommentLineId] = useState<string | null>(null);
+	const [openAddMenuSectionId, setOpenAddMenuSectionId] = useState<
+		string | null
+	>(null);
+	const [openOptionsMenuSectionId, setOpenOptionsMenuSectionId] = useState<
+		string | null
+	>(null);
+	const [openKindMenuSectionId, setOpenKindMenuSectionId] = useState<
+		string | null
+	>(null);
+	const [openCommentLineId, setOpenCommentLineId] = useState<string | null>(
+		null,
+	);
 	const [activeLineId, setActiveLineId] = useState<string | null>(null);
-	const [pendingFocusLineId, setPendingFocusLineId] = useState<string | null>(null);
-	const [sectionOptionsById, setSectionOptionsById] = useState<Record<string, SectionOptions>>({});
-	const [hasVisibleInspectorPanels, setHasVisibleInspectorPanels] = useState<boolean>(true);
+	const [pendingFocusLineId, setPendingFocusLineId] = useState<string | null>(
+		null,
+	);
+	const [sectionOptionsById, setSectionOptionsById] = useState<
+		Record<string, SectionOptions>
+	>({});
+	const [hasVisibleInspectorPanels, setHasVisibleInspectorPanels] =
+		useState<boolean>(true);
 	const [lookupTerm, setLookupTerm] = useState<string | null>(null);
 	const [focusDraftText, setFocusDraftText] = useState<string | null>(null);
 	const [textLookupSelection, setTextLookupSelection] =
@@ -2802,11 +3012,16 @@ export default function LyricsEditorWorkspaceTiptap({
 	const [inspectorLookupRequest, setInspectorLookupRequest] =
 		useState<LyricsInspectorLookupRequest | null>(null);
 	const [isTrackPlaying, setIsTrackPlaying] = useState<boolean>(false);
-	const [trackCurrentTimeSeconds, setTrackCurrentTimeSeconds] = useState<number>(0);
-	const [trackDurationSeconds, setTrackDurationSeconds] = useState<number>(defaultTrackDurationSeconds);
+	const [trackCurrentTimeSeconds, setTrackCurrentTimeSeconds] =
+		useState<number>(0);
+	const [trackDurationSeconds, setTrackDurationSeconds] = useState<number>(
+		defaultTrackDurationSeconds,
+	);
 	const [trackVolumePercent, setTrackVolumePercent] = useState<number>(58);
-	const [trackMarkerPositionsBySectionId, setTrackMarkerPositionsBySectionId] =
-		useState<Record<string, number>>({});
+	const [
+		trackMarkerPositionsBySectionId,
+		setTrackMarkerPositionsBySectionId,
+	] = useState<Record<string, number>>({});
 	const [remotePresencesBySessionId, setRemotePresencesBySessionId] =
 		useState<RemotePresenceBySessionId>({});
 	const presenceSessionIdRef = useRef<string>(createPresenceSessionId());
@@ -2826,27 +3041,38 @@ export default function LyricsEditorWorkspaceTiptap({
 		(): string => createFocusTextModel(document.sections).text,
 		[document.sections],
 	);
-	const wordCount = useMemo((): number => countDocumentWords(document), [document]);
+	const wordCount = useMemo(
+		(): number => countDocumentWords(document),
+		[document],
+	);
 	const remotePresences = useMemo(
 		(): RemotePresence[] =>
 			Object.values(remotePresencesBySessionId)
 				.filter(
 					(presence: RemotePresence): boolean =>
-						Date.now() - presence.updatedAt < presenceStaleDelayMs &&
+						Date.now() - presence.updatedAt <
+							presenceStaleDelayMs &&
 						presence.projectId === document.id &&
 						presence.lineId !== null,
 				)
 				.sort(
-					(firstPresence: RemotePresence, secondPresence: RemotePresence): number =>
+					(
+						firstPresence: RemotePresence,
+						secondPresence: RemotePresence,
+					): number =>
 						firstPresence.updatedAt - secondPresence.updatedAt,
 				),
 		[document.id, remotePresencesBySessionId],
 	);
 	const normalizedLookupTerm = useMemo(
-		(): string => normalizeLookupTerm(textLookupSelection?.text ?? lookupTerm ?? ""),
+		(): string =>
+			normalizeLookupTerm(textLookupSelection?.text ?? lookupTerm ?? ""),
 		[lookupTerm, textLookupSelection?.text],
 	);
-	const lineStyle = useMemo((): CSSProperties => getLineStyle(format), [format]);
+	const lineStyle = useMemo(
+		(): CSSProperties => getLineStyle(format),
+		[format],
+	);
 	const focusLineStyle = useMemo(
 		(): CSSProperties => ({
 			...lineStyle,
@@ -2919,7 +3145,11 @@ export default function LyricsEditorWorkspaceTiptap({
 				trackMarkerPositionsBySectionId,
 				trackDurationSeconds,
 			),
-		[document.sections, trackDurationSeconds, trackMarkerPositionsBySectionId],
+		[
+			document.sections,
+			trackDurationSeconds,
+			trackMarkerPositionsBySectionId,
+		],
 	);
 	const shouldRenderInspectorTools: boolean = format.showInspectorTools;
 	const shouldRenderTrackPanel: boolean =
@@ -2938,7 +3168,10 @@ export default function LyricsEditorWorkspaceTiptap({
 		const lineId = currentCursor?.lineId ?? presenceActiveLineIdRef.current;
 		const presence: RemotePresence = {
 			...localPresenceUser,
-			cursorOffset: currentCursor?.lineId === lineId ? currentCursor.cursorOffset : null,
+			cursorOffset:
+				currentCursor?.lineId === lineId
+					? currentCursor.cursorOffset
+					: null,
 			lineId,
 			projectId: currentDocument.id,
 			sectionId:
@@ -2979,7 +3212,10 @@ export default function LyricsEditorWorkspaceTiptap({
 	}, []);
 	const applyRemoteDocumentPayload = useCallback(
 		(
-			payload: Extract<PresenceMessage, { type: "document:update" }>["payload"],
+			payload: Extract<
+				PresenceMessage,
+				{ type: "document:update" }
+			>["payload"],
 			sessionId: string,
 		): void => {
 			const remoteDocument = parseRemoteDocument(payload.document);
@@ -3037,7 +3273,10 @@ export default function LyricsEditorWorkspaceTiptap({
 	}, [lineCommentsById]);
 
 	useEffect((): (() => void) | undefined => {
-		if (typeof BroadcastChannel === "undefined" || typeof window === "undefined") {
+		if (
+			typeof BroadcastChannel === "undefined" ||
+			typeof window === "undefined"
+		) {
 			return undefined;
 		}
 
@@ -3063,7 +3302,9 @@ export default function LyricsEditorWorkspaceTiptap({
 				}
 
 				setRemotePresencesBySessionId(
-					(currentPresences: RemotePresenceBySessionId): RemotePresenceBySessionId => {
+					(
+						currentPresences: RemotePresenceBySessionId,
+					): RemotePresenceBySessionId => {
 						const nextPresences: RemotePresenceBySessionId = {
 							...currentPresences,
 						};
@@ -3082,7 +3323,9 @@ export default function LyricsEditorWorkspaceTiptap({
 			}
 
 			setRemotePresencesBySessionId(
-				(currentPresences: RemotePresenceBySessionId): RemotePresenceBySessionId => ({
+				(
+					currentPresences: RemotePresenceBySessionId,
+				): RemotePresenceBySessionId => ({
 					...currentPresences,
 					[remotePresence.sessionId]: remotePresence,
 				}),
@@ -3098,7 +3341,9 @@ export default function LyricsEditorWorkspaceTiptap({
 			const now = Date.now();
 
 			setRemotePresencesBySessionId(
-				(currentPresences: RemotePresenceBySessionId): RemotePresenceBySessionId =>
+				(
+					currentPresences: RemotePresenceBySessionId,
+				): RemotePresenceBySessionId =>
 					Object.fromEntries(
 						Object.entries(currentPresences).filter(
 							([, presence]: [string, RemotePresence]): boolean =>
@@ -3123,7 +3368,11 @@ export default function LyricsEditorWorkspaceTiptap({
 			channel.close();
 			presenceChannelRef.current = null;
 		};
-	}, [applyRemoteDocumentPayload, publishDocumentFromRefs, publishPresenceFromRefs]);
+	}, [
+		applyRemoteDocumentPayload,
+		publishDocumentFromRefs,
+		publishPresenceFromRefs,
+	]);
 
 	useEffect((): (() => void) | undefined => {
 		if (typeof window === "undefined") {
@@ -3141,9 +3390,12 @@ export default function LyricsEditorWorkspaceTiptap({
 			});
 
 			try {
-				const response = await fetch(`${realtimeEndpoint}?${query.toString()}`, {
-					cache: "no-store",
-				});
+				const response = await fetch(
+					`${realtimeEndpoint}?${query.toString()}`,
+					{
+						cache: "no-store",
+					},
+				);
 				const snapshot: unknown = await response.json();
 
 				if (isStopped || !isRealtimeSnapshot(snapshot)) {
@@ -3151,32 +3403,43 @@ export default function LyricsEditorWorkspaceTiptap({
 				}
 
 				if (snapshot.documentPayload) {
-					applyRemoteDocumentPayload(snapshot.documentPayload, sessionId);
+					applyRemoteDocumentPayload(
+						snapshot.documentPayload,
+						sessionId,
+					);
 				}
 
 				setRemotePresencesBySessionId(
-					(currentPresences: RemotePresenceBySessionId): RemotePresenceBySessionId => {
+					(
+						currentPresences: RemotePresenceBySessionId,
+					): RemotePresenceBySessionId => {
 						const nextPresences: RemotePresenceBySessionId = {
 							...currentPresences,
 						};
 						const liveSessionIds = new Set<string>();
 
-						snapshot.presences.forEach((presence: RemotePresence): void => {
-							if (presence.sessionId === sessionId) {
-								return;
-							}
+						snapshot.presences.forEach(
+							(presence: RemotePresence): void => {
+								if (presence.sessionId === sessionId) {
+									return;
+								}
 
-							liveSessionIds.add(presence.sessionId);
-							nextPresences[presence.sessionId] = presence;
-						});
+								liveSessionIds.add(presence.sessionId);
+								nextPresences[presence.sessionId] = presence;
+							},
+						);
 
 						Object.entries(nextPresences).forEach(
-							([presenceSessionId, presence]: [string, RemotePresence]): void => {
+							([presenceSessionId, presence]: [
+								string,
+								RemotePresence,
+							]): void => {
 								if (
 									presence.projectId === projectId &&
 									presenceSessionId !== sessionId &&
 									!liveSessionIds.has(presenceSessionId) &&
-									Date.now() - presence.updatedAt > presenceStaleDelayMs
+									Date.now() - presence.updatedAt >
+										presenceStaleDelayMs
 								) {
 									delete nextPresences[presenceSessionId];
 								}
@@ -3189,7 +3452,8 @@ export default function LyricsEditorWorkspaceTiptap({
 
 				if (
 					snapshot.presences.length > 0 &&
-					Date.now() - lastPresenceDocumentAnnounceAtRef.current > 3500
+					Date.now() - lastPresenceDocumentAnnounceAtRef.current >
+						3500
 				) {
 					lastPresenceDocumentAnnounceAtRef.current = Date.now();
 					publishDocumentFromRefs();
@@ -3199,12 +3463,9 @@ export default function LyricsEditorWorkspaceTiptap({
 			}
 		}
 
-		const pollId = window.setInterval(
-			(): void => {
-				void pollRealtimeSnapshot();
-			},
-			networkPollDelayMs,
-		);
+		const pollId = window.setInterval((): void => {
+			void pollRealtimeSnapshot();
+		}, networkPollDelayMs);
 
 		void pollRealtimeSnapshot();
 
@@ -3235,11 +3496,17 @@ export default function LyricsEditorWorkspaceTiptap({
 	}, []);
 
 	useEffect((): void => {
-		if (!hasLoadedStorageRef.current || isApplyingRemoteDocumentRef.current) {
+		if (
+			!hasLoadedStorageRef.current ||
+			isApplyingRemoteDocumentRef.current
+		) {
 			return;
 		}
 
-		const nextSignature = createDocumentSyncSignature(document, lineCommentsById);
+		const nextSignature = createDocumentSyncSignature(
+			document,
+			lineCommentsById,
+		);
 
 		if (shouldSkipInitialDocumentSyncRef.current) {
 			shouldSkipInitialDocumentSyncRef.current = false;
@@ -3375,8 +3642,11 @@ export default function LyricsEditorWorkspaceTiptap({
 		key: SectionOptionKey,
 	): void {
 		setSectionOptionsById(
-			(currentOptionsById: Record<string, SectionOptions>): Record<string, SectionOptions> => {
-				const currentOptions = currentOptionsById[sectionId] ?? defaultSectionOptions;
+			(
+				currentOptionsById: Record<string, SectionOptions>,
+			): Record<string, SectionOptions> => {
+				const currentOptions =
+					currentOptionsById[sectionId] ?? defaultSectionOptions;
 
 				return {
 					...currentOptionsById,
@@ -3392,7 +3662,9 @@ export default function LyricsEditorWorkspaceTiptap({
 	const handleLineChange = useCallback(
 		(sectionId: string, lineId: string, update: TipTapLineUpdate): void => {
 			setDocument(
-				(currentDocument: TipTapLyricsDocument): TipTapLyricsDocument => ({
+				(
+					currentDocument: TipTapLyricsDocument,
+				): TipTapLyricsDocument => ({
 					...currentDocument,
 					sections: currentDocument.sections.map(
 						(section: TipTapLyricSection): TipTapLyricSection => {
@@ -3400,7 +3672,9 @@ export default function LyricsEditorWorkspaceTiptap({
 								return section;
 							}
 
-							const nextLines = getVisibleSectionLines(section).map(
+							const nextLines = getVisibleSectionLines(
+								section,
+							).map(
 								(line: TipTapLyricLine): TipTapLyricLine =>
 									line.id === lineId
 										? {
@@ -3425,7 +3699,11 @@ export default function LyricsEditorWorkspaceTiptap({
 	function handleFocusDocumentTextChange(text: string): void {
 		setFocusDraftText(text);
 
-		const nextSections = createSectionsFromFocusText(text, document.sections, 0);
+		const nextSections = createSectionsFromFocusText(
+			text,
+			document.sections,
+			0,
+		);
 
 		updateDocument({
 			...document,
@@ -3485,19 +3763,23 @@ export default function LyricsEditorWorkspaceTiptap({
 	}
 
 	function handleToggle(key: EditorToggleKey): void {
-		setToggles(
-			(currentToggles: EditorToggle[]): EditorToggle[] =>
-				currentToggles.map(
-					(toggle: EditorToggle): EditorToggle =>
-						toggle.key === key ? { ...toggle, enabled: !toggle.enabled } : toggle,
-				),
+		setToggles((currentToggles: EditorToggle[]): EditorToggle[] =>
+			currentToggles.map(
+				(toggle: EditorToggle): EditorToggle =>
+					toggle.key === key
+						? { ...toggle, enabled: !toggle.enabled }
+						: toggle,
+			),
 		);
 	}
 
 	function handleLookupTermChange(nextLookupTerm: string): void {
-		const nextNormalizedLookupTerm: string = normalizeLookupTerm(nextLookupTerm);
+		const nextNormalizedLookupTerm: string =
+			normalizeLookupTerm(nextLookupTerm);
 
-		setLookupTerm(nextNormalizedLookupTerm.length > 0 ? nextLookupTerm : null);
+		setLookupTerm(
+			nextNormalizedLookupTerm.length > 0 ? nextLookupTerm : null,
+		);
 		setTextLookupSelection(null);
 	}
 
@@ -3510,16 +3792,18 @@ export default function LyricsEditorWorkspaceTiptap({
 		}
 
 		const rawSelectionText: string = selection.text.trim();
-		const sourceLine = getVisibleLineById(document.sections, selection.lineId);
+		const sourceLine = getVisibleLineById(
+			document.sections,
+			selection.lineId,
+		);
 		const sourceLineText: string = sourceLine?.text ?? "";
 		const isWholeLineSelection: boolean =
 			format.focusMode &&
 			normalizeComparableSelection(rawSelectionText).length > 0 &&
 			normalizeComparableSelection(rawSelectionText) ===
 				normalizeComparableSelection(sourceLineText);
-		const normalizedSelectionText: string | null = normalizeSelectedLookupWord(
-			selection.text,
-		);
+		const normalizedSelectionText: string | null =
+			normalizeSelectedLookupWord(selection.text);
 
 		if (isWholeLineSelection) {
 			setTextLookupSelection({
@@ -3560,7 +3844,9 @@ export default function LyricsEditorWorkspaceTiptap({
 		publishPresenceFromRefs();
 	}
 
-	function handleSearchSelectedText(target: LyricsInspectorLookupTarget): void {
+	function handleSearchSelectedText(
+		target: LyricsInspectorLookupTarget,
+	): void {
 		if (!textLookupSelection) {
 			return;
 		}
@@ -3582,7 +3868,8 @@ export default function LyricsEditorWorkspaceTiptap({
 
 		const selection = textLookupSelection;
 		const sourceSectionIndex = document.sections.findIndex(
-			(section: TipTapLyricSection): boolean => section.id === selection.sectionId,
+			(section: TipTapLyricSection): boolean =>
+				section.id === selection.sectionId,
 		);
 		const sourceSection = document.sections[sourceSectionIndex];
 
@@ -3593,7 +3880,8 @@ export default function LyricsEditorWorkspaceTiptap({
 
 		if (selection.source === "focus") {
 			const sourceText =
-				selection.focusText ?? createFocusTextModel(document.sections).text;
+				selection.focusText ??
+				createFocusTextModel(document.sections).text;
 			setFocusDraftText(sourceText);
 
 			const startIndex = Math.max(
@@ -3608,7 +3896,9 @@ export default function LyricsEditorWorkspaceTiptap({
 				.slice(startIndex, endIndex)
 				.replace(/^\n+|\n+$/g, "")
 				.trimEnd();
-			const beforeText = sourceText.slice(0, startIndex).replace(/\n+$/g, "");
+			const beforeText = sourceText
+				.slice(0, startIndex)
+				.replace(/\n+$/g, "");
 			const afterText = sourceText.slice(endIndex).replace(/^\n+/g, "");
 
 			if (selectedText.trim().length === 0) {
@@ -3619,7 +3909,11 @@ export default function LyricsEditorWorkspaceTiptap({
 			const replacementSections: TipTapLyricSection[] = [];
 
 			replacementSections.push(
-				...createSectionsFromFocusText(beforeText, document.sections, 0),
+				...createSectionsFromFocusText(
+					beforeText,
+					document.sections,
+					0,
+				),
 			);
 
 			const transformedSection = createSectionFromText(
@@ -3669,7 +3963,8 @@ export default function LyricsEditorWorkspaceTiptap({
 			Math.min(lineText.length, selection.to - 1),
 		);
 		const selectedText: string =
-			lineText.slice(startIndex, endIndex).trim() || selection.rawText.trim();
+			lineText.slice(startIndex, endIndex).trim() ||
+			selection.rawText.trim();
 
 		if (selectedText.length === 0) {
 			setTextLookupSelection(null);
@@ -3715,7 +4010,11 @@ export default function LyricsEditorWorkspaceTiptap({
 		setPendingFocusLineId(transformedSection.lines[0]?.id ?? null);
 	}
 
-	function handleAddLine(sectionId: string, afterLineId?: string, text = ""): void {
+	function handleAddLine(
+		sectionId: string,
+		afterLineId?: string,
+		text = "",
+	): void {
 		let nextFocusLineId: string | null = null;
 		const nextSections = document.sections.map(
 			(section: TipTapLyricSection): TipTapLyricSection => {
@@ -3752,8 +4051,11 @@ export default function LyricsEditorWorkspaceTiptap({
 				}
 
 				const visibleLines = getVisibleSectionLines(section);
-				const lineIndex = visibleLines.findIndex((line) => line.id === lineId);
-				const nextFocusLine = visibleLines[lineIndex - 1] ?? visibleLines[lineIndex + 1];
+				const lineIndex = visibleLines.findIndex(
+					(line) => line.id === lineId,
+				);
+				const nextFocusLine =
+					visibleLines[lineIndex - 1] ?? visibleLines[lineIndex + 1];
 				const lines = visibleLines.filter(
 					(line: TipTapLyricLine): boolean => line.id !== lineId,
 				);
@@ -3775,7 +4077,11 @@ export default function LyricsEditorWorkspaceTiptap({
 		}
 	}
 
-	function handlePasteLines(sectionId: string, lineId: string, lines: string[]): void {
+	function handlePasteLines(
+		sectionId: string,
+		lineId: string,
+		lines: string[],
+	): void {
 		if (lines.length === 0) {
 			return;
 		}
@@ -3790,8 +4096,9 @@ export default function LyricsEditorWorkspaceTiptap({
 				const lineIndex = visibleLines.findIndex(
 					(line: TipTapLyricLine): boolean => line.id === lineId,
 				);
-				const pastedLines = lines.map((lineText: string): TipTapLyricLine =>
-					createLine(section.kind, lineText),
+				const pastedLines = lines.map(
+					(lineText: string): TipTapLyricLine =>
+						createLine(section.kind, lineText),
 				);
 				const nextLines = [...visibleLines];
 
@@ -3805,9 +4112,17 @@ export default function LyricsEditorWorkspaceTiptap({
 	}
 
 	function handleAddSection(afterSectionId: string, kind: SectionKind): void {
-		const sameKindCount = document.sections.filter((section) => section.kind === kind).length;
-		const nextSection = createSection(kind, sameKindCount + 1, document.sections.length);
-		const sectionIndex = document.sections.findIndex((section) => section.id === afterSectionId);
+		const sameKindCount = document.sections.filter(
+			(section) => section.kind === kind,
+		).length;
+		const nextSection = createSection(
+			kind,
+			sameKindCount + 1,
+			document.sections.length,
+		);
+		const sectionIndex = document.sections.findIndex(
+			(section) => section.id === afterSectionId,
+		);
 		const nextSections = [...document.sections];
 
 		nextSections.splice(sectionIndex + 1, 0, nextSection);
@@ -3825,7 +4140,8 @@ export default function LyricsEditorWorkspaceTiptap({
 					return section;
 				}
 
-				const nextAlternativeIndex: number = section.alternatives.length + 1;
+				const nextAlternativeIndex: number =
+					section.alternatives.length + 1;
 				const nextAlternative: TipTapSectionAlternative = {
 					createdBy: "Collaborateur",
 					id: createId(`${section.kind}-alternative`),
@@ -3984,7 +4300,9 @@ export default function LyricsEditorWorkspaceTiptap({
 		if (deletedLineIds.length > 0) {
 			setLineCommentsById(
 				(currentCommentsById: LineCommentsById): LineCommentsById => {
-					const nextCommentsById: LineCommentsById = { ...currentCommentsById };
+					const nextCommentsById: LineCommentsById = {
+						...currentCommentsById,
+					};
 
 					deletedLineIds.forEach((lineId: string): void => {
 						delete nextCommentsById[lineId];
@@ -4001,7 +4319,9 @@ export default function LyricsEditorWorkspaceTiptap({
 	}
 
 	function handleDuplicateSection(sectionId: string): void {
-		const sectionIndex = document.sections.findIndex((section) => section.id === sectionId);
+		const sectionIndex = document.sections.findIndex(
+			(section) => section.id === sectionId,
+		);
 		const sourceSection = document.sections[sectionIndex];
 
 		if (!sourceSection) {
@@ -4035,13 +4355,17 @@ export default function LyricsEditorWorkspaceTiptap({
 		updateDocument({
 			...document,
 			sections: document.sections.filter(
-				(section: TipTapLyricSection): boolean => section.id !== sectionId,
+				(section: TipTapLyricSection): boolean =>
+					section.id !== sectionId,
 			),
 		});
 		setOpenOptionsMenuSectionId(null);
 	}
 
-	function handleSectionKindChange(sectionId: string, kind: SectionKind): void {
+	function handleSectionKindChange(
+		sectionId: string,
+		kind: SectionKind,
+	): void {
 		updateDocument({
 			...document,
 			sections: document.sections.map(
@@ -4059,7 +4383,11 @@ export default function LyricsEditorWorkspaceTiptap({
 
 		updateDocument({
 			...document,
-			sections: moveSection(document.sections, draggedSectionId, targetSectionId),
+			sections: moveSection(
+				document.sections,
+				draggedSectionId,
+				targetSectionId,
+			),
 		});
 		setDraggedSectionId(null);
 	}
@@ -4075,18 +4403,33 @@ export default function LyricsEditorWorkspaceTiptap({
 
 		updateDocument({
 			...document,
-			sections: moveLine(document.sections, draggedLine, targetSectionId, targetLineId, placement),
+			sections: moveLine(
+				document.sections,
+				draggedLine,
+				targetSectionId,
+				targetLineId,
+				placement,
+			),
 		});
 		setDraggedLine(null);
 	}
 
-	function handleMoveFocus(lineId: string, direction: "next" | "previous"): void {
+	function handleMoveFocus(
+		lineId: string,
+		direction: "next" | "previous",
+	): void {
 		const editors = Array.from(
-			window.document.querySelectorAll<HTMLElement>("[data-line-editor='true']"),
+			window.document.querySelectorAll<HTMLElement>(
+				"[data-line-editor='true']",
+			),
 		);
-		const currentIndex = editors.findIndex((editor) => editor.dataset.lineId === lineId);
-		const targetIndex = direction === "next" ? currentIndex + 1 : currentIndex - 1;
-		const targetLineId: string | undefined = editors[targetIndex]?.dataset.lineId;
+		const currentIndex = editors.findIndex(
+			(editor) => editor.dataset.lineId === lineId,
+		);
+		const targetIndex =
+			direction === "next" ? currentIndex + 1 : currentIndex - 1;
+		const targetLineId: string | undefined =
+			editors[targetIndex]?.dataset.lineId;
 
 		if (targetLineId) {
 			focusLineEditor(targetLineId, "end");
@@ -4094,7 +4437,9 @@ export default function LyricsEditorWorkspaceTiptap({
 	}
 
 	function handleTrackCurrentTimeChange(seconds: number): void {
-		setTrackCurrentTimeSeconds(Math.max(0, Math.min(trackDurationSeconds, seconds)));
+		setTrackCurrentTimeSeconds(
+			Math.max(0, Math.min(trackDurationSeconds, seconds)),
+		);
 	}
 
 	function handleTrackMarkerPositionChange(
@@ -4102,20 +4447,27 @@ export default function LyricsEditorWorkspaceTiptap({
 		positionPercent: number,
 	): void {
 		setTrackMarkerPositionsBySectionId(
-			(currentPositions: Record<string, number>): Record<string, number> => ({
+			(
+				currentPositions: Record<string, number>,
+			): Record<string, number> => ({
 				...currentPositions,
 				[sectionId]: Math.round(positionPercent * 10) / 10,
 			}),
 		);
 	}
 
-	const showRhymes = toggles.find((toggle) => toggle.key === "rhymes")?.enabled ?? false;
-	const showAnnotations = toggles.find((toggle) => toggle.key === "annotation")?.enabled ?? true;
-	const showSyllables = toggles.find((toggle) => toggle.key === "syllables")?.enabled ?? false;
+	const showRhymes =
+		toggles.find((toggle) => toggle.key === "rhymes")?.enabled ?? false;
+	const showAnnotations =
+		toggles.find((toggle) => toggle.key === "annotation")?.enabled ?? true;
+	const showSyllables =
+		toggles.find((toggle) => toggle.key === "syllables")?.enabled ?? false;
 
 	return (
 		<div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[#17171C]">
-			<div className={`grid min-h-0 flex-1 grid-cols-1 overflow-hidden ${workspaceGridTemplateClass}`}>
+			<div
+				className={`grid min-h-0 flex-1 grid-cols-1 overflow-hidden ${workspaceGridTemplateClass}`}
+			>
 				<main className="min-h-0 overflow-y-auto bg-[#17171C]">
 					<div
 						className={`flex min-h-full flex-col ${
@@ -4139,7 +4491,9 @@ export default function LyricsEditorWorkspaceTiptap({
 									className="inline-flex h-6 items-center gap-1.5 rounded-[4px] border border-[#2C2C32] px-2 text-[10px] font-semibold text-[#F3F4F6] transition-colors hover:border-[#4A4A52] hover:bg-[#1C1C22]"
 								>
 									<Save size={12} strokeWidth={1.8} />
-									{saveState === "saved" ? "Sauvegarde" : "Sauvegarder"}
+									{saveState === "saved"
+										? "Sauvegarde"
+										: "Sauvegarder"}
 								</button>
 								{isDirty && (
 									<span className="text-[10px] font-medium text-[#A1A1AA]">
@@ -4149,9 +4503,15 @@ export default function LyricsEditorWorkspaceTiptap({
 							</div>
 
 							<div className="flex flex-wrap items-center justify-end gap-4">
-								{toggles.map((toggle: EditorToggle): ReactElement => (
-									<ToggleSwitch key={toggle.key} toggle={toggle} onToggle={handleToggle} />
-								))}
+								{toggles.map(
+									(toggle: EditorToggle): ReactElement => (
+										<ToggleSwitch
+											key={toggle.key}
+											toggle={toggle}
+											onToggle={handleToggle}
+										/>
+									),
+								)}
 								<span className="text-[10px] font-bold text-[#F3F4F6]">
 									{wordCount} mots
 								</span>
@@ -4163,417 +4523,855 @@ export default function LyricsEditorWorkspaceTiptap({
 								document={document}
 								lineStyle={editorLineStyle}
 								text={focusDraftText ?? structuredFocusText}
-								onDocumentTextChange={handleFocusDocumentTextChange}
+								onDocumentTextChange={
+									handleFocusDocumentTextChange
+								}
 								onSelectionChange={setTextLookupSelection}
-								rhymeHighlightsByLineId={rhymeHighlightsByLineId}
+								rhymeHighlightsByLineId={
+									rhymeHighlightsByLineId
+								}
 								normalizedLookupTerm={normalizedLookupTerm}
 								remotePresences={remotePresences}
 								showRhymes={showRhymes}
 							/>
 						) : (
-						<div className="w-full max-w-[1120px]">
-							{document.sections.map(
-								(section: TipTapLyricSection): ReactElement => (
-									<section
-										key={section.id}
-										data-tiptap-section="true"
-										onDragOver={(event: DragEvent<HTMLElement>): void => {
-											if (event.dataTransfer.types.includes(sectionDragType)) {
-												event.preventDefault();
-											}
-										}}
-										onDrop={(event: DragEvent<HTMLElement>): void => {
-											if (event.dataTransfer.types.includes(sectionDragType)) {
-												event.preventDefault();
-												handleSectionDrop(section.id);
-											}
-										}}
-										className={`relative ${
-											format.focusMode ? "mb-5" : "mb-8"
-										} ${draggedSectionId === section.id ? "opacity-50" : "opacity-100"}`}
-									>
-										{!format.focusMode && openAddMenuSectionId === section.id && (
-											<SectionAddMenu
-												onAddSection={(kind: SectionKind): void => {
-													handleAddSection(section.id, kind);
-												}}
-												onAddLine={(): void => {
-													handleAddLine(section.id);
-													setOpenAddMenuSectionId(null);
-												}}
-											/>
-										)}
-										{!format.focusMode && openOptionsMenuSectionId === section.id && (
-											<SectionOptionsMenu
-												options={getSectionOptions(section.id)}
-												onToggleOption={(key: SectionOptionKey): void => {
-													handleToggleSectionOption(section.id, key);
-												}}
-												onCreateAlternative={(): void =>
-													handleCreateSectionAlternative(section.id)
+							<div className="w-full max-w-[1120px]">
+								{document.sections.map(
+									(
+										section: TipTapLyricSection,
+									): ReactElement => (
+										<section
+											key={section.id}
+											data-tiptap-section="true"
+											onDragOver={(
+												event: DragEvent<HTMLElement>,
+											): void => {
+												if (
+													event.dataTransfer.types.includes(
+														sectionDragType,
+													)
+												) {
+													event.preventDefault();
 												}
-												onDuplicate={(): void => handleDuplicateSection(section.id)}
-												onDelete={(): void => handleDeleteSection(section.id)}
-												onValidate={(): void => setOpenOptionsMenuSectionId(null)}
-											/>
-										)}
-										<div className="buttons mb-2 flex h-auto flex-row items-center gap-2">
-											{format.focusMode && (
-												<div className="absolute left-0 top-0 flex h-5 w-8 items-center justify-center text-[11px] font-medium text-[#D6D6DD]">
-													{getFocusSectionInitial(section.kind)}
-												</div>
-											)}
-											{!format.focusMode && (
-												<>
-											<button
-												type="button"
-												aria-expanded={openAddMenuSectionId === section.id}
-												onClick={(): void => handleToggleAddMenu(section.id)}
-												className="inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded-[5px] text-[#38383C] transition-colors hover:bg-[#202027] hover:text-[#F3F4F6]"
-											>
-												<Plus size={20} strokeWidth={1.8} />
-											</button>
-											<button
-												type="button"
-												aria-label="Options et deplacement de la section"
-												aria-expanded={openOptionsMenuSectionId === section.id}
-												draggable
-												onClick={(): void => handleToggleOptionsMenu(section.id)}
-												onDragStart={(event: DragEvent<HTMLButtonElement>): void => {
-													const sectionElement: HTMLElement | null =
-														event.currentTarget.closest<HTMLElement>("[data-tiptap-section='true']");
-													const dragImage: HTMLElement | null = sectionElement
-														? createSectionDragImage(sectionElement)
-														: null;
-
-													setDraggedSectionId(section.id);
-													setDraggedLine(null);
-													setOpenAddMenuSectionId(null);
-													setOpenOptionsMenuSectionId(null);
-													setOpenKindMenuSectionId(null);
-													event.dataTransfer.effectAllowed = "move";
-													event.dataTransfer.setData(sectionDragType, section.id);
-													event.dataTransfer.setData("text/plain", section.id);
-
-													if (dragImage) {
-														event.dataTransfer.setDragImage(dragImage, 44, 24);
-														removeDragImageAfterSnapshot(dragImage);
-													}
-												}}
-												onDragEnd={(): void => setDraggedSectionId(null)}
-												className="inline-flex h-5 w-5 cursor-grab items-center justify-center rounded-[5px] text-[#38383C] transition-colors hover:bg-[#202027] hover:text-[#F3F4F6] active:cursor-grabbing"
-											>
-												<GripVertical size={20} strokeWidth={1.8} />
-											</button>
-											<span
-												className="h-2.5 w-2.5 rounded-full"
-												style={{ backgroundColor: section.accentColor }}
-											/>
-											<SectionKindPicker
-												isOpen={openKindMenuSectionId === section.id}
-												onClose={(): void => setOpenKindMenuSectionId(null)}
-												onSelect={(kind: SectionKind): void => handleSectionKindChange(section.id, kind)}
-												onToggle={(): void => handleToggleKindMenu(section.id)}
-												section={section}
-											/>
-											{getSectionOptions(section.id).wordCount && (
-												<span className="text-[13px] font-medium text-[var(--nara-word-count)]">
-													{countSectionWords(section)} mots
-												</span>
-											)}
-											<SectionVariantSwitcher
-												activeAlternativeId={section.activeAlternativeId}
-												alternatives={section.alternatives}
-												onDelete={(alternativeId: string): void =>
-													handleDeleteSectionAlternative(section.id, alternativeId)
-												}
-												onPromote={(alternativeId: string): void =>
-													handlePromoteSectionAlternative(section.id, alternativeId)
-												}
-												onSelect={(alternativeId: string | null): void =>
-													handleSelectSectionAlternative(section.id, alternativeId)
-												}
-											/>
-												</>
-											)}
-										</div>
-
-										<div
-											aria-label="zone de texte"
-											className={
-												format.focusMode
-													? "ml-[72px] h-auto w-auto border-l-0 px-0 py-0"
-													: "ml-[59px] h-auto w-auto border-l-2 border-[#38383C] px-4 py-2"
-											}
-										>
-											{getVisibleSectionLines(section).map(
-												(line: TipTapLyricLine): ReactElement => {
-													const sectionOptions = getSectionOptions(section.id);
-													const shouldShowRhymes: boolean =
-														!format.focusMode && (showRhymes || sectionOptions.rhymes);
-													const shouldShowAnnotations: boolean =
-														!format.focusMode && (showAnnotations || sectionOptions.annotation);
-													const shouldShowSyllables: boolean =
-														!format.focusMode && (showSyllables || sectionOptions.syllables);
-													const lineComments = lineCommentsById[line.id] ?? [];
-													const lineCommentCount: number = Math.max(
-														line.comments,
-														lineComments.length,
+											}}
+											onDrop={(
+												event: DragEvent<HTMLElement>,
+											): void => {
+												if (
+													event.dataTransfer.types.includes(
+														sectionDragType,
+													)
+												) {
+													event.preventDefault();
+													handleSectionDrop(
+														section.id,
 													);
-													const rhymeHighlight: RhymeHighlight | undefined =
-														rhymeHighlightsByLineId[line.id];
-													const visibleRhymeHighlight: RhymeHighlight | null =
-														shouldShowRhymes &&
-														line.text.trim().length > 0 &&
-														rhymeHighlight !== undefined
-															? rhymeHighlight
-															: null;
-													const searchMatchRanges: SearchMatchRange[] =
-														createSearchMatchRanges(line.text, normalizedLookupTerm);
-													const remotePresencesForLine: RemotePresence[] =
-														remotePresences.filter(
-															(presence: RemotePresence): boolean =>
-																presence.sectionId === section.id &&
-																presence.lineId === line.id,
-														);
-
-													return (
-													<div
-														key={line.id}
-														data-tiptap-line="true"
-														onDragOver={(event: DragEvent<HTMLDivElement>): void => {
-															if (event.dataTransfer.types.includes(lineDragType)) {
-																event.preventDefault();
-															}
+												}
+											}}
+											className={`relative ${
+												format.focusMode
+													? "mb-5"
+													: "mb-8"
+											} ${draggedSectionId === section.id ? "opacity-50" : "opacity-100"}`}
+										>
+											{!format.focusMode &&
+												openAddMenuSectionId ===
+													section.id && (
+													<SectionAddMenu
+														onAddSection={(
+															kind: SectionKind,
+														): void => {
+															handleAddSection(
+																section.id,
+																kind,
+															);
 														}}
-														onDrop={(event: DragEvent<HTMLDivElement>): void => {
-															if (event.dataTransfer.types.includes(lineDragType)) {
-																event.preventDefault();
-																const rect = event.currentTarget.getBoundingClientRect();
-																const placement: LineDropPlacement =
-																	event.clientY < rect.top + rect.height / 2 ? "before" : "after";
-																handleLineDrop(section.id, line.id, placement);
-															}
+														onAddLine={(): void => {
+															handleAddLine(
+																section.id,
+															);
+															setOpenAddMenuSectionId(
+																null,
+															);
 														}}
-														className={`group/line relative grid min-w-0 items-center text-[#F3F4F6] transition-colors ${
-															format.focusMode
-																? "min-h-[18px] gap-0 rounded-[3px] px-0 py-[1px] hover:bg-transparent focus-within:bg-transparent"
-																: "-mx-2 min-h-[28px] gap-2 rounded-[5px] px-2 py-1 hover:bg-[#202027] focus-within:bg-[#202027]"
-														} ${
-															draggedLine?.lineId === line.id ? "opacity-45" : "opacity-100"
-														}`}
-														style={format.focusMode ? focusLineGridStyle : lineGridStyle}
-													>
-														{!format.focusMode && (
-														<button
-															type="button"
-															aria-label="Numero de ligne et deplacer ligne"
-															draggable
-															onDragStart={(event: DragEvent<HTMLButtonElement>): void => {
-																const nextDraggedLine: LineDragState = {
-																	sectionId: section.id,
-																	lineId: line.id,
-																};
-																const lineElement: HTMLElement | null =
-																	event.currentTarget.closest<HTMLElement>("[data-tiptap-line='true']");
-																const dragImage: HTMLElement | null = lineElement
-																	? createLineDragImage(lineElement)
-																	: null;
-
-																event.stopPropagation();
-																setDraggedLine(nextDraggedLine);
-																setDraggedSectionId(null);
-																setOpenAddMenuSectionId(null);
-																setOpenOptionsMenuSectionId(null);
-																setOpenKindMenuSectionId(null);
-																event.dataTransfer.effectAllowed = "move";
-																event.dataTransfer.setData(lineDragType, JSON.stringify(nextDraggedLine));
-																event.dataTransfer.setData("text/plain", line.id);
-
-																if (dragImage) {
-																	event.dataTransfer.setDragImage(dragImage, 24, 18);
-																	removeDragImageAfterSnapshot(dragImage);
-																}
-															}}
-															onDragEnd={(): void => setDraggedLine(null)}
-															className="inline-flex h-6 w-full cursor-grab select-none items-center justify-end rounded-[3px] pr-0.5 text-right text-[16px] font-medium leading-none tabular-nums text-[#F3F4F6] transition-colors hover:bg-[#222228] hover:text-white group-hover/line:text-white active:cursor-grabbing"
-														>
-															{line.number}
-														</button>
+													/>
+												)}
+											{!format.focusMode &&
+												openOptionsMenuSectionId ===
+													section.id && (
+													<SectionOptionsMenu
+														options={getSectionOptions(
+															section.id,
 														)}
-														<div className="relative min-w-0">
-															{searchMatchRanges.length > 0 && (
-																<SearchHighlightOverlay
-																	lineStyle={editorLineStyle}
-																	ranges={searchMatchRanges}
-																	text={line.text}
-																/>
-															)}
-															{visibleRhymeHighlight && (
-																<RhymeHighlightOverlay
-																	highlight={visibleRhymeHighlight}
-																	lineStyle={editorLineStyle}
-																	text={line.text}
-																/>
-															)}
-															{shouldShowSyllables &&
-																line.text.trim().length > 0 && (
-																	<div
-																		data-syllable-row="true"
-																		className="pointer-events-none absolute left-0 right-0 select-none text-transparent"
-																		style={syllableMeasureStyle}
-																	>
-																		{getSyllableParts(line.text).map(
-																			(part: SyllablePart): ReactElement =>
-																				part.kind === "space" ? (
-																					<span
-																						key={part.id}
-																						aria-hidden="true"
-																						className="select-none whitespace-pre"
-																					>
-																						{part.text}
-																					</span>
-																				) : (
-																					<span
-																						key={part.id}
-																						className="relative inline-block select-none whitespace-pre text-transparent"
-																					>
-																						<span
-																							aria-hidden="true"
-																							className="absolute inset-x-0 top-0 select-none text-center text-[#A1A1AA]"
-																							style={syllableNumberStyle}
-																						>
-																							{part.count}
-																						</span>
-																						{part.text}
-																					</span>
-																				),
-																		)}
-																	</div>
-																)}
-															<TipTapLineEditor
-																content={line.content}
-																format={format}
-																isActive={activeLineId === line.id}
-																lineId={line.id}
-																lineNumber={line.number}
-																sectionId={section.id}
-																style={editorLineStyle}
-																onFocus={(): void => setActiveLineId(line.id)}
-																onFormatSnapshotChange={onFormatChange}
-																onChange={(update: TipTapLineUpdate): void => {
-																	handleLineChange(section.id, line.id, update);
-																}}
-																onEnter={(): void => handleAddLine(section.id, line.id)}
-																onBackspaceEmptyAtStart={(): void => handleDeleteLine(section.id, line.id)}
-																onMoveFocus={(direction): void => handleMoveFocus(line.id, direction)}
-																onPasteLines={(lines: string[]): void => handlePasteLines(section.id, line.id, lines)}
-																onCursorPresenceChange={handleCursorPresenceChange}
-																onTextSelectionChange={handleTextSelectionChange}
-															/>
-															{remotePresencesForLine.length > 0 && (
-																<RemoteCursorOverlay
-																	lineStyle={editorLineStyle}
-																	presences={remotePresencesForLine}
-																	text={line.text}
-																/>
-															)}
-														</div>
-														{!format.focusMode && shouldShowAnnotations ? (
-															<div className="relative flex justify-end select-none">
-																<button
-																	type="button"
-																	aria-label={
-																		lineCommentCount > 0
-																			? `${lineCommentCount} commentaires sur la ligne ${line.number}`
-																			: `Ajouter un commentaire sur la ligne ${line.number}`
-																	}
-																	aria-expanded={openCommentLineId === line.id}
-																	onClick={(): void =>
-																		setOpenCommentLineId(
-																			openCommentLineId === line.id ? null : line.id,
-																		)
-																	}
-																	className={`mt-0.5 grid h-5 w-[34px] grid-cols-[14px_12px] items-center justify-end gap-1 rounded-[3px] text-[11px] transition-[color,opacity,background-color] hover:bg-[#222228] hover:text-white ${
-																		openCommentLineId === line.id
-																			? "bg-[#222228] text-white opacity-100"
-																			: lineCommentCount > 0
-																				? "text-[#D6D6DD] opacity-100"
-																				: "text-[#6F6F78] opacity-0 group-hover/line:opacity-100 focus-visible:opacity-100"
-																	}`}
-																>
-																	<MessageSquare size={12} strokeWidth={1.8} />
-																	<span className={lineCommentCount > 0 ? "opacity-100" : "opacity-0"}>
-																		{lineCommentCount}
-																	</span>
-																</button>
-																{openCommentLineId === line.id && (
-																	<LineCommentOverlay
-																		comments={lineComments}
-																		lineNumber={line.number}
-																		onAddComment={(body: string): void => {
-																			handleAddLineComment(line.id, body);
-																		}}
-																		onClose={(): void => setOpenCommentLineId(null)}
-																	/>
-																)}
-															</div>
-														) : (
-															!format.focusMode && <span />
+														onToggleOption={(
+															key: SectionOptionKey,
+														): void => {
+															handleToggleSectionOption(
+																section.id,
+																key,
+															);
+														}}
+														onCreateAlternative={(): void =>
+															handleCreateSectionAlternative(
+																section.id,
+															)
+														}
+														onDuplicate={(): void =>
+															handleDuplicateSection(
+																section.id,
+															)
+														}
+														onDelete={(): void =>
+															handleDeleteSection(
+																section.id,
+															)
+														}
+														onValidate={(): void =>
+															setOpenOptionsMenuSectionId(
+																null,
+															)
+														}
+													/>
+												)}
+											<div className="buttons mb-2 flex h-auto flex-row items-center gap-2">
+												{format.focusMode && (
+													<div className="absolute left-0 top-0 flex h-5 w-8 items-center justify-center text-[11px] font-medium text-[#D6D6DD]">
+														{getFocusSectionInitial(
+															section.kind,
 														)}
 													</div>
-													);
-												},
-											)}
-										</div>
+												)}
+												{!format.focusMode && (
+													<>
+														<button
+															type="button"
+															aria-expanded={
+																openAddMenuSectionId ===
+																section.id
+															}
+															onClick={(): void =>
+																handleToggleAddMenu(
+																	section.id,
+																)
+															}
+															className="inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded-[5px] text-[#38383C] transition-colors hover:bg-[#202027] hover:text-[#F3F4F6]"
+														>
+															<Plus
+																size={20}
+																strokeWidth={
+																	1.8
+																}
+															/>
+														</button>
+														<button
+															type="button"
+															aria-label="Options et deplacement de la section"
+															aria-expanded={
+																openOptionsMenuSectionId ===
+																section.id
+															}
+															draggable
+															onClick={(): void =>
+																handleToggleOptionsMenu(
+																	section.id,
+																)
+															}
+															onDragStart={(
+																event: DragEvent<HTMLButtonElement>,
+															): void => {
+																const sectionElement: HTMLElement | null =
+																	event.currentTarget.closest<HTMLElement>(
+																		"[data-tiptap-section='true']",
+																	);
+																const dragImage: HTMLElement | null =
+																	sectionElement
+																		? createSectionDragImage(
+																				sectionElement,
+																			)
+																		: null;
 
-										{!format.focusMode && (
-										<div className="ml-[59px] mt-2 flex items-center gap-2 px-4">
-											<button
-												type="button"
-												onClick={(): void => handleAddLine(section.id)}
-												className="inline-flex h-7 items-center gap-2 rounded-[5px] px-2 text-[13px] font-medium text-[#A1A1AA] transition-colors hover:bg-[#202027] hover:text-[#F3F4F6]"
+																setDraggedSectionId(
+																	section.id,
+																);
+																setDraggedLine(
+																	null,
+																);
+																setOpenAddMenuSectionId(
+																	null,
+																);
+																setOpenOptionsMenuSectionId(
+																	null,
+																);
+																setOpenKindMenuSectionId(
+																	null,
+																);
+																event.dataTransfer.effectAllowed =
+																	"move";
+																event.dataTransfer.setData(
+																	sectionDragType,
+																	section.id,
+																);
+																event.dataTransfer.setData(
+																	"text/plain",
+																	section.id,
+																);
+
+																if (dragImage) {
+																	event.dataTransfer.setDragImage(
+																		dragImage,
+																		44,
+																		24,
+																	);
+																	removeDragImageAfterSnapshot(
+																		dragImage,
+																	);
+																}
+															}}
+															onDragEnd={(): void =>
+																setDraggedSectionId(
+																	null,
+																)
+															}
+															className="inline-flex h-5 w-5 cursor-grab items-center justify-center rounded-[5px] text-[#38383C] transition-colors hover:bg-[#202027] hover:text-[#F3F4F6] active:cursor-grabbing"
+														>
+															<GripVertical
+																size={20}
+																strokeWidth={
+																	1.8
+																}
+															/>
+														</button>
+														<span
+															className="h-2.5 w-2.5 rounded-full"
+															style={{
+																backgroundColor:
+																	section.accentColor,
+															}}
+														/>
+														<SectionKindPicker
+															isOpen={
+																openKindMenuSectionId ===
+																section.id
+															}
+															onClose={(): void =>
+																setOpenKindMenuSectionId(
+																	null,
+																)
+															}
+															onSelect={(
+																kind: SectionKind,
+															): void =>
+																handleSectionKindChange(
+																	section.id,
+																	kind,
+																)
+															}
+															onToggle={(): void =>
+																handleToggleKindMenu(
+																	section.id,
+																)
+															}
+															section={section}
+														/>
+														{getSectionOptions(
+															section.id,
+														).wordCount && (
+															<span className="text-[13px] font-medium text-[var(--nara-word-count)]">
+																{countSectionWords(
+																	section,
+																)}{" "}
+																mots
+															</span>
+														)}
+														<SectionVariantSwitcher
+															activeAlternativeId={
+																section.activeAlternativeId
+															}
+															alternatives={
+																section.alternatives
+															}
+															onDelete={(
+																alternativeId: string,
+															): void =>
+																handleDeleteSectionAlternative(
+																	section.id,
+																	alternativeId,
+																)
+															}
+															onPromote={(
+																alternativeId: string,
+															): void =>
+																handlePromoteSectionAlternative(
+																	section.id,
+																	alternativeId,
+																)
+															}
+															onSelect={(
+																alternativeId:
+																	| string
+																	| null,
+															): void =>
+																handleSelectSectionAlternative(
+																	section.id,
+																	alternativeId,
+																)
+															}
+														/>
+													</>
+												)}
+											</div>
+
+											<div
+												aria-label="zone de texte"
+												className={
+													format.focusMode
+														? "ml-[72px] h-auto w-auto border-l-0 px-0 py-0"
+														: "ml-[59px] h-auto w-auto border-l-2 border-[#38383C] px-4 py-2"
+												}
 											>
-												<Plus size={15} strokeWidth={1.8} />
-												Ajouter une ligne
-											</button>
-											<button
-												type="button"
-												onClick={(): void => handleDuplicateSection(section.id)}
-												className="inline-flex h-7 items-center gap-1.5 rounded-[5px] border border-[#2C2C32] px-2 text-[11px] font-semibold text-[#F3F4F6] transition-colors hover:border-[#4A4A52] hover:bg-[#202027]"
-											>
-												<Copy size={12} strokeWidth={1.8} />
-												Dupliquer
-											</button>
-											<button
-												type="button"
-												onClick={(): void => handleCreateSectionAlternative(section.id)}
-												className="inline-flex h-7 items-center gap-1.5 rounded-[5px] border border-[#2C2C32] px-2 text-[11px] font-semibold text-[#F3F4F6] transition-colors hover:border-[#4A4A52] hover:bg-[#202027]"
-											>
-												<Copy size={12} strokeWidth={1.8} />
-												Alternative
-											</button>
-											<button
-												type="button"
-												onClick={(): void => setOpenOptionsMenuSectionId(null)}
-												className="inline-flex h-7 items-center gap-1.5 rounded-[5px] border border-[#2C2C32] px-2 text-[11px] font-semibold text-[#F3F4F6] transition-colors hover:border-[#4A4A52] hover:bg-[#202027]"
-											>
-												<CheckSquare size={12} strokeWidth={1.8} />
-												Valider
-											</button>
-											<button
-												type="button"
-												onClick={(): void => handleDeleteSection(section.id)}
-												className="inline-flex h-7 items-center justify-center rounded-[5px] border border-[#2C2C32] px-2 text-[#A1A1AA] transition-colors hover:border-[#4A4A52] hover:bg-[#202027] hover:text-[#F3F4F6]"
-											>
-												<Trash2 size={12} strokeWidth={1.8} />
-											</button>
-										</div>
-										)}
-									</section>
-								),
-							)}
-						</div>
+												{getVisibleSectionLines(
+													section,
+												).map(
+													(
+														line: TipTapLyricLine,
+													): ReactElement => {
+														const sectionOptions =
+															getSectionOptions(
+																section.id,
+															);
+														const shouldShowRhymes: boolean =
+															!format.focusMode &&
+															(showRhymes ||
+																sectionOptions.rhymes);
+														const shouldShowAnnotations: boolean =
+															!format.focusMode &&
+															(showAnnotations ||
+																sectionOptions.annotation);
+														const shouldShowSyllables: boolean =
+															!format.focusMode &&
+															(showSyllables ||
+																sectionOptions.syllables);
+														const lineComments =
+															lineCommentsById[
+																line.id
+															] ?? [];
+														const lineCommentCount: number =
+															Math.max(
+																line.comments,
+																lineComments.length,
+															);
+														const rhymeHighlight:
+															| RhymeHighlight
+															| undefined =
+															rhymeHighlightsByLineId[
+																line.id
+															];
+														const visibleRhymeHighlight: RhymeHighlight | null =
+															shouldShowRhymes &&
+															line.text.trim()
+																.length > 0 &&
+															rhymeHighlight !==
+																undefined
+																? rhymeHighlight
+																: null;
+														const searchMatchRanges: SearchMatchRange[] =
+															createSearchMatchRanges(
+																line.text,
+																normalizedLookupTerm,
+															);
+														const remotePresencesForLine: RemotePresence[] =
+															remotePresences.filter(
+																(
+																	presence: RemotePresence,
+																): boolean =>
+																	presence.sectionId ===
+																		section.id &&
+																	presence.lineId ===
+																		line.id,
+															);
+
+														return (
+															<div
+																key={line.id}
+																data-tiptap-line="true"
+																onDragOver={(
+																	event: DragEvent<HTMLDivElement>,
+																): void => {
+																	if (
+																		event.dataTransfer.types.includes(
+																			lineDragType,
+																		)
+																	) {
+																		event.preventDefault();
+																	}
+																}}
+																onDrop={(
+																	event: DragEvent<HTMLDivElement>,
+																): void => {
+																	if (
+																		event.dataTransfer.types.includes(
+																			lineDragType,
+																		)
+																	) {
+																		event.preventDefault();
+																		const rect =
+																			event.currentTarget.getBoundingClientRect();
+																		const placement: LineDropPlacement =
+																			event.clientY <
+																			rect.top +
+																				rect.height /
+																					2
+																				? "before"
+																				: "after";
+																		handleLineDrop(
+																			section.id,
+																			line.id,
+																			placement,
+																		);
+																	}
+																}}
+																className={`group/line relative grid min-w-0 items-center text-[#F3F4F6] transition-colors ${
+																	format.focusMode
+																		? "min-h-[18px] gap-0 rounded-[3px] px-0 py-[1px] hover:bg-transparent focus-within:bg-transparent"
+																		: "-mx-2 min-h-[28px] gap-2 rounded-[5px] px-2 py-1 hover:bg-[#202027] focus-within:bg-[#202027]"
+																} ${
+																	draggedLine?.lineId ===
+																	line.id
+																		? "opacity-45"
+																		: "opacity-100"
+																}`}
+																style={
+																	format.focusMode
+																		? focusLineGridStyle
+																		: lineGridStyle
+																}
+															>
+																{!format.focusMode && (
+																	<button
+																		type="button"
+																		aria-label="Numero de ligne et deplacer ligne"
+																		draggable
+																		onDragStart={(
+																			event: DragEvent<HTMLButtonElement>,
+																		): void => {
+																			const nextDraggedLine: LineDragState =
+																				{
+																					sectionId:
+																						section.id,
+																					lineId: line.id,
+																				};
+																			const lineElement: HTMLElement | null =
+																				event.currentTarget.closest<HTMLElement>(
+																					"[data-tiptap-line='true']",
+																				);
+																			const dragImage: HTMLElement | null =
+																				lineElement
+																					? createLineDragImage(
+																							lineElement,
+																						)
+																					: null;
+
+																			event.stopPropagation();
+																			setDraggedLine(
+																				nextDraggedLine,
+																			);
+																			setDraggedSectionId(
+																				null,
+																			);
+																			setOpenAddMenuSectionId(
+																				null,
+																			);
+																			setOpenOptionsMenuSectionId(
+																				null,
+																			);
+																			setOpenKindMenuSectionId(
+																				null,
+																			);
+																			event.dataTransfer.effectAllowed =
+																				"move";
+																			event.dataTransfer.setData(
+																				lineDragType,
+																				JSON.stringify(
+																					nextDraggedLine,
+																				),
+																			);
+																			event.dataTransfer.setData(
+																				"text/plain",
+																				line.id,
+																			);
+
+																			if (
+																				dragImage
+																			) {
+																				event.dataTransfer.setDragImage(
+																					dragImage,
+																					24,
+																					18,
+																				);
+																				removeDragImageAfterSnapshot(
+																					dragImage,
+																				);
+																			}
+																		}}
+																		onDragEnd={(): void =>
+																			setDraggedLine(
+																				null,
+																			)
+																		}
+																		className="inline-flex h-6 w-full cursor-grab select-none items-center justify-end rounded-[3px] pr-0.5 text-right text-[16px] font-medium leading-none tabular-nums text-[#F3F4F6] transition-colors hover:bg-[#222228] hover:text-white group-hover/line:text-white active:cursor-grabbing"
+																	>
+																		{
+																			line.number
+																		}
+																	</button>
+																)}
+																<div className="relative min-w-0">
+																	{searchMatchRanges.length >
+																		0 && (
+																		<SearchHighlightOverlay
+																			lineStyle={
+																				editorLineStyle
+																			}
+																			ranges={
+																				searchMatchRanges
+																			}
+																			text={
+																				line.text
+																			}
+																		/>
+																	)}
+																	{visibleRhymeHighlight && (
+																		<RhymeHighlightOverlay
+																			highlight={
+																				visibleRhymeHighlight
+																			}
+																			lineStyle={
+																				editorLineStyle
+																			}
+																			text={
+																				line.text
+																			}
+																		/>
+																	)}
+																	{shouldShowSyllables &&
+																		line.text.trim()
+																			.length >
+																			0 && (
+																			<div
+																				data-syllable-row="true"
+																				className="pointer-events-none absolute left-0 right-0 select-none text-transparent"
+																				style={
+																					syllableMeasureStyle
+																				}
+																			>
+																				{getSyllableParts(
+																					line.text,
+																				).map(
+																					(
+																						part: SyllablePart,
+																					): ReactElement =>
+																						part.kind ===
+																						"space" ? (
+																							<span
+																								key={
+																									part.id
+																								}
+																								aria-hidden="true"
+																								className="select-none whitespace-pre"
+																							>
+																								{
+																									part.text
+																								}
+																							</span>
+																						) : (
+																							<span
+																								key={
+																									part.id
+																								}
+																								className="relative inline-block select-none whitespace-pre text-transparent"
+																							>
+																								<span
+																									aria-hidden="true"
+																									className="absolute inset-x-0 top-0 select-none text-center text-[#A1A1AA]"
+																									style={
+																										syllableNumberStyle
+																									}
+																								>
+																									{
+																										part.count
+																									}
+																								</span>
+																								{
+																									part.text
+																								}
+																							</span>
+																						),
+																				)}
+																			</div>
+																		)}
+																	<TipTapLineEditor
+																		content={
+																			line.content
+																		}
+																		format={
+																			format
+																		}
+																		isActive={
+																			activeLineId ===
+																			line.id
+																		}
+																		lineId={
+																			line.id
+																		}
+																		lineNumber={
+																			line.number
+																		}
+																		sectionId={
+																			section.id
+																		}
+																		style={
+																			editorLineStyle
+																		}
+																		onFocus={(): void =>
+																			setActiveLineId(
+																				line.id,
+																			)
+																		}
+																		onFormatSnapshotChange={
+																			onFormatChange
+																		}
+																		onChange={(
+																			update: TipTapLineUpdate,
+																		): void => {
+																			handleLineChange(
+																				section.id,
+																				line.id,
+																				update,
+																			);
+																		}}
+																		onEnter={(): void =>
+																			handleAddLine(
+																				section.id,
+																				line.id,
+																			)
+																		}
+																		onBackspaceEmptyAtStart={(): void =>
+																			handleDeleteLine(
+																				section.id,
+																				line.id,
+																			)
+																		}
+																		onMoveFocus={(
+																			direction,
+																		): void =>
+																			handleMoveFocus(
+																				line.id,
+																				direction,
+																			)
+																		}
+																		onPasteLines={(
+																			lines: string[],
+																		): void =>
+																			handlePasteLines(
+																				section.id,
+																				line.id,
+																				lines,
+																			)
+																		}
+																		onCursorPresenceChange={
+																			handleCursorPresenceChange
+																		}
+																		onTextSelectionChange={
+																			handleTextSelectionChange
+																		}
+																	/>
+																	{remotePresencesForLine.length >
+																		0 && (
+																		<RemoteCursorOverlay
+																			lineStyle={
+																				editorLineStyle
+																			}
+																			presences={
+																				remotePresencesForLine
+																			}
+																			text={
+																				line.text
+																			}
+																		/>
+																	)}
+																</div>
+																{!format.focusMode &&
+																shouldShowAnnotations ? (
+																	<div className="relative flex justify-end select-none">
+																		<button
+																			type="button"
+																			aria-label={
+																				lineCommentCount >
+																				0
+																					? `${lineCommentCount} commentaires sur la ligne ${line.number}`
+																					: `Ajouter un commentaire sur la ligne ${line.number}`
+																			}
+																			aria-expanded={
+																				openCommentLineId ===
+																				line.id
+																			}
+																			onClick={(): void =>
+																				setOpenCommentLineId(
+																					openCommentLineId ===
+																						line.id
+																						? null
+																						: line.id,
+																				)
+																			}
+																			className={`mt-0.5 grid h-5 w-[34px] grid-cols-[14px_12px] items-center justify-end gap-1 rounded-[3px] text-[11px] transition-[color,opacity,background-color] hover:bg-[#222228] hover:text-white ${
+																				openCommentLineId ===
+																				line.id
+																					? "bg-[#222228] text-white opacity-100"
+																					: lineCommentCount >
+																						  0
+																						? "text-[#D6D6DD] opacity-100"
+																						: "text-[#6F6F78] opacity-0 group-hover/line:opacity-100 focus-visible:opacity-100"
+																			}`}
+																		>
+																			<MessageSquare
+																				size={
+																					12
+																				}
+																				strokeWidth={
+																					1.8
+																				}
+																			/>
+																			<span
+																				className={
+																					lineCommentCount >
+																					0
+																						? "opacity-100"
+																						: "opacity-0"
+																				}
+																			>
+																				{
+																					lineCommentCount
+																				}
+																			</span>
+																		</button>
+																		{openCommentLineId ===
+																			line.id && (
+																			<LineCommentOverlay
+																				comments={
+																					lineComments
+																				}
+																				lineNumber={
+																					line.number
+																				}
+																				onAddComment={(
+																					body: string,
+																				): void => {
+																					handleAddLineComment(
+																						line.id,
+																						body,
+																					);
+																				}}
+																				onClose={(): void =>
+																					setOpenCommentLineId(
+																						null,
+																					)
+																				}
+																			/>
+																		)}
+																	</div>
+																) : (
+																	!format.focusMode && (
+																		<span />
+																	)
+																)}
+															</div>
+														);
+													},
+												)}
+											</div>
+
+											{!format.focusMode && (
+												<div className="ml-[59px] mt-2 flex items-center gap-2 px-4">
+													<button
+														type="button"
+														onClick={(): void =>
+															handleAddLine(
+																section.id,
+															)
+														}
+														className="inline-flex h-7 items-center gap-2 rounded-[5px] px-2 text-[13px] font-medium text-[#A1A1AA] transition-colors hover:bg-[#202027] hover:text-[#F3F4F6]"
+													>
+														<Plus
+															size={15}
+															strokeWidth={1.8}
+														/>
+														Ajouter une ligne
+													</button>
+													<button
+														type="button"
+														onClick={(): void =>
+															handleDuplicateSection(
+																section.id,
+															)
+														}
+														className="inline-flex h-7 items-center gap-1.5 rounded-[5px] border border-[#2C2C32] px-2 text-[11px] font-semibold text-[#F3F4F6] transition-colors hover:border-[#4A4A52] hover:bg-[#202027]"
+													>
+														<Copy
+															size={12}
+															strokeWidth={1.8}
+														/>
+														Dupliquer
+													</button>
+													<button
+														type="button"
+														onClick={(): void =>
+															handleCreateSectionAlternative(
+																section.id,
+															)
+														}
+														className="inline-flex h-7 items-center gap-1.5 rounded-[5px] border border-[#2C2C32] px-2 text-[11px] font-semibold text-[#F3F4F6] transition-colors hover:border-[#4A4A52] hover:bg-[#202027]"
+													>
+														<Copy
+															size={12}
+															strokeWidth={1.8}
+														/>
+														Alternative
+													</button>
+													<button
+														type="button"
+														onClick={(): void =>
+															setOpenOptionsMenuSectionId(
+																null,
+															)
+														}
+														className="inline-flex h-7 items-center gap-1.5 rounded-[5px] border border-[#2C2C32] px-2 text-[11px] font-semibold text-[#F3F4F6] transition-colors hover:border-[#4A4A52] hover:bg-[#202027]"
+													>
+														<CheckSquare
+															size={12}
+															strokeWidth={1.8}
+														/>
+														Valider
+													</button>
+													<button
+														type="button"
+														onClick={(): void =>
+															handleDeleteSection(
+																section.id,
+															)
+														}
+														className="inline-flex h-7 items-center justify-center rounded-[5px] border border-[#2C2C32] px-2 text-[#A1A1AA] transition-colors hover:border-[#4A4A52] hover:bg-[#202027] hover:text-[#F3F4F6]"
+													>
+														<Trash2
+															size={12}
+															strokeWidth={1.8}
+														/>
+													</button>
+												</div>
+											)}
+										</section>
+									),
+								)}
+							</div>
 						)}
 					</div>
 				</main>
@@ -4613,8 +5411,16 @@ export default function LyricsEditorWorkspaceTiptap({
 					}}
 					onMarkerPositionChange={handleTrackMarkerPositionChange}
 					onPlaybackEnd={(): void => setIsTrackPlaying(false)}
-					onTogglePlay={(): void => setIsTrackPlaying((currentValue: boolean): boolean => !currentValue)}
-					onVolumeChange={(volumePercent: number): void => setTrackVolumePercent(Math.max(0, Math.min(100, volumePercent)))}
+					onTogglePlay={(): void =>
+						setIsTrackPlaying(
+							(currentValue: boolean): boolean => !currentValue,
+						)
+					}
+					onVolumeChange={(volumePercent: number): void =>
+						setTrackVolumePercent(
+							Math.max(0, Math.min(100, volumePercent)),
+						)
+					}
 					volumePercent={trackVolumePercent}
 				/>
 			)}

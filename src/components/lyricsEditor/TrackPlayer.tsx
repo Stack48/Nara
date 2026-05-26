@@ -880,9 +880,9 @@ export function TrackPlayer({
 							onPointerUp={handleVolumePointerEnd}
 							onPointerCancel={handleVolumePointerEnd}
 							onKeyDown={handleVolumeKeyDown}
-							className="h-[12px] flex-1 cursor-pointer touch-none rounded-full outline-none focus-visible:ring-1 focus-visible:ring-[var(--nara-track-text)]"
+							className="relative h-[12px] flex-1 cursor-pointer touch-none rounded-full outline-none focus-visible:ring-1 focus-visible:ring-[var(--nara-track-text)]"
 						>
-							<div className="mt-[4.5px] h-[3px] rounded-full bg-[var(--nara-track-volume-bg)]">
+							<div className="mt-[4.5px] h-[3px] w-full rounded-full bg-[var(--nara-track-volume-bg)]">
 								<div
 									className="h-full rounded-full bg-[var(--nara-track-volume-fill)]"
 									style={{ width: `${clampedVolume}%` }}

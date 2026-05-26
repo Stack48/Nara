@@ -566,7 +566,6 @@ export function LyricsInspector({
 				return nextPanelIds;
 			},
 		);
-
 		setFieldValues(
 			(currentValues: Record<string, string>): Record<string, string> =>
 				applyLookupTermToTargetFields(
