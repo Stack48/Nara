@@ -48,7 +48,7 @@ export const Home = () => {
             album: "Let God Sort Em Out",
             time: "il y a 2 heures",
             author: "Udonis Haslem",
-            status: "En cours",
+            status: "En écriture",
             image: lgseo,
         },
         {
@@ -112,7 +112,7 @@ export const Home = () => {
                             {/* animation session */}
                             <span className="inline-flex items-center gap-2 w-fit bg-[#D90097]/10 border border-[#D90097]/30 text-[#D90097] text-xs font-bold tracking-widest px-3 py-1.5 rounded-lg uppercase animate-pulse">
                                 <span className="w-2 h-2 rounded-full bg-[#D90097]"></span>
-                                Session en cours
+                                Session en écriture
                             </span>
 
                             <div className="mt-4">
@@ -407,9 +407,9 @@ export const Home = () => {
                                         <Image
                                             src={project.image}
                                             alt={project.title}
-                                            width={48}
-                                            height={48}
-                                            className="w-12 h-12 rounded-md object-cover flex-shrink-0"
+                                            width={56}
+                                            height={56}
+                                            className="w-14 h-14 rounded-md object-cover flex-shrink-0"
                                         />
 
                                         <div className="flex flex-col">
@@ -429,7 +429,7 @@ export const Home = () => {
                                     <div className="flex items-center gap-4">
                                         <span
                                             className={`text-[11px] px-3 py-1.5 rounded-md ${
-                                                project.status === "En cours"
+                                                project.status === "En écriture"
                                                     ? "bg-[#D90097]/10 text-[#D90097] border border-[#D90097]/30 font-bold"
                                                     : "bg-neutral-800 text-neutral-300"
                                             }`}

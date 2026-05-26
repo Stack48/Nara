@@ -4,7 +4,7 @@ import { UserInputSchema } from "@/schemas/user";
 
 function parseInput(body: unknown) {
   const result = UserInputSchema.safeParse(body);
-  if (!result.success) throw new AppError(400, result.error.errors[0].message);
+  if (!result.success) throw new AppError(400, result.error.issues[0].message);
   return result.data;
 }
 

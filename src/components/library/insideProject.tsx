@@ -4,13 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { Search, ChevronDown, LayoutGrid, List } from "lucide-react";
 
-import vince from "@/assets/cover/vince.png";
-import testCover from "@/assets/cover/test.jpg";
-import timekillers from "@/assets/cover/timekillers.jpg";
-import untitled from "@/assets/cover/untitled.jpg";
-import breathe from "@/assets/cover/breathe.jpg";
-import lioaf from "@/assets/cover/lioaf.jpg";
-import wideopen from "@/assets/cover/wideopen.jpg";
+import coverImage from "@/assets/cover/lgseo.png";
 import avatar1 from "@/assets/user/allen.png";
 import avatar2 from "@/assets/user/duncan.png";
 import avatar3 from "@/assets/user/haslem.png";
@@ -18,80 +12,127 @@ import avatar4 from "@/assets/user/mcgrady.png";
 
 const ALL_AVATARS = [avatar1, avatar2, avatar3, avatar4];
 
-export const Drafts = () => {
+export const insideProject = () => {
 	// État pour gérer la vue actuelle ("grid" ou "list")
 	const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
-	const draftsList = [
+	const insideProjectList = [
 		{
 			id: 1,
-			title: "MHM",
+			title: "F.I.C.O.",
 			time: "Edited 5 minutes ago",
 			collabs: 2,
 			state: "En écriture",
 			lastModified: "just now",
 			created: "7 months ago",
-			image: vince,
 		},
 		{
 			id: 2,
-			title: "test",
+			title: "Let God Sort Em Out/Chandeliers",
 			time: "Edited 8 minutes ago",
 			collabs: 3,
 			state: "Terminé",
 			lastModified: "just now",
 			created: "7 months ago",
-			image: testCover,
 		},
 		{
 			id: 3,
-			title: "Time killers",
+			title: "M.T.B.T.T.F.",
 			time: "Edited 12 minutes ago",
 			collabs: 2,
 			state: "Terminé",
 			lastModified: "just now",
 			created: "7 months ago",
-			image: timekillers,
 		},
 		{
 			id: 4,
-			title: "untitled 01",
+			title: "Chains & Whips",
 			time: "Edited 1 hour ago",
 			collabs: 4,
 			state: "Terminé",
 			lastModified: "just now",
 			created: "7 months ago",
-			image: untitled,
 		},
 		{
 			id: 5,
-			title: "breathe",
+			title: "So Be It",
 			time: "Edited 2 hours ago",
 			collabs: 2,
 			state: "En écriture",
 			lastModified: "just now",
 			created: "7 months ago",
-			image: breathe,
 		},
 		{
 			id: 6,
-			title: "Love Is Only A Feeling",
+			title: "P.O.V.",
 			time: "Edited 3 hours ago",
 			collabs: 3,
 			state: "En écriture",
 			lastModified: "just now",
 			created: "7 months ago",
-			image: lioaf,
 		},
 		{
 			id: 7,
-			title: "WIDE Open",
+			title: "Ace Trumpets",
 			time: "Edited 1 day ago",
 			collabs: 2,
 			state: "En écriture",
 			lastModified: "just now",
 			created: "7 months ago",
-			image: wideopen,
+		},
+		{
+			id: 8,
+			title: "The Birds Don't Sing",
+			time: "Edited 5 minutes ago",
+			collabs: 2,
+			state: "En écriture",
+			lastModified: "just now",
+			created: "7 months ago",
+		},
+		{
+			id: 9,
+			title: "All Things Considered",
+			time: "Edited 8 minutes ago",
+			collabs: 3,
+			state: "Terminé",
+			lastModified: "just now",
+			created: "7 months ago",
+		},
+		{
+			id: 10,
+			title: "Inglorious Bastards",
+			time: "Edited 12 minutes ago",
+			collabs: 2,
+			state: "Terminé",
+			lastModified: "just now",
+			created: "7 months ago",
+		},
+		{
+			id: 11,
+			title: "So Far Ahead",
+			time: "Edited 1 hour ago",
+			collabs: 4,
+			state: "Terminé",
+			lastModified: "just now",
+			created: "7 months ago",
+		},
+		{
+			id: 12,
+			title: "E.B.I.D.T.A.",
+			time: "Edited 2 hours ago",
+			collabs: 2,
+			state: "En écriture",
+			lastModified: "just now",
+			created: "7 months ago",
+		},
+		{
+			id: 13,
+			title: "By The Grace Of God",
+			time: "Edited 3 hours ago",
+			collabs: 3,
+			state: "En écriture",
+			lastModified: "just now",
+			created: "7 months ago",
 		},
 	];
 
@@ -147,15 +188,15 @@ export const Drafts = () => {
 			{viewMode === "grid" ? (
 				/* --- VUE GRILLE --- */
 				<div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-					{draftsList.map((draft) => (
+					{insideProjectList.map((project) => (
 						<div
-							key={draft.id}
+							key={project.id}
 							className="bg-[#151515] border border-neutral-800/80 hover:border-neutral-600 hover:bg-[#1a1a1a] transition-all duration-300 rounded-2xl p-3 flex flex-col sm:flex-row gap-4 cursor-pointer group"
 						>
 							<div className="w-full aspect-square sm:w-32 sm:h-32 rounded-xl overflow-hidden flex-shrink-0 relative">
 								<Image
-									src={draft.image}
-									alt={draft.title}
+									src={coverImage}
+									alt={project.title}
 									fill
 									className="object-cover transition-transform duration-500 group-hover:scale-105"
 									sizes="(max-width: 640px) 100vw, 128px"
@@ -164,24 +205,27 @@ export const Drafts = () => {
 							<div className="flex flex-col flex-1 justify-between py-1 relative">
 								<div className="flex items-start justify-between gap-2">
 									<h3 className="font-bold text-white text-base line-clamp-2 leading-tight pr-2 sm:pr-10 mt-1">
-										{draft.title}
+										{project.title}
 									</h3>
 									<span className="sm:absolute sm:top-0 sm:right-0 border border-neutral-700 text-neutral-400 text-[10px] px-2 py-0.5 rounded uppercase tracking-wider flex-shrink-0 h-fit">
-										{draft.state}
+										{project.state}
 									</span>
 								</div>
 								<div className="flex items-center justify-between mt-3 sm:mt-4">
 									<span className="text-[10px] text-neutral-500">
-										{draft.time}
+										{project.time}
 									</span>
 									<div className="flex items-center gap-1.5">
 										<span className="text-[10px] text-neutral-500 hidden sm:block">
-											Collaborators ({draft.collabs})
+											Collaborators ({project.collabs})
 										</span>
 										<div className="flex -space-x-2">
 											{[
 												...Array(
-													Math.min(draft.collabs, 3),
+													Math.min(
+														project.collabs,
+														3,
+													),
 												),
 											].map((_, i) => (
 												<div
@@ -191,7 +235,8 @@ export const Drafts = () => {
 													<Image
 														src={
 															ALL_AVATARS[
-																(draft.id + i) %
+																(project.id +
+																	i) %
 																	ALL_AVATARS.length
 															]
 														}
@@ -222,40 +267,40 @@ export const Drafts = () => {
 
 					{/* Lignes du tableau */}
 					<div className="flex flex-col gap-1">
-						{draftsList.map((draft) => (
+						{insideProjectList.map((project) => (
 							<div
-								key={draft.id}
+								key={project.id}
 								className="grid grid-cols-12 gap-4 items-center p-2 rounded-xl hover:bg-[#151515] transition-colors cursor-pointer"
 							>
 								{/* Name + Image */}
 								<div className="col-span-5 flex items-center gap-4">
 									<div className="w-12 h-12 rounded-lg overflow-hidden relative flex-shrink-0">
 										<Image
-											src={draft.image}
-											alt={draft.title}
+											src={coverImage}
+											alt={project.title}
 											fill
 											className="object-cover"
 											sizes="48px"
 										/>
 									</div>
 									<span className="font-bold text-sm text-white">
-										{draft.title}
+										{project.title}
 									</span>
 								</div>
 
 								{/* State */}
 								<div className="col-span-2 text-xs font-bold text-white">
-									{draft.state}
+									{project.state}
 								</div>
 
 								{/* Last modified */}
 								<div className="col-span-2 text-xs text-white">
-									{draft.lastModified}
+									{project.lastModified}
 								</div>
 
 								{/* Created */}
 								<div className="col-span-3 text-xs text-white">
-									{draft.created}
+									{project.created}
 								</div>
 							</div>
 						))}
