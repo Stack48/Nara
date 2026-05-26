@@ -66,8 +66,8 @@ export default function InscriptionPage() {
     setLoading(true);
     setError("");
     try {
-      await confirmEmail(email, confirmCode);
-      nextStep(); // → passe au paiement
+      await confirmEmail(username, confirmCode);
+      nextStep();
     } catch (err: unknown) {
       if (err instanceof Error) setError(err.message);
     } finally {

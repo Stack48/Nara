@@ -18,7 +18,7 @@ export async function register(
     name: string
 ) {
     return await signUp({
-        username: email,
+        username: username, // ← username à la place de email
         password,
         options: {
             userAttributes: {
@@ -31,8 +31,8 @@ export async function register(
 }
 
 // CONFIRMATION CODE EMAIL
-export async function confirmEmail(email: string, code: string) {
-    return await confirmSignUp({ username: email, confirmationCode: code });
+export async function confirmEmail(username: string, code: string) {
+    return await confirmSignUp({ username: username, confirmationCode: code });
 }
 
 // CONNEXION
