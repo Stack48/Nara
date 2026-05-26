@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Unbounded } from "next/font/google";
 
 const unbounded = Unbounded({ 
@@ -13,6 +13,22 @@ const unbounded = Unbounded({
 
 export default function InscriptionPage() {
   const [step, setStep] = useState(1);
+  const [imageIndex, setImageIndex] = useState(0);
+
+  useEffect(() => {
+    if (step === 1) {
+      const timer = setInterval(() => {
+        setImageIndex((prev) => (prev + 1) % 3);
+      }, 4000);
+      return () => clearInterval(timer);
+    }
+  }, [step]);
+
+  const carouselItems = [
+    { src: "/artist-3.png", text: "Chaque note a sa place." },
+    { src: "/artist-2.png", text: "Capte tout. Ne perds rien." },
+    { src: "/artist-4.png", text: "Ton œuvre, pour toujours." },
+  ];
 
   const nextStep = () => setStep((s) => Math.min(s + 1, 3));
   const prevStep = () => setStep((s) => Math.max(s - 1, 1));
@@ -144,27 +160,36 @@ export default function InscriptionPage() {
             </div>
           </div>
 
-          {/* RIGHT: Image */}
+          {/* RIGHT: Image Carousel */}
           <div className="hidden lg:block lg:w-1/2 p-4 h-screen sticky top-0 relative">
             <div className="relative w-full h-full rounded-[2rem] overflow-hidden bg-[#111]">
-              <Image
-                src="/artist-3.png" // Placeholder
-                alt="Piano"
-                fill
-                sizes="50vw"
-                className="object-cover grayscale mix-blend-luminosity opacity-80"
-                priority
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/20 to-transparent"></div>
               
-              <div className="absolute bottom-16 left-0 right-0 text-center px-10">
-                 <h2 className={`${unbounded.className} text-3xl font-black mb-4`}>
-                    Chaque note a sa place.
-                 </h2>
+              {carouselItems.map((item, idx) => (
+                <div key={idx} className={`absolute inset-0 transition-opacity duration-1000 ${idx === imageIndex ? "opacity-100" : "opacity-0"}`}>
+                  <Image
+                    src={item.src}
+                    alt="Studio"
+                    fill
+                    sizes="50vw"
+                    className="object-cover grayscale mix-blend-luminosity opacity-80"
+                    priority={idx === 0}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/20 to-transparent"></div>
+                </div>
+              ))}
+              
+              <div className="absolute bottom-16 left-0 right-0 text-center px-10 z-10">
+                 <div className="relative h-12 mb-4 flex items-center justify-center">
+                   {carouselItems.map((item, idx) => (
+                     <h2 key={idx} className={`${unbounded.className} text-3xl font-black absolute transition-all duration-700 ${idx === imageIndex ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+                        {item.text}
+                     </h2>
+                   ))}
+                 </div>
                  <div className="flex justify-center gap-2">
-                    <div className="w-10 h-1 bg-white rounded-full"></div>
-                    <div className="w-10 h-1 bg-white/20 rounded-full"></div>
-                    <div className="w-10 h-1 bg-white/20 rounded-full"></div>
+                    {[0, 1, 2].map(i => (
+                      <div key={i} className={`w-10 h-1 rounded-full transition-all duration-500 ${i === imageIndex ? "bg-white" : "bg-white/20"}`}></div>
+                    ))}
                  </div>
               </div>
             </div>
