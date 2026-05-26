@@ -27,9 +27,20 @@ export default function ConnexionPage() {
     setError("");
     try {
       await login(email, password);
-      router.push("/home");
+      router.push("/dashboard");
     } catch (err: unknown) {
-      if (err instanceof Error) setError(err.message);
+      if (err instanceof Error) {
+        // Traduit les erreurs Cognito en français
+        if (err.message.includes("already a signed in user")) {
+          router.push("/dashboard"); // déjà connecté → redirige
+        } else if (err.message.includes("Incorrect username or password")) {
+          setError("Email ou mot de passe incorrect.");
+        } else if (err.message.includes("User is not confirmed")) {
+          setError("Ton compte n'est pas encore confirmé.");
+        } else {
+          setError(err.message);
+        }
+      }
     } finally {
       setLoading(false);
     }

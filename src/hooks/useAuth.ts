@@ -37,6 +37,11 @@ export async function confirmEmail(username: string, code: string) {
 
 // CONNEXION
 export async function login(email: string, password: string) {
+    try {
+        await signOut({ global: true }); // nettoie toute session existante
+    } catch {
+        // ignore
+    }
     return await signIn({ username: email, password });
 }
 
