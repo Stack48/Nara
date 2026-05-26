@@ -13,6 +13,7 @@ import {
 	useEffect,
 	useMemo,
 	useState,
+	type ChangeEvent,
 	type ReactElement,
 } from "react";
 
@@ -42,7 +43,23 @@ type LyricsInspectorRailTool = {
 	icon: LucideIcon;
 };
 
+export type LyricsInspectorFocusRequest = {
+	panelId: LyricsInspectorPanelId;
+	requestId: number;
+};
+
+export type LyricsInspectorLookupTarget = LyricsInspectorPanelId | "all";
+
+export type LyricsInspectorLookupRequest = {
+	target: LyricsInspectorLookupTarget;
+	requestId: number;
+	term: string;
+};
+
 export type LyricsInspectorProps = {
+	focusRequest?: LyricsInspectorFocusRequest | null;
+	lookupRequest?: LyricsInspectorLookupRequest | null;
+	onLookupTermChange?: (term: string) => void;
 	panels?: LyricsInspectorPanel[];
 	onVisibilityChange?: (hasVisiblePanels: boolean) => void;
 };
@@ -104,9 +121,65 @@ function createRailTools(
 	);
 }
 
+function isLookupField(field: LyricsInspectorField): boolean {
+	return field.label === "Mot" || field.label === "Theme";
+}
+
+function createFieldKey(panelId: LyricsInspectorPanelId, label: string): string {
+	return `${panelId}:${label}`;
+}
+
+function createInitialFieldValues(
+	panels: LyricsInspectorPanel[],
+): Record<string, string> {
+	return panels.reduce(
+		(values: Record<string, string>, panel: LyricsInspectorPanel): Record<string, string> => {
+			panel.fields.forEach((field: LyricsInspectorField): void => {
+				values[createFieldKey(panel.id, field.label)] = field.value;
+			});
+
+			return values;
+		},
+		{},
+	);
+}
+
+function applyLookupTermToTargetFields(
+	panels: LyricsInspectorPanel[],
+	currentValues: Record<string, string>,
+	target: LyricsInspectorLookupTarget,
+	lookupTerm: string,
+): Record<string, string> {
+	const nextValues: Record<string, string> = { ...currentValues };
+	const targetPanels: LyricsInspectorPanel[] =
+		target === "all"
+			? panels
+			: panels.filter(
+					(panel: LyricsInspectorPanel): boolean => panel.id === target,
+				);
+
+	targetPanels.forEach((panel: LyricsInspectorPanel): void => {
+		panel.fields.forEach((field: LyricsInspectorField): void => {
+			if (isLookupField(field)) {
+				nextValues[createFieldKey(panel.id, field.label)] = lookupTerm;
+			}
+		});
+	});
+
+	return nextValues;
+}
+
 function LyricsInspectorPanelCard({
+	fieldValues,
+	onFieldChange,
 	panel,
 }: {
+	fieldValues: Record<string, string>;
+	onFieldChange: (
+		panelId: LyricsInspectorPanelId,
+		field: LyricsInspectorField,
+		value: string,
+	) => void;
 	panel: LyricsInspectorPanel;
 }): ReactElement {
 	const Icon: LucideIcon = panel.icon;
@@ -127,18 +200,28 @@ function LyricsInspectorPanelCard({
 				}`}
 			>
 				{panel.fields.map(
-					(field: LyricsInspectorField): ReactElement => (
-						<label key={`${panel.id}-${field.label}`} className="grid min-w-0 gap-1">
-							<span className="truncate text-[10px] font-medium text-[#F3F4F6]">
-								{field.label}
-							</span>
-							<input
-								readOnly
-								value={field.value}
-								className="h-5 min-w-0 w-full rounded-[2px] border border-[#A1A1AA] bg-transparent px-2 text-[9px] text-[#F3F4F6] outline-none"
-							/>
-						</label>
-					),
+					(field: LyricsInspectorField): ReactElement => {
+						const fieldKey: string = createFieldKey(panel.id, field.label);
+						const canEdit: boolean = isLookupField(field);
+
+						return (
+							<label key={`${panel.id}-${field.label}`} className="grid min-w-0 gap-1">
+								<span className="truncate text-[10px] font-medium text-[#F3F4F6]">
+									{field.label}
+								</span>
+								<input
+									readOnly={!canEdit}
+									value={fieldValues[fieldKey] ?? field.value}
+									onChange={(event: ChangeEvent<HTMLInputElement>): void => {
+										if (canEdit) {
+											onFieldChange(panel.id, field, event.target.value);
+										}
+									}}
+									className="h-5 min-w-0 w-full rounded-[2px] border border-[#A1A1AA] bg-transparent px-2 text-[9px] text-[#F3F4F6] outline-none transition-colors focus:border-[#F3F4F6]"
+								/>
+							</label>
+						);
+					},
 				)}
 			</div>
 
@@ -217,12 +300,18 @@ function LyricsInspectorRail({
 }
 
 export function LyricsInspector({
+	focusRequest,
+	lookupRequest,
+	onLookupTermChange,
 	panels = defaultLyricsInspectorPanels,
 	onVisibilityChange,
 }: LyricsInspectorProps): ReactElement {
 	const [visiblePanelIds, setVisiblePanelIds] = useState<
 		Set<LyricsInspectorPanelId>
 	>(() => createInitialVisiblePanelIds(panels));
+	const [fieldValues, setFieldValues] = useState<Record<string, string>>(
+		() => createInitialFieldValues(panels),
+	);
 	const railTools: LyricsInspectorRailTool[] = useMemo(
 		(): LyricsInspectorRailTool[] => createRailTools(panels),
 		[panels],
@@ -239,6 +328,59 @@ export function LyricsInspector({
 	useEffect((): void => {
 		onVisibilityChange?.(hasVisiblePanels);
 	}, [hasVisiblePanels, onVisibilityChange]);
+
+	useEffect((): void => {
+		setFieldValues(createInitialFieldValues(panels));
+	}, [panels]);
+
+	useEffect((): void => {
+		if (!lookupRequest) {
+			return;
+		}
+
+		setVisiblePanelIds(
+			(currentPanelIds: Set<LyricsInspectorPanelId>): Set<LyricsInspectorPanelId> => {
+				if (lookupRequest.target === "all") {
+					return createInitialVisiblePanelIds(panels);
+				}
+
+				const nextPanelIds: Set<LyricsInspectorPanelId> = new Set(
+					currentPanelIds,
+				);
+
+				nextPanelIds.add(lookupRequest.target);
+
+				return nextPanelIds;
+			},
+		);
+		setFieldValues(
+			(currentValues: Record<string, string>): Record<string, string> =>
+				applyLookupTermToTargetFields(
+					panels,
+					currentValues,
+					lookupRequest.target,
+					lookupRequest.term,
+				),
+		);
+	}, [lookupRequest, panels]);
+
+	useEffect((): void => {
+		if (!focusRequest) {
+			return;
+		}
+
+		setVisiblePanelIds(
+			(currentPanelIds: Set<LyricsInspectorPanelId>): Set<LyricsInspectorPanelId> => {
+				const nextPanelIds: Set<LyricsInspectorPanelId> = new Set(
+					currentPanelIds,
+				);
+
+				nextPanelIds.add(focusRequest.panelId);
+
+				return nextPanelIds;
+			},
+		);
+	}, [focusRequest]);
 
 	function handleTogglePanel(panelId: LyricsInspectorPanelId): void {
 		setVisiblePanelIds(
@@ -258,6 +400,24 @@ export function LyricsInspector({
 		);
 	}
 
+	function handleFieldChange(
+		panelId: LyricsInspectorPanelId,
+		field: LyricsInspectorField,
+		value: string,
+	): void {
+		if (!isLookupField(field)) {
+			return;
+		}
+
+		setFieldValues(
+			(currentValues: Record<string, string>): Record<string, string> => ({
+				...currentValues,
+				[createFieldKey(panelId, field.label)]: value,
+			}),
+		);
+		onLookupTermChange?.(value);
+	}
+
 	return (
 		<aside className="flex h-full min-h-0 overflow-hidden border-l border-[#2C2C32] bg-[#17171C]">
 			{hasVisiblePanels && (
@@ -265,7 +425,12 @@ export function LyricsInspector({
 					<div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
 						{visiblePanels.map(
 							(panel: LyricsInspectorPanel): ReactElement => (
-								<LyricsInspectorPanelCard key={panel.id} panel={panel} />
+								<LyricsInspectorPanelCard
+									key={panel.id}
+									fieldValues={fieldValues}
+									onFieldChange={handleFieldChange}
+									panel={panel}
+								/>
 							),
 						)}
 					</div>
