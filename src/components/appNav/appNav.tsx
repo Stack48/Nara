@@ -6,6 +6,10 @@ import { Syne } from "next/font/google";
 import Image from "next/image"; // Optimisation Next.js
 import {
 	Bell,
+	CircleHelp,
+	CreditCard,
+	Download,
+	Moon,
 	Sun,
 	Settings,
 	ChevronRight,
@@ -20,9 +24,13 @@ import {
 	Plus,
 	ChevronsLeft,
 	ChevronsRight,
+	Languages,
+	LogOut,
 } from "lucide-react";
 import {
 	Fragment,
+	useCallback,
+	useEffect,
 	useLayoutEffect,
 	useRef,
 	useState,
@@ -66,12 +74,28 @@ type BreadcrumbItem = {
 	href?: string;
 };
 
+type AppTheme = "dark" | "light";
+
+const appThemeStorageKey = "nara:app-theme";
+
+type ProfileAction = {
+	icon: ReactNode;
+	label: string;
+	shortcut?: string;
+	trailing?: ReactNode;
+	variant?: "default" | "danger";
+};
+
 export default function AppNav({ children }: AppNavProps): ReactElement {
 	const pathname = usePathname();
 	const currentPathname: string = pathname ?? "";
 	const navRef = useRef<HTMLElement | null>(null);
+	const profileOverlayRef = useRef<HTMLDivElement | null>(null);
 	const linkRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
 	const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
+	const [appTheme, setAppTheme] = useState<AppTheme>("dark");
+	const [isProfileOverlayOpen, setIsProfileOverlayOpen] =
+		useState<boolean>(false);
 	const [activeIndicator, setActiveIndicator] = useState<ActiveIndicator>({
 		height: 0,
 		left: 0,
@@ -80,6 +104,34 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 		visible: false,
 	});
 	const iconSize: number = 17;
+	const profileActions: ProfileAction[] = [
+		{
+			icon: <Settings size={15} strokeWidth={2} />,
+			label: "Settings",
+			shortcut: "Ctrl,",
+		},
+		{
+			icon: <Languages size={15} strokeWidth={2} />,
+			label: "Language",
+			trailing: <ChevronRight size={14} strokeWidth={2} />,
+		},
+		{
+			icon: <CircleHelp size={15} strokeWidth={2} />,
+			label: "Get help",
+		},
+		{
+			icon: <CreditCard size={15} strokeWidth={2} />,
+			label: "Upgrade plan",
+		},
+		{
+			icon: <Download size={15} strokeWidth={2} />,
+			label: "Get apps and extensions",
+		},
+		{
+			icon: <LogOut size={15} strokeWidth={2} />,
+			label: "Log out",
+		},
+	];
 	const navSections: NavSection[] = [
 		{
 			title: "Main",
@@ -195,6 +247,59 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 		{ label: "Home" },
 	];
 
+	useEffect(() => {
+		const storedTheme = window.localStorage.getItem(appThemeStorageKey);
+
+		if (storedTheme === "light" || storedTheme === "dark") {
+			setAppTheme(storedTheme);
+		}
+	}, []);
+
+	function handleToggleTheme(): void {
+		setAppTheme((currentTheme: AppTheme): AppTheme => {
+			const nextTheme: AppTheme = currentTheme === "light" ? "dark" : "light";
+			window.localStorage.setItem(appThemeStorageKey, nextTheme);
+			return nextTheme;
+		});
+	}
+
+	const closeProfileOverlay = useCallback((): void => {
+		setIsProfileOverlayOpen(false);
+	}, []);
+
+	useEffect(() => {
+		if (!isProfileOverlayOpen) {
+			return;
+		}
+
+		function handleDocumentPointerDown(event: globalThis.PointerEvent): void {
+			if (
+				profileOverlayRef.current?.contains(event.target as Node)
+			) {
+				return;
+			}
+
+			closeProfileOverlay();
+		}
+
+		function handleDocumentKeyDown(event: KeyboardEvent): void {
+			if (event.key === "Escape") {
+				closeProfileOverlay();
+			}
+		}
+
+		window.document.addEventListener("pointerdown", handleDocumentPointerDown);
+		window.document.addEventListener("keydown", handleDocumentKeyDown);
+
+		return () => {
+			window.document.removeEventListener(
+				"pointerdown",
+				handleDocumentPointerDown,
+			);
+			window.document.removeEventListener("keydown", handleDocumentKeyDown);
+		};
+	}, [closeProfileOverlay, isProfileOverlayOpen]);
+
 	useLayoutEffect(() => {
 		let animationFrameId: number | null = null;
 		let timeoutId: number | null = null;
@@ -266,25 +371,32 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 	}, [activeHref, isCollapsed]);
 
 	return (
-		<main className="flex h-dvh overflow-hidden bg-[#0A0A0C]">
+		<main
+			data-nara-theme={appTheme}
+			className={`nara-app ${
+				appTheme === "light" ? "nara-light" : "nara-dark"
+			} flex h-dvh overflow-hidden bg-[var(--nara-shell-bg)] text-[var(--nara-text-primary)]`}
+		>
 			{/* format aside toute la partie gauche, header en haut et mais en dessous de header a droite de aside */}
 			{/* flex */}
 			<aside
-				className={`relative flex h-dvh min-h-0 shrink-0 flex-col items-center justify-between pt-4 transition-[width] duration-200 ease-out ${
+				className={`relative flex h-dvh min-h-0 shrink-0 flex-col items-center justify-between bg-[var(--nara-nav-bg)] pt-4 transition-[width] duration-200 ease-out ${
 					isCollapsed ? "w-[72px]" : "w-[232px]"
 				}`}
 			>
 				<div className="flex w-full flex-col items-center justify-center gap-5 px-2">
 					<div className="flex w-full items-center justify-center">
-						<h1
-							className={`${syne.className} flex h-7 items-center whitespace-nowrap text-[26px] leading-none text-[#F3F4F6] transition-[width] duration-200 ${
-								isCollapsed
-									? "w-10 justify-center overflow-visible"
-									: "w-[126px] justify-start overflow-hidden"
-							}`}
-						>
-							{isCollapsed ? "N" : "NARA"}
-						</h1>
+						<Link href="/GenaralAPP/home">
+							<h1
+								className={`${syne.className} flex h-7 items-center whitespace-nowrap text-[26px] leading-none text-[var(--nara-text-primary)] transition-[width] duration-200 ${
+									isCollapsed
+										? "w-10 justify-center overflow-visible"
+										: "w-[126px] justify-start overflow-hidden"
+								}`}
+							>
+								{isCollapsed ? "N" : "NARA"}
+							</h1>
+						</Link>
 					</div>
 					<button
 						type="button"
@@ -297,7 +409,7 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 						onClick={(): void => {
 							setIsCollapsed((currentValue: boolean): boolean => !currentValue);
 						}}
-						className="absolute right-[-14px] top-1/2 z-30 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-[7px] border border-[#2A2A30] bg-[#131316] text-[#A1A1AA] shadow-[0_0_0_1px_rgba(0,0,0,0.35)] transition-colors hover:text-[#F3F4F6]"
+						className="absolute right-[-14px] top-1/2 z-30 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-[7px] border border-[var(--nara-action-border)] bg-[var(--nara-action-bg)] text-[var(--nara-text-secondary)] shadow-[0_0_0_1px_rgba(0,0,0,0.12)] transition-colors hover:bg-[var(--nara-action-hover)] hover:text-[var(--nara-text-primary)]"
 					>
 						{isCollapsed ? (
 							<ChevronsRight size={14} strokeWidth={2} />
@@ -420,31 +532,116 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 					</nav>
 				</div>
 				<div
-					className={`flex w-full items-center border-t border-[#2C2C32] px-3 py-3 ${
+					ref={profileOverlayRef}
+					className={`relative flex w-full items-center border-t border-[var(--nara-border)] px-3 py-3 ${
 						isCollapsed ? "justify-center" : "justify-center gap-2"
 					}`}
 				>
-					<Image
-						src="/udonis.png"
-						alt="test avatar"
-						width={48}
-						height={48}
-						className="h-12 w-12 rounded-full object-cover"
-					/>
-					<div
-						className={`min-w-0 overflow-hidden transition-[max-width,opacity] duration-150 ${
-							isCollapsed ? "max-w-0 opacity-0" : "max-w-[140px] opacity-100"
+					{isProfileOverlayOpen && (
+						<div
+							role="dialog"
+							aria-label="Menu du profil"
+							className={`absolute bottom-[calc(100%+10px)] z-50 w-[286px] overflow-hidden rounded-[10px] border border-[var(--nara-border-strong)] bg-[var(--nara-surface-raised)] p-2 text-[var(--nara-text-primary)] shadow-[0_14px_30px_rgba(17,17,19,0.18)] ${
+								isCollapsed ? "left-3" : "left-3"
+							}`}
+						>
+							<div className="px-2.5 py-2">
+								<p className="truncate text-[12px] font-medium text-[var(--nara-text-secondary)]">
+									janviercharly97114@gmail.com
+								</p>
+								<div className="mt-2 flex items-center gap-2">
+									<Image
+										src="/udonis.png"
+										alt=""
+										width={32}
+										height={32}
+										className="h-8 w-8 rounded-full object-cover"
+									/>
+									<div className="min-w-0">
+										<p className="truncate text-[13px] font-bold leading-4">
+											Udonis Haslem
+										</p>
+										<p className="text-[11px] font-medium text-[var(--nara-text-secondary)]">
+											Personal account
+										</p>
+									</div>
+								</div>
+							</div>
+
+							<div className="my-1 h-px bg-[var(--nara-border)]" />
+
+							<div className="grid gap-0.5">
+								{profileActions.map(
+									(action: ProfileAction): ReactElement => (
+										<button
+											key={action.label}
+											type="button"
+											onClick={closeProfileOverlay}
+											className={`flex h-8 w-full items-center gap-2 rounded-[6px] px-2.5 text-left text-[13px] font-semibold transition-colors hover:bg-[var(--nara-action-hover)] ${
+												action.variant === "danger"
+													? "text-[var(--nara-text-primary)]"
+													: "text-[var(--nara-text-primary)]"
+											}`}
+										>
+											<span className="flex h-4 w-4 shrink-0 items-center justify-center text-[var(--nara-text-secondary)]">
+												{action.icon}
+											</span>
+											<span className="min-w-0 flex-1 truncate">
+												{action.label}
+											</span>
+											{action.shortcut && (
+												<span className="text-[12px] font-medium text-[var(--nara-text-secondary)]">
+													{action.shortcut}
+												</span>
+											)}
+											{action.trailing && (
+												<span className="text-[var(--nara-text-secondary)]">
+													{action.trailing}
+												</span>
+											)}
+										</button>
+									),
+								)}
+							</div>
+						</div>
+					)}
+					<button
+						type="button"
+						aria-label="Ouvrir le menu du profil"
+						aria-expanded={isProfileOverlayOpen}
+						onClick={(): void => {
+							setIsProfileOverlayOpen(
+								(currentValue: boolean): boolean => !currentValue,
+							);
+						}}
+						className={`flex min-h-12 w-full items-center rounded-[8px] text-left transition-colors hover:bg-[var(--nara-profile-hover)] ${
+							isCollapsed ? "justify-center px-0" : "justify-center gap-2 px-1.5"
 						}`}
 					>
-						<p className="truncate text-[16px] font-bold">Udonis Haslem</p>
-						<span className="text-[12px] font-medium text-[#A1A1AA]">
-							Pro Plan
-						</span>
-					</div>
+						<Image
+							src="/udonis.png"
+							alt="test avatar"
+							width={48}
+							height={48}
+							className="h-12 w-12 rounded-full object-cover"
+						/>
+						<div
+							className={`min-w-0 overflow-hidden transition-[max-width,opacity] duration-150 ${
+								isCollapsed
+									? "max-w-0 opacity-0"
+									: "max-w-[140px] opacity-100"
+							}`}
+						>
+							<p className="truncate text-[16px] font-bold">Udonis Haslem</p>
+							<span className="text-[12px] font-medium text-[var(--nara-text-secondary)]">
+								Pro Plan
+							</span>
+						</div>
+					</button>
 				</div>
 			</aside>
-			<section className="flex h-dvh min-h-0 w-full flex-col">
-				<header className="flex shrink-0 items-center justify-between px-4 py-3">
+			<section className="flex h-dvh min-h-0 w-full flex-col bg-[var(--nara-header-bg)]">
+				<header className="flex shrink-0 items-center justify-between bg-[var(--nara-header-bg)] px-4 py-3">
 					<nav className="filAriane flex items-center gap-2 text-[14px]">
 						{/* le dernier est automatiquement en blanc et les autres en gris */}
 						{ariane.map(
@@ -455,7 +652,7 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 							) => (
 								<Fragment key={`${item.label}-${index}`}>
 									<span
-										className={`${index === arr.length - 1 ? "text-white" : "text-[#A1A1AA]"}`}
+										className={`${index === arr.length - 1 ? "text-[var(--nara-text-primary)]" : "text-[var(--nara-text-secondary)]"}`}
 									>
 										{item.label}
 									</span>
@@ -463,7 +660,7 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 									{index < arr.length - 1 && (
 										<ChevronRight
 											size={16}
-											color="#A1A1AA"
+											className="text-[var(--nara-text-secondary)]"
 										/>
 									)}
 								</Fragment>
@@ -471,22 +668,36 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 						)}
 					</nav>
 					<div className="flex items-center gap-3">
-						<button className="rounded-[7px] border border-[#2A2A30] bg-[#131316] p-2">
-							<Sun size={iconSize} />
+						<button
+							type="button"
+							aria-label={
+								appTheme === "light"
+									? "Activer le theme sombre"
+									: "Activer le theme clair"
+							}
+							aria-pressed={appTheme === "light"}
+							onClick={handleToggleTheme}
+							className="rounded-[7px] border border-[var(--nara-action-border)] bg-[var(--nara-action-bg)] p-2 text-[var(--nara-text-primary)] transition-colors hover:bg-[var(--nara-action-hover)]"
+						>
+							{appTheme === "light" ? (
+								<Moon size={iconSize} />
+							) : (
+								<Sun size={iconSize} />
+							)}
 						</button>
 						{/* trait vertical */}
-						<div className="h-8 w-px bg-[#2A2A30]"></div>
-						<button className="rounded-[7px] border border-[#2A2A30] bg-[#131316] p-2">
+						<div className="h-8 w-px bg-[var(--nara-border)]"></div>
+						<button className="rounded-[7px] border border-[var(--nara-action-border)] bg-[var(--nara-action-bg)] p-2 text-[var(--nara-text-primary)] transition-colors hover:bg-[var(--nara-action-hover)]">
 							<Bell size={iconSize} />
 						</button>
-						<button className="rounded-[7px] border border-[#2A2A30] bg-[#131316] p-2">
+						<button className="rounded-[7px] border border-[var(--nara-action-border)] bg-[var(--nara-action-bg)] p-2 text-[var(--nara-text-primary)] transition-colors hover:bg-[var(--nara-action-hover)]">
 							<Settings size={iconSize} />
 						</button>
 					</div>
 				</header>
 				{/* border arrondi top left */}
 
-				<article className="w-[calc(100%)] min-h-0 flex-1 bg-[#17171C] border-t border-l border-[#2C2C32] rounded-tl-2xl overflow-hidden">
+				<article className="w-[calc(100%)] min-h-0 flex-1 overflow-hidden rounded-tl-2xl border-l border-t border-[var(--nara-border)] bg-[var(--nara-surface)]">
 					{children}
 				</article>
 			</section>

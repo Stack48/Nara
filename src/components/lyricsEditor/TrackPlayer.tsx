@@ -28,6 +28,7 @@ import {
 } from "react";
 
 export type TrackMarker = {
+	accentColor?: string;
 	id: string;
 	label: string;
 	timeLabel: string;
@@ -62,18 +63,21 @@ export type TrackPlayerProps = {
 
 const defaultTrackMarkers: TrackMarker[] = [
 	{
+		accentColor: "#DA069A",
 		id: "intro",
 		label: "Intro",
 		timeLabel: "0:16",
 		positionPercent: 5.93,
 	},
 	{
+		accentColor: "#8B5CF6",
 		id: "couplet-1",
 		label: "Couplet 1",
 		timeLabel: "0:31",
 		positionPercent: 11.48,
 	},
 	{
+		accentColor: "#F4B84A",
 		id: "refrain",
 		label: "refrain",
 		timeLabel: "0:46",
@@ -95,7 +99,7 @@ function TransportButton({
 			type="button"
 			aria-label={label}
 			onClick={onClick}
-			className="inline-flex h-8 w-8 items-center justify-center rounded-[6px] text-[#A1A1AA] transition-colors hover:bg-[#17171C] hover:text-white"
+			className="inline-flex h-8 w-8 items-center justify-center rounded-[6px] text-[var(--nara-track-control)] transition-colors hover:bg-[var(--nara-track-control-hover-bg)] hover:text-[var(--nara-track-control-hover-text)]"
 		>
 			{children}
 		</button>
@@ -582,7 +586,8 @@ export function TrackPlayer({
 	return (
 		<section
 			aria-label="Lecteur de piste"
-			className="shrink-0 border-t border-[#2C2C32] bg-[#0D0D10] px-4 text-[#F3F4F6] sm:px-7"
+			data-track-player="true"
+			className="shrink-0 border-t border-[var(--nara-track-border)] bg-[var(--nara-track-bg)] px-4 text-[var(--nara-track-text)] sm:px-7"
 		>
 			<input
 				ref={fileInputRef}
@@ -601,7 +606,7 @@ export function TrackPlayer({
 					onEnded={handleAudioEnded}
 				/>
 			)}
-			<div className="grid h-[88px] grid-cols-1 items-center gap-4 overflow-hidden lg:grid-cols-[auto_minmax(0,1fr)_auto]">
+			<div className="grid h-[104px] grid-cols-1 items-center gap-4 overflow-hidden lg:grid-cols-[auto_minmax(0,1fr)_auto]">
 				<div className="flex min-w-0 items-center gap-3">
 					<button
 						type="button"
@@ -620,10 +625,10 @@ export function TrackPlayer({
 							}
 						}}
 						onDrop={handleCoverDrop}
-						className={`group relative h-14 w-14 shrink-0 overflow-hidden rounded-[8px] border bg-[#17171C] outline-none transition-colors sm:h-16 sm:w-16 ${
+						className={`group relative h-14 w-14 shrink-0 overflow-hidden rounded-[8px] border bg-[var(--nara-surface)] outline-none transition-colors sm:h-16 sm:w-16 ${
 							isCoverDragActive
 								? "border-[#DA069A]"
-								: "border-[#2C2C32] hover:border-[#4A4A52] focus-visible:border-[#F3F4F6]"
+								: "border-[var(--nara-track-border)] hover:border-[var(--nara-border-strong)] focus-visible:border-[var(--nara-track-text)]"
 						}`}
 					>
 						<Image
@@ -645,7 +650,7 @@ export function TrackPlayer({
 					</button>
 
 					<div className="min-w-0">
-						<p className="truncate text-[13px] font-medium leading-none text-[#F3F4F6] sm:text-[14px]">
+						<p className="truncate text-[13px] font-medium leading-none text-[var(--nara-track-text)] sm:text-[14px]">
 							{effectiveTitle}
 						</p>
 						<div className="mt-3 flex items-center gap-1.5">
@@ -660,7 +665,7 @@ export function TrackPlayer({
 								aria-label={isPlaying ? "Mettre en pause" : "Lire la piste"}
 								aria-pressed={isPlaying}
 								onClick={onTogglePlay}
-								className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#F3F4F6] text-[#17171C] transition-colors hover:bg-white"
+								className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[var(--nara-track-play-bg)] text-[var(--nara-track-play-text)] transition-colors hover:opacity-90"
 							>
 								{isPlaying ? (
 									<Pause size={16} fill="currentColor" strokeWidth={2} />
@@ -684,63 +689,89 @@ export function TrackPlayer({
 				</div>
 
 				<div className="min-w-0 px-0 lg:px-3">
-					<div ref={timelineRef} className="relative h-10 select-none touch-none">
+					<div ref={timelineRef} className="relative h-[96px] select-none touch-none">
 						{markers.map(
-							(marker: TrackMarker): ReactElement => (
-								<button
-									type="button"
-									key={marker.id}
-									aria-label={`Deplacer le repere ${marker.label}`}
-									onPointerDown={(
-										event: PointerEvent<HTMLButtonElement>,
-									): void => {
-										handleMarkerPointerDown(event, marker.id);
-									}}
-									onPointerMove={handleMarkerPointerMove}
-									onPointerUp={handleMarkerPointerEnd}
-									onPointerCancel={handleMarkerPointerEnd}
-									className="absolute top-0 -translate-x-1/2 cursor-ew-resize rounded-[4px] px-1 text-center outline-none transition-colors hover:bg-[#222229] focus-visible:bg-[#222229] focus-visible:ring-1 focus-visible:ring-[#F3F4F6]"
-									style={{ left: `${marker.positionPercent}%` }}
-								>
-									<span className="block whitespace-nowrap text-[12px] font-medium leading-none text-[#F3F4F6]">
-										{marker.label}
-									</span>
-									<span className="mt-0.5 block text-[9px] font-medium leading-none text-[#A1A1AA]">
-										{marker.timeLabel}
-									</span>
-									<span
-										aria-hidden="true"
-										className="mx-auto mt-1 block h-3 w-px bg-[#F3F4F6]"
-									/>
-								</button>
-							),
-						)}
-					</div>
+							(marker: TrackMarker, index: number): ReactElement => {
+								const isTopLane: boolean = index % 2 === 0;
+								const accentColor: string = marker.accentColor ?? "#DA069A";
 
-					<div
-						role="slider"
-						aria-label="Position de lecture"
-						aria-valuemin={0}
-						aria-valuemax={safeDurationSeconds}
-						aria-valuenow={Math.round(clampedCurrentTimeSeconds)}
-						aria-valuetext={`${currentTimeLabel} sur ${totalTimeLabel}`}
-						tabIndex={0}
-						onPointerDown={handleSeekPointerDown}
-						onPointerMove={handleSeekPointerMove}
-						onPointerUp={handleSeekPointerEnd}
-						onPointerCancel={handleSeekPointerEnd}
-						onKeyDown={handleSeekKeyDown}
-						className="relative h-[5px] cursor-pointer touch-none overflow-hidden rounded-full bg-[#6F6F78] outline-none focus-visible:ring-1 focus-visible:ring-[#F3F4F6]"
-					>
+								return (
+									<button
+										type="button"
+										key={marker.id}
+										aria-label={`Deplacer le repere ${marker.label}`}
+										onPointerDown={(
+											event: PointerEvent<HTMLButtonElement>,
+										): void => {
+											handleMarkerPointerDown(event, marker.id);
+										}}
+										onPointerMove={handleMarkerPointerMove}
+										onPointerUp={handleMarkerPointerEnd}
+										onPointerCancel={handleMarkerPointerEnd}
+										className={`absolute z-10 h-[42px] w-[72px] -translate-x-1/2 cursor-ew-resize bg-transparent text-center outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-[var(--nara-track-text)] ${
+											isTopLane ? "top-[6px]" : "bottom-[6px]"
+										}`}
+										style={{ left: `${marker.positionPercent}%` }}
+									>
+										<span
+											aria-hidden="true"
+											className={`absolute left-1/2 z-20 h-2.5 w-2.5 -translate-x-1/2 rounded-full ${
+												isTopLane ? "bottom-[-5px]" : "top-[-5px]"
+											}`}
+											style={{
+												backgroundColor: accentColor,
+												boxShadow: "0 0 0 2px var(--nara-track-bg)",
+											}}
+										/>
+										<span
+											aria-hidden="true"
+											className={`absolute left-1/2 z-10 h-[14px] w-px -translate-x-1/2 ${
+												isTopLane ? "bottom-[5px]" : "top-[5px]"
+											}`}
+											style={{ backgroundColor: accentColor }}
+										/>
+										<span
+											className={`pointer-events-none absolute left-1/2 flex w-[104px] -translate-x-1/2 flex-col items-center ${
+												isTopLane ? "top-0" : "bottom-0"
+											}`}
+										>
+											<span className="block max-w-[104px] truncate whitespace-nowrap text-[11px] font-bold uppercase leading-none text-[var(--nara-track-text)]">
+												{marker.label}
+											</span>
+											<span className="mt-0.5 block text-[9px] font-semibold leading-none text-[var(--nara-track-muted)]">
+												{marker.timeLabel}
+											</span>
+										</span>
+									</button>
+								);
+							},
+						)}
+
 						<div
-							className="h-full rounded-full bg-[#DA069A]"
-							style={{ width: `${clampedProgress}%` }}
-						/>
+							role="slider"
+							aria-label="Position de lecture"
+							aria-valuemin={0}
+							aria-valuemax={safeDurationSeconds}
+							aria-valuenow={Math.round(clampedCurrentTimeSeconds)}
+							aria-valuetext={`${currentTimeLabel} sur ${totalTimeLabel}`}
+							tabIndex={0}
+							onPointerDown={handleSeekPointerDown}
+							onPointerMove={handleSeekPointerMove}
+							onPointerUp={handleSeekPointerEnd}
+							onPointerCancel={handleSeekPointerEnd}
+							onKeyDown={handleSeekKeyDown}
+							className="absolute left-0 right-0 top-1/2 h-[5px] -translate-y-1/2 cursor-pointer touch-none overflow-hidden rounded-full bg-[var(--nara-track-progress-bg)] outline-none focus-visible:ring-1 focus-visible:ring-[var(--nara-track-text)]"
+						>
+							<div
+								className="h-full rounded-full bg-[#DA069A]"
+								style={{ width: `${clampedProgress}%` }}
+							/>
+						</div>
 					</div>
 				</div>
 
 				<div className="flex min-w-0 items-center justify-between gap-5 lg:justify-end">
-					<span className="shrink-0 text-[10px] font-medium tabular-nums text-[#F3F4F6]">
+					<span className="shrink-0 text-[10px] font-medium tabular-nums text-[var(--nara-track-text)]">
 						{currentTimeLabel}/{totalTimeLabel}
 					</span>
 					<div className="flex w-[104px] shrink-0 items-center gap-2">
@@ -748,7 +779,7 @@ export function TrackPlayer({
 							type="button"
 							aria-label={clampedVolume > 0 ? "Couper le son" : "Remettre le son"}
 							onClick={handleVolumeIconClick}
-							className="inline-flex h-5 w-5 items-center justify-center rounded-[4px] text-[#F3F4F6] transition-colors hover:bg-[#17171C]"
+							className="inline-flex h-5 w-5 items-center justify-center rounded-[4px] text-[var(--nara-track-control)] transition-colors hover:bg-[var(--nara-track-control-hover-bg)] hover:text-[var(--nara-track-control-hover-text)]"
 						>
 							{clampedVolume <= 0 ? (
 								<VolumeX size={14} strokeWidth={1.8} />
@@ -771,11 +802,11 @@ export function TrackPlayer({
 							onPointerUp={handleVolumePointerEnd}
 							onPointerCancel={handleVolumePointerEnd}
 							onKeyDown={handleVolumeKeyDown}
-							className="h-[12px] flex-1 cursor-pointer touch-none rounded-full outline-none focus-visible:ring-1 focus-visible:ring-[#F3F4F6]"
+							className="h-[12px] flex-1 cursor-pointer touch-none rounded-full outline-none focus-visible:ring-1 focus-visible:ring-[var(--nara-track-text)]"
 						>
-							<div className="mt-[4.5px] h-[3px] rounded-full bg-[#4A4A52]">
+							<div className="mt-[4.5px] h-[3px] rounded-full bg-[var(--nara-track-volume-bg)]">
 							<div
-								className="h-full rounded-full bg-[#F3F4F6]"
+								className="h-full rounded-full bg-[var(--nara-track-volume-fill)]"
 								style={{ width: `${clampedVolume}%` }}
 							/>
 							</div>
