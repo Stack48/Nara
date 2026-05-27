@@ -98,7 +98,7 @@ export const Drafts = () => {
 	return (
 		<div className="w-full font-arimo text-white pb-10">
 			{/* TITRE */}
-			<h1 className="text-xl font-bold font-syne mb-6">All files</h1>
+			<h1 className="text-xl font-bold font-syne mb-6">All drafts</h1>
 
 			{/* BARRE DE RECHERCHE */}
 			<div className="relative mb-6">

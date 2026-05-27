@@ -207,7 +207,11 @@ export const insideProject = () => {
 									<h3 className="font-bold text-white text-base line-clamp-2 leading-tight pr-2 sm:pr-10 mt-1">
 										{project.title}
 									</h3>
-									<span className="sm:absolute sm:top-0 sm:right-0 border border-neutral-700 text-neutral-400 text-[10px] px-2 py-0.5 rounded uppercase tracking-wider flex-shrink-0 h-fit">
+									<span className={`sm:absolute sm:top-0 sm:right-0 text-[10px] px-2 py-0.5 rounded uppercase tracking-wider flex-shrink-0 h-fit ${
+										project.title === "F.I.C.O."
+											? "bg-[#D90097]/10 text-[#D90097] border border-[#D90097]/30 font-bold"
+											: "border border-neutral-700 text-neutral-400"
+									}`}>
 										{project.state}
 									</span>
 								</div>
@@ -289,8 +293,16 @@ export const insideProject = () => {
 								</div>
 
 								{/* State */}
-								<div className="col-span-2 text-xs font-bold text-white">
-									{project.state}
+								<div className="col-span-2 text-xs font-bold">
+									{project.title === "F.I.C.O." ? (
+										<span className="bg-[#D90097]/10 text-[#D90097] border border-[#D90097]/30 px-2 py-0.5 rounded uppercase tracking-wider text-[10px] inline-block">
+											{project.state}
+										</span>
+									) : (
+										<span className="text-white">
+											{project.state}
+										</span>
+									)}
 								</div>
 
 								{/* Last modified */}
