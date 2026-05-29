@@ -7,10 +7,147 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  ADMIN
+  LEAD_PAROLIER
+  PAROLIER
+  LECTURE_SEULE
+}
+
+enum SectionType {
+  COUPLET
+  REFRAIN
+  PONT
+  INTRO
+  OUTRO
+  BRIDGE
+}
+
+enum SuggestionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
+  id            String   @id @default(cuid())
+  cognitoId     String   @unique
+  email         String   @unique
+  name          String?
+  username      String?  @unique
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  memberships   ProjectMember[]
+  invitations   Invitation[]
+  ownedProjects Project[]       @relation("OwnedProjects")
+  lyrics        Lyrics[]
+  suggestions   Suggestion[]
+  lyricVersions LyricVersion[]
+  files         File[]
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  genre       String?
+  status      String   @default("DRAFT")
+  ownerId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner       User            @relation("OwnedProjects", fields: [ownerId], references: [id], onDelete: Cascade)
+  members     ProjectMember[]
+  invitations Invitation[]
+  lyrics      Lyrics[]
+  files       File[]
+}
+
+model ProjectMember {
   id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
+  role      Role     @default(PAROLIER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  userId    String
+  projectId String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId])
+}
+
+model Invitation {
+  id        String   @id @default(cuid())
+  email     String
+  role      Role     @default(PAROLIER)
+  token     String   @unique @default(cuid())
+  accepted  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  projectId String
+  invitedBy String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  inviter   User    @relation(fields: [invitedBy], references: [id])
+}
+
+model Lyrics {
+  id          String      @id @default(cuid())
+  title       String
+  content     Json
+  order       Int         @default(0)
+  sectionType SectionType @default(COUPLET)
+  projectId   String
+  authorId    String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  project     Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  author      User           @relation(fields: [authorId], references: [id])
+  suggestions Suggestion[]
+  versions    LyricVersion[]
+}
+
+model Suggestion {
+  id        String           @id @default(cuid())
+  content   Json
+  status    SuggestionStatus @default(PENDING)
+  lyricsId  String
+  authorId  String
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  lyrics    Lyrics @relation(fields: [lyricsId], references: [id], onDelete: Cascade)
+  author    User   @relation(fields: [authorId], references: [id])
+}
+
+model LyricVersion {
+  id        String   @id @default(cuid())
+  content   Json
+  version   Int
+  lyricsId  String
+  authorId  String
+  createdAt DateTime @default(now())
+
+  lyrics    Lyrics @relation(fields: [lyricsId], references: [id], onDelete: Cascade)
+  author    User   @relation(fields: [authorId], references: [id])
+}
+
+model File {
+  id           String   @id @default(cuid())
+  name         String
+  originalName String
+  mimeType     String
+  size         Int
+  s3Key        String   @unique
+  s3Bucket     String
+  projectId    String
+  uploadedBy   String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploader     User     @relation(fields: [uploadedBy], references: [id])
 }
