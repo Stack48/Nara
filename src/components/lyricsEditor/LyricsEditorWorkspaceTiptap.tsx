@@ -3820,6 +3820,21 @@ export default function LyricsEditorWorkspaceTiptap({
 			return;
 		}
 
+		if (isWholeLineSelection) {
+			setTextLookupSelection({
+				from: selection.from,
+				lineId: selection.lineId,
+				mode: "transform",
+				rawText: rawSelectionText,
+				rect: selection.rect,
+				sectionId: selection.sectionId,
+				source: "line",
+				text: normalizeComparableSelection(rawSelectionText),
+				to: selection.to,
+			});
+			return;
+		}
+
 		if (!normalizedSelectionText) {
 			setTextLookupSelection(null);
 			return;
