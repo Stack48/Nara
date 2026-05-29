@@ -12,16 +12,20 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "test": "jest"
   },
   "dependencies": {
     "@aws-amplify/auth": "^6.20.0",
     "@aws-sdk/client-cognito-identity-provider": "^3.1053.0",
+    "@aws-sdk/client-secrets-manager": "^3.1056.0",
     "@prisma/client": "^6.7.0",
     "aws-amplify": "^6.17.0",
     "axios": "^1.15.1",
     "bcryptjs": "^3.0.3",
     "cookie": "^1.1.1",
+    "express-rate-limit": "^8.5.2",
+    "helmet": "^8.2.0",
     "jose": "^6.2.3",
     "jsonwebtoken": "^9.0.3",
     "next": "^15.5.18",
@@ -34,6 +38,7 @@
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
     "@types/cookie": "^0.6.0",
+    "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20",
@@ -47,6 +52,7 @@
     "supertest": "^7.2.2",
     "tailwindcss": "^4",
     "ts-jest": "^29.4.11",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }
