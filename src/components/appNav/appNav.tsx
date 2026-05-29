@@ -93,6 +93,9 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 	const profileOverlayRef = useRef<HTMLDivElement | null>(null);
 	const linkRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
 	const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
+	const [isLyricsFocusMode, setIsLyricsFocusMode] = useState<boolean>(false);
+	const [shouldHideLyricsChrome, setShouldHideLyricsChrome] =
+		useState<boolean>(false);
 	const [appTheme, setAppTheme] = useState<AppTheme>("dark");
 	const [isProfileOverlayOpen, setIsProfileOverlayOpen] =
 		useState<boolean>(false);
@@ -246,6 +249,28 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 	const ariane: BreadcrumbItem[] = activeNavItem?.breadcrumbs ?? [
 		{ label: "Home" },
 	];
+	const shouldHideChrome: boolean = isLyricsFocusMode && shouldHideLyricsChrome;
+
+	useEffect((): (() => void) => {
+		function handleLyricsFocusMode(event: Event): void {
+			const focusEvent = event as CustomEvent<{
+				enabled?: boolean;
+				hideChrome?: boolean;
+			}>;
+
+			setIsLyricsFocusMode(focusEvent.detail?.enabled === true);
+			setShouldHideLyricsChrome(focusEvent.detail?.hideChrome === true);
+		}
+
+		window.addEventListener("nara:lyrics-focus-mode", handleLyricsFocusMode);
+
+		return (): void => {
+			window.removeEventListener(
+				"nara:lyrics-focus-mode",
+				handleLyricsFocusMode,
+			);
+		};
+	}, []);
 
 	useEffect(() => {
 		const storedTheme = window.localStorage.getItem(appThemeStorageKey);
@@ -373,12 +398,14 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 	return (
 		<main
 			data-nara-theme={appTheme}
+			data-lyrics-focus-mode={isLyricsFocusMode ? "true" : "false"}
 			className={`nara-app ${
 				appTheme === "light" ? "nara-light" : "nara-dark"
 			} flex h-dvh overflow-hidden bg-[var(--nara-shell-bg)] text-[var(--nara-text-primary)]`}
 		>
 			{/* format aside toute la partie gauche, header en haut et mais en dessous de header a droite de aside */}
 			{/* flex */}
+			{!shouldHideChrome && (
 			<aside
 				className={`relative flex h-dvh min-h-0 shrink-0 flex-col items-center justify-between bg-[var(--nara-nav-bg)] pt-4 transition-[width] duration-200 ease-out ${
 					isCollapsed ? "w-[72px]" : "w-[232px]"
@@ -640,8 +667,9 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 					</button>
 				</div>
 			</aside>
+			)}
 			<section className="flex h-dvh min-h-0 w-full flex-col bg-[var(--nara-header-bg)]">
-				<header className="flex shrink-0 items-center justify-between bg-[var(--nara-header-bg)] px-4 py-3">
+				<header className={`${shouldHideChrome ? "hidden" : "flex"} shrink-0 items-center justify-between bg-[var(--nara-header-bg)] px-4 py-3`}>
 					<nav className="filAriane flex items-center gap-2 text-[14px]">
 						{/* le dernier est automatiquement en blanc et les autres en gris */}
 						{ariane.map(
@@ -697,7 +725,11 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 				</header>
 				{/* border arrondi top left */}
 
-				<article className="w-[calc(100%)] min-h-0 flex-1 overflow-hidden rounded-tl-2xl border-l border-t border-[var(--nara-border)] bg-[var(--nara-surface)]">
+				<article className={`w-[calc(100%)] min-h-0 flex-1 overflow-hidden bg-[var(--nara-surface)] ${
+					shouldHideChrome
+						? "rounded-none border-0"
+						: "rounded-tl-2xl border-l border-t border-[var(--nara-border)]"
+				}`}>
 					{children}
 				</article>
 			</section>
