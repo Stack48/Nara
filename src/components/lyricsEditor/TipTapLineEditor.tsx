@@ -27,6 +27,7 @@ export type TipTapLineUpdate = {
 };
 
 export type TipTapTextSelection = {
+	from: number;
 	lineId: string;
 	rect: {
 		bottom: number;
@@ -38,6 +39,13 @@ export type TipTapTextSelection = {
 	};
 	sectionId: string;
 	text: string;
+	to: number;
+};
+
+export type TipTapCursorPresence = {
+	cursorOffset: number;
+	lineId: string;
+	sectionId: string;
 };
 
 export type TipTapLineEditorProps = {
@@ -53,6 +61,7 @@ export type TipTapLineEditorProps = {
 	onFocus: () => void;
 	onMoveFocus: (direction: "next" | "previous") => void;
 	onPasteLines: (lines: string[]) => void;
+	onCursorPresenceChange: (presence: TipTapCursorPresence) => void;
 	onTextSelectionChange: (selection: TipTapTextSelection | null) => void;
 	sectionId: string;
 	style: CSSProperties;
@@ -115,6 +124,10 @@ function getSelectedEditorText(editor: Editor): string {
 	}
 
 	return editor.state.doc.textBetween(from, to, " ").trim();
+}
+
+function getCursorOffset(editor: Editor): number {
+	return editor.state.selection.$from.parentOffset;
 }
 
 function normalizeTextStyleColor(
@@ -257,6 +270,7 @@ export default function TipTapLineEditor({
 	onFocus,
 	onMoveFocus,
 	onPasteLines,
+	onCursorPresenceChange,
 	onTextSelectionChange,
 	sectionId,
 	style,
@@ -270,6 +284,7 @@ export default function TipTapLineEditor({
 		onFocus,
 		onMoveFocus,
 		onPasteLines,
+		onCursorPresenceChange,
 		onTextSelectionChange,
 		sectionId,
 	});
@@ -296,6 +311,7 @@ export default function TipTapLineEditor({
 			onFocus,
 			onMoveFocus,
 			onPasteLines,
+			onCursorPresenceChange,
 			onTextSelectionChange,
 			sectionId,
 		};
@@ -308,6 +324,7 @@ export default function TipTapLineEditor({
 		onFocus,
 		onMoveFocus,
 		onPasteLines,
+		onCursorPresenceChange,
 		onTextSelectionChange,
 		sectionId,
 	]);
@@ -403,6 +420,11 @@ export default function TipTapLineEditor({
 		},
 		onFocus: ({ editor: focusedEditor }): void => {
 			latestPropsRef.current.onFocus();
+			latestPropsRef.current.onCursorPresenceChange({
+				cursorOffset: getCursorOffset(focusedEditor),
+				lineId: latestPropsRef.current.lineId,
+				sectionId: latestPropsRef.current.sectionId,
+			});
 			latestPropsRef.current.onFormatSnapshotChange(
 				getFormatSnapshot(focusedEditor),
 			);
@@ -425,6 +447,11 @@ export default function TipTapLineEditor({
 				isTypingAtEnd,
 				text: nextText,
 			});
+			latestPropsRef.current.onCursorPresenceChange({
+				cursorOffset: getCursorOffset(updatedEditor),
+				lineId: latestPropsRef.current.lineId,
+				sectionId: latestPropsRef.current.sectionId,
+			});
 			latestPropsRef.current.onFormatSnapshotChange(
 				getFormatSnapshot(updatedEditor, {
 					preferNearbyTextColor: !isApplyingToolbarFormatRef.current,
@@ -435,6 +462,12 @@ export default function TipTapLineEditor({
 			const selectedText: string = getSelectedEditorText(updatedEditor);
 			const selectionRect: TipTapTextSelection["rect"] | null =
 				getCurrentSelectionRect();
+
+			latestPropsRef.current.onCursorPresenceChange({
+				cursorOffset: getCursorOffset(updatedEditor),
+				lineId: latestPropsRef.current.lineId,
+				sectionId: latestPropsRef.current.sectionId,
+			});
 
 			latestPropsRef.current.onFormatSnapshotChange(
 				getFormatSnapshot(updatedEditor, {
@@ -448,10 +481,12 @@ export default function TipTapLineEditor({
 			}
 
 			latestPropsRef.current.onTextSelectionChange({
+				from: updatedEditor.state.selection.from,
 				lineId: latestPropsRef.current.lineId,
 				rect: selectionRect,
 				sectionId: latestPropsRef.current.sectionId,
 				text: selectedText,
+				to: updatedEditor.state.selection.to,
 			});
 		},
 	});

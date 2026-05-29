@@ -8,7 +8,10 @@ import {
 	Bold,
 	ChevronDown,
 	Disc,
+	Focus,
 	Italic,
+	PanelLeftClose,
+	PanelLeftOpen,
 	Strikethrough,
 	Underline,
 	type LucideIcon,
@@ -40,6 +43,8 @@ export type LyricsFormat = {
 	textOpacity: number;
 	showTrackPanel: boolean;
 	showInspectorTools: boolean;
+	focusMode: boolean;
+	hideAppChrome: boolean;
 	rhymes: boolean;
 	annotation: boolean;
 	syllables: boolean;
@@ -1282,6 +1287,29 @@ export default function LyricsHeader({
 			onClick: () =>
 				onFormatChange({ showInspectorTools: !format.showInspectorTools }),
 		},
+		{
+			label: "Mode focus",
+			icon: Focus,
+			active: format.focusMode,
+			onClick: () =>
+				onFormatChange({
+					focusMode: !format.focusMode,
+					hideAppChrome: false,
+				}),
+		},
+		...(format.focusMode
+			? [
+					{
+						label: format.hideAppChrome
+							? "Afficher la navigation"
+							: "Cacher la navigation",
+						icon: format.hideAppChrome ? PanelLeftOpen : PanelLeftClose,
+						active: format.hideAppChrome,
+						onClick: () =>
+							onFormatChange({ hideAppChrome: !format.hideAppChrome }),
+					},
+				]
+			: []),
 	];
 
 	return (
