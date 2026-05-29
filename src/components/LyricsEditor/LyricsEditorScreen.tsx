@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactElement } from "react";
+import { useEffect, useState, type ReactElement } from "react";
 import LyricsEditorWorkspaceTiptap from "@/components/lyricsEditor/LyricsEditorWorkspaceTiptap";
 import LyricsHeader, {
 	type LyricsFormat,
@@ -19,6 +19,8 @@ const initialFormat: LyricsFormat = {
 	textOpacity: 100,
 	showTrackPanel: false,
 	showInspectorTools: true,
+	focusMode: false,
+	hideAppChrome: false,
 	rhymes: false,
 	annotation: false,
 	syllables: true,
@@ -26,6 +28,25 @@ const initialFormat: LyricsFormat = {
 
 export default function LyricsEditorScreen(): ReactElement {
 	const [format, setFormat] = useState<LyricsFormat>(initialFormat);
+
+	useEffect((): (() => void) => {
+		window.dispatchEvent(
+			new CustomEvent("nara:lyrics-focus-mode", {
+				detail: {
+					enabled: format.focusMode,
+					hideChrome: format.focusMode && format.hideAppChrome,
+				},
+			}),
+		);
+
+		return (): void => {
+			window.dispatchEvent(
+				new CustomEvent("nara:lyrics-focus-mode", {
+					detail: { enabled: false, hideChrome: false },
+				}),
+			);
+		};
+	}, [format.focusMode, format.hideAppChrome]);
 
 	function handleFormatChange(patch: Partial<LyricsFormat>): void {
 		setFormat((currentFormat: LyricsFormat): LyricsFormat => ({
