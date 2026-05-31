@@ -16,6 +16,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@aws-amplify/adapter-nextjs": "^1.7.3",
     "@aws-amplify/auth": "^6.20.0",
     "@aws-sdk/client-cognito-identity-provider": "^3.1053.0",
     "@prisma/client": "^6.7.0",
