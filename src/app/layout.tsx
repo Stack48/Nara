@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "@/lib/amplify";
 
 export const metadata: Metadata = {
   title: "Nara",
