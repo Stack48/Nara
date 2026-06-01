@@ -276,6 +276,25 @@ function LyricsInspectorPanelCard({
 											);
 										}
 									}}
+									onKeyDown={(
+										event: React.KeyboardEvent<HTMLInputElement>,
+									): void => {
+										if (event.key === "Enter" && canEdit) {
+											onSearch(
+												panel.id,
+												event.currentTarget.value,
+											);
+										}
+									}}
+									onBlur={(): void => {
+										if (canEdit) {
+											onSearch(
+												panel.id,
+												fieldValues[fieldKey] ??
+													field.value,
+											);
+										}
+									}}
 									className="h-5 min-w-0 w-full rounded-[2px] border border-[#A1A1AA] bg-transparent px-2 text-[9px] text-[#F3F4F6] outline-none transition-colors focus:border-[#F3F4F6]"
 								/>
 							</label>
@@ -566,6 +585,7 @@ export function LyricsInspector({
 				return nextPanelIds;
 			},
 		);
+
 		setFieldValues(
 			(currentValues: Record<string, string>): Record<string, string> =>
 				applyLookupTermToTargetFields(
