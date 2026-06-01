@@ -50,7 +50,7 @@ const STATIC_SONGS_LIST = [
         lastModifiedDate: new Date(Date.now() - 5 * 60 * 1000),
         createdDate: new Date(Date.now() - 210 * 24 * 60 * 60 * 1000),
         image: vince,
-        audioSrc: "/audio/drafts/mhm.mp3",
+        audioSrc: "/audio/mhm.mp3",
         defaultOrigin: "standalone" as const,
         defaultProjectId: "",
         defaultProjectName: "",
@@ -66,7 +66,7 @@ const STATIC_SONGS_LIST = [
         lastModifiedDate: new Date(Date.now() - 8 * 60 * 1000),
         createdDate: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000),
         image: testCover,
-        audioSrc: "/audio/drafts/test.mp3",
+        audioSrc: "/audio/ensalada.mp3",
         defaultOrigin: "standalone" as const,
         defaultProjectId: "",
         defaultProjectName: "",
@@ -82,7 +82,7 @@ const STATIC_SONGS_LIST = [
         lastModifiedDate: new Date(Date.now() - 12 * 60 * 1000),
         createdDate: new Date(Date.now() - 150 * 24 * 60 * 60 * 1000),
         image: timekillers,
-        audioSrc: "/audio/drafts/time-killers.mp3",
+        audioSrc: "/audio/fico.mp3",
         defaultOrigin: "standalone" as const,
         defaultProjectId: "",
         defaultProjectName: "",
@@ -98,7 +98,7 @@ const STATIC_SONGS_LIST = [
         lastModifiedDate: new Date(Date.now() - 60 * 60 * 1000),
         createdDate: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000),
         image: untitled,
-        audioSrc: "/audio/drafts/untitled.mp3",
+        audioSrc: "/audio/fico.mp3",
         defaultOrigin: "standalone" as const,
         defaultProjectId: "",
         defaultProjectName: "",
@@ -114,7 +114,7 @@ const STATIC_SONGS_LIST = [
         lastModifiedDate: new Date(Date.now() - 2 * 60 * 60 * 1000),
         createdDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
         image: breathe,
-        audioSrc: "/audio/drafts/breathe.mp3",
+        audioSrc: "/audio/fico.mp3",
         defaultOrigin: "standalone" as const,
         defaultProjectId: "",
         defaultProjectName: "",
@@ -130,7 +130,7 @@ const STATIC_SONGS_LIST = [
         lastModifiedDate: new Date(Date.now() - 3 * 60 * 60 * 1000),
         createdDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
         image: lioaf,
-        audioSrc: "/audio/drafts/lioaf.mp3",
+        audioSrc: "/audio/fico.mp3",
         defaultOrigin: "standalone" as const,
         defaultProjectId: "",
         defaultProjectName: "",
@@ -146,7 +146,7 @@ const STATIC_SONGS_LIST = [
         lastModifiedDate: new Date(Date.now() - 24 * 60 * 60 * 1000),
         createdDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
         image: wideopen,
-        audioSrc: "/audio/drafts/wide-open.mp3",
+        audioSrc: "/audio/fico.mp3",
         defaultOrigin: "standalone" as const,
         defaultProjectId: "",
         defaultProjectName: "",
@@ -164,7 +164,7 @@ const STATIC_SONGS_LIST = [
         lastModifiedDate: new Date(Date.now() - 5 * 60 * 1000),
         createdDate: new Date(Date.now() - 210 * 24 * 60 * 60 * 1000),
         image: lgseo,
-        audioSrc: "/audio/lgseo/fico.mp3",
+        audioSrc: "/audio/fico.mp3",
         defaultOrigin: "project" as const,
         defaultProjectId: "Let_God_Sort_Em_Out",
         defaultProjectName: "Let God Sort Em Out",
@@ -180,7 +180,7 @@ const STATIC_SONGS_LIST = [
         lastModifiedDate: new Date(Date.now() - 8 * 60 * 1000),
         createdDate: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000),
         image: lgseo,
-        audioSrc: "/audio/lgseo/lgseo-chandeliers.mp3",
+        audioSrc: "/audio/fico.mp3",
         defaultOrigin: "project" as const,
         defaultProjectId: "Let_God_Sort_Em_Out",
         defaultProjectName: "Let God Sort Em Out",
@@ -196,7 +196,7 @@ const STATIC_SONGS_LIST = [
         lastModifiedDate: new Date(Date.now() - 12 * 60 * 1000),
         createdDate: new Date(Date.now() - 150 * 24 * 60 * 60 * 1000),
         image: lgseo,
-        audioSrc: "/audio/lgseo/mtbttf.mp3",
+        audioSrc: "/audio/fico.mp3",
         defaultOrigin: "project" as const,
         defaultProjectId: "Let_God_Sort_Em_Out",
         defaultProjectName: "Let God Sort Em Out",
@@ -212,7 +212,7 @@ const STATIC_SONGS_LIST = [
         lastModifiedDate: new Date(Date.now() - 60 * 60 * 1000),
         createdDate: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000),
         image: lgseo,
-        audioSrc: "/audio/lgseo/chains-whips.mp3",
+        audioSrc: "/audio/fico.mp3",
         defaultOrigin: "project" as const,
         defaultProjectId: "Let_God_Sort_Em_Out",
         defaultProjectName: "Let God Sort Em Out",
@@ -228,7 +228,7 @@ const STATIC_SONGS_LIST = [
         lastModifiedDate: new Date(Date.now() - 2 * 60 * 60 * 1000),
         createdDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
         image: lgseo,
-        audioSrc: "/audio/lgseo/so-be-it.mp3",
+        audioSrc: "/audio/fico.mp3",
         defaultOrigin: "project" as const,
         defaultProjectId: "Let_God_Sort_Em_Out",
         defaultProjectName: "Let God Sort Em Out",
@@ -244,7 +244,7 @@ const STATIC_SONGS_LIST = [
         lastModifiedDate: new Date(Date.now() - 3 * 60 * 60 * 1000),
         createdDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
         image: lgseo,
-        audioSrc: "/audio/lgseo/pov.mp3",
+        audioSrc: "/audio/fico.mp3",
         defaultOrigin: "project" as const,
         defaultProjectId: "Let_God_Sort_Em_Out",
         defaultProjectName: "Let God Sort Em Out",
@@ -260,7 +260,7 @@ const STATIC_SONGS_LIST = [
         lastModifiedDate: new Date(Date.now() - 24 * 60 * 60 * 1000),
         createdDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
         image: lgseo,
-        audioSrc: "/audio/lgseo/ace-trumpets.mp3",
+        audioSrc: "/audio/fico.mp3",
         defaultOrigin: "project" as const,
         defaultProjectId: "Let_God_Sort_Em_Out",
         defaultProjectName: "Let God Sort Em Out",
@@ -276,7 +276,7 @@ const STATIC_SONGS_LIST = [
         lastModifiedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
         createdDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
         image: lgseo,
-        audioSrc: "/audio/lgseo/the-birds-dont-sing.mp3",
+        audioSrc: "/audio/fico.mp3",
         defaultOrigin: "project" as const,
         defaultProjectId: "Let_God_Sort_Em_Out",
         defaultProjectName: "Let God Sort Em Out",
@@ -292,7 +292,7 @@ const STATIC_SONGS_LIST = [
         lastModifiedDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
         createdDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
         image: lgseo,
-        audioSrc: "/audio/lgseo/all-things-considered.mp3",
+        audioSrc: "/audio/fico.mp3",
         defaultOrigin: "project" as const,
         defaultProjectId: "Let_God_Sort_Em_Out",
         defaultProjectName: "Let God Sort Em Out",
@@ -308,7 +308,7 @@ const STATIC_SONGS_LIST = [
         lastModifiedDate: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
         createdDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
         image: lgseo,
-        audioSrc: "/audio/lgseo/inglorious-bastards.mp3",
+        audioSrc: "/audio/fico.mp3",
         defaultOrigin: "project" as const,
         defaultProjectId: "Let_God_Sort_Em_Out",
         defaultProjectName: "Let God Sort Em Out",
@@ -324,7 +324,7 @@ const STATIC_SONGS_LIST = [
         lastModifiedDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
         createdDate: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
         image: lgseo,
-        audioSrc: "/audio/lgseo/so-far-ahead.mp3",
+        audioSrc: "/audio/fico.mp3",
         defaultOrigin: "project" as const,
         defaultProjectId: "Let_God_Sort_Em_Out",
         defaultProjectName: "Let God Sort Em Out",
@@ -340,7 +340,7 @@ const STATIC_SONGS_LIST = [
         lastModifiedDate: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
         createdDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
         image: lgseo,
-        audioSrc: "/audio/lgseo/ebitda.mp3",
+        audioSrc: "/audio/fico.mp3",
         defaultOrigin: "project" as const,
         defaultProjectId: "Let_God_Sort_Em_Out",
         defaultProjectName: "Let God Sort Em Out",
@@ -356,7 +356,7 @@ const STATIC_SONGS_LIST = [
         lastModifiedDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
         createdDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
         image: lgseo,
-        audioSrc: "/audio/lgseo/by-the-grace-of-god.mp3",
+        audioSrc: "/audio/fico.mp3",
         defaultOrigin: "project" as const,
         defaultProjectId: "Let_God_Sort_Em_Out",
         defaultProjectName: "Let God Sort Em Out",
@@ -372,7 +372,7 @@ const STATIC_SONGS_LIST = [
         lastModifiedDate: new Date(Date.now() - 16 * 24 * 60 * 60 * 1000),
         createdDate: new Date(Date.now() - 16 * 24 * 60 * 60 * 1000),
         image: intoYou,
-        audioSrc: "/audio/other/into-you.mp3",
+        audioSrc: "/audio/fico.mp3",
         defaultOrigin: "standalone" as const,
         defaultProjectId: "",
         defaultProjectName: "",
@@ -388,7 +388,7 @@ const STATIC_SONGS_LIST = [
         lastModifiedDate: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000),
         createdDate: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000),
         image: rightInTheMiddle,
-        audioSrc: "/audio/other/right-in-the-middle.mp3",
+        audioSrc: "/audio/fico.mp3",
         defaultOrigin: "standalone" as const,
         defaultProjectId: "",
         defaultProjectName: "",
@@ -404,7 +404,7 @@ const STATIC_SONGS_LIST = [
         lastModifiedDate: new Date(Date.now() - 2 * 60 * 60 * 1000),
         createdDate: new Date(Date.now() - 2 * 60 * 60 * 1000),
         image: alfredo,
-        audioSrc: "/audio/other/ensalada.mp3",
+        audioSrc: "/audio/ensalada.mp3",
         defaultOrigin: "project" as const,
         defaultProjectId: "Alfredo_2",
         defaultProjectName: "Alfredo 2",
@@ -422,7 +422,7 @@ const STATIC_SONGS_LIST = [
         lastModifiedDate: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
         createdDate: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
         image: ghettodreams,
-        audioSrc: "/audio/other/ghetto-dreams.mp3",
+        audioSrc: "/audio/mhm.mp3",
         defaultOrigin: "project" as const,
         defaultProjectId: "",
         defaultProjectName: "The Dreamer, The Believer",
@@ -467,7 +467,9 @@ export const getSongProjectMappings = (): Mappings => {
                     upgraded = true;
                 }
                 if (typeof map.title === "undefined") {
-                    const originalSong = STATIC_SONGS_LIST.find((s) => s.id === key);
+                    const originalSong = STATIC_SONGS_LIST.find(
+                        (s) => s.id === key,
+                    );
                     map.title = originalSong ? originalSong.title : key;
                     upgraded = true;
                 }
@@ -480,7 +482,9 @@ export const getSongProjectMappings = (): Mappings => {
                         projectName: song.defaultProjectName,
                         origin: song.defaultOrigin,
                         isFavorite: false,
-                        isDeleted: song.id === "So_Into_You" || song.id === "Right_in_the_Middle",
+                        isDeleted:
+                            song.id === "So_Into_You" ||
+                            song.id === "Right_in_the_Middle",
                         title: song.title,
                     };
                     upgraded = true;
@@ -494,7 +498,7 @@ export const getSongProjectMappings = (): Mappings => {
             console.error("Failed to parse local storage mappings", e);
         }
     }
-    
+
     // Default initial mappings
     const initialMappings: Mappings = {};
     STATIC_SONGS_LIST.forEach((song) => {
@@ -503,7 +507,8 @@ export const getSongProjectMappings = (): Mappings => {
             projectName: song.defaultProjectName,
             origin: song.defaultOrigin,
             isFavorite: false,
-            isDeleted: song.id === "So_Into_You" || song.id === "Right_in_the_Middle",
+            isDeleted:
+                song.id === "So_Into_You" || song.id === "Right_in_the_Middle",
             title: song.title,
         };
     });
@@ -512,9 +517,13 @@ export const getSongProjectMappings = (): Mappings => {
 };
 
 // Set single song project helper
-export const setSongProject = (songId: string, projectId: string, projectName: string) => {
+export const setSongProject = (
+    songId: string,
+    projectId: string,
+    projectName: string,
+) => {
     if (typeof window === "undefined") return;
-    
+
     const currentMappings = getSongProjectMappings();
     const existing = currentMappings[songId] || {
         projectId: "",
@@ -524,14 +533,14 @@ export const setSongProject = (songId: string, projectId: string, projectName: s
         isDeleted: false,
         title: songId,
     };
-    
+
     currentMappings[songId] = {
         ...existing,
         projectId,
         projectName,
         origin: projectId ? "project" : "standalone",
     };
-    
+
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentMappings));
     window.dispatchEvent(new CustomEvent(EVENT_NAME));
 };
@@ -539,11 +548,15 @@ export const setSongProject = (songId: string, projectId: string, projectName: s
 // Toggle Favorite helper
 export const toggleSongFavorite = (songId: string) => {
     if (typeof window === "undefined") return;
-    
+
     const currentMappings = getSongProjectMappings();
     if (currentMappings[songId]) {
-        currentMappings[songId].isFavorite = !currentMappings[songId].isFavorite;
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentMappings));
+        currentMappings[songId].isFavorite =
+            !currentMappings[songId].isFavorite;
+        localStorage.setItem(
+            LOCAL_STORAGE_KEY,
+            JSON.stringify(currentMappings),
+        );
         window.dispatchEvent(new CustomEvent(EVENT_NAME));
     }
 };
@@ -551,11 +564,14 @@ export const toggleSongFavorite = (songId: string) => {
 // Set Soft Delete helper
 export const setSongDeleted = (songId: string, isDeleted: boolean) => {
     if (typeof window === "undefined") return;
-    
+
     const currentMappings = getSongProjectMappings();
     if (currentMappings[songId]) {
         currentMappings[songId].isDeleted = isDeleted;
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentMappings));
+        localStorage.setItem(
+            LOCAL_STORAGE_KEY,
+            JSON.stringify(currentMappings),
+        );
         window.dispatchEvent(new CustomEvent(EVENT_NAME));
     }
 };
@@ -563,25 +579,34 @@ export const setSongDeleted = (songId: string, isDeleted: boolean) => {
 // Rename Song helper
 export const renameSong = (songId: string, newTitle: string) => {
     if (typeof window === "undefined") return;
-    
+
     const currentMappings = getSongProjectMappings();
     if (currentMappings[songId]) {
         currentMappings[songId].title = newTitle;
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentMappings));
+        localStorage.setItem(
+            LOCAL_STORAGE_KEY,
+            JSON.stringify(currentMappings),
+        );
         window.dispatchEvent(new CustomEvent(EVENT_NAME));
     }
 };
 
 // Create Song helper
-export const createSong = (title: string, projectId: string = "", projectName: string = "") => {
+export const createSong = (
+    title: string,
+    projectId: string = "",
+    projectName: string = "",
+) => {
     if (typeof window === "undefined") return;
-    
+
     const mappings = getSongProjectMappings();
     const id = "song_" + Date.now();
-    
+
     const createdSongsStored = localStorage.getItem("nara_created_songs");
-    const createdSongs = createdSongsStored ? JSON.parse(createdSongsStored) : [];
-    
+    const createdSongs = createdSongsStored
+        ? JSON.parse(createdSongsStored)
+        : [];
+
     const newSong = {
         id,
         title,
@@ -594,14 +619,16 @@ export const createSong = (title: string, projectId: string = "", projectName: s
         createdDate: new Date().toISOString(),
         imageKey: "vince",
         audioSrc: "/audio/drafts/mhm.mp3",
-        defaultOrigin: projectId ? "project" as const : "standalone" as const,
+        defaultOrigin: projectId
+            ? ("project" as const)
+            : ("standalone" as const),
         defaultProjectId: projectId,
         defaultProjectName: projectName,
     };
-    
+
     createdSongs.push(newSong);
     localStorage.setItem("nara_created_songs", JSON.stringify(createdSongs));
-    
+
     mappings[id] = {
         projectId,
         projectName,
@@ -611,13 +638,16 @@ export const createSong = (title: string, projectId: string = "", projectName: s
         title,
     };
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(mappings));
-    
+
     window.dispatchEvent(new CustomEvent(EVENT_NAME));
     // Also trigger custom event for project store update (which listens to song count updates!)
     window.dispatchEvent(new CustomEvent("project-store-updated"));
 };
 
-const getStoredProjectTitle = (projectId: string, fallbackTitle: string): string => {
+const getStoredProjectTitle = (
+    projectId: string,
+    fallbackTitle: string,
+): string => {
     if (typeof window === "undefined" || !projectId) return fallbackTitle;
     const stored = localStorage.getItem("nara_projects_mappings");
     if (stored) {
@@ -656,8 +686,11 @@ export const useSongs = (): Song[] => {
         const updateSongsList = () => {
             const mappings = getSongProjectMappings();
             const createdSongs = getCreatedSongsList();
-            const combinedStaticAndCreated = [...STATIC_SONGS_LIST, ...createdSongs];
-            
+            const combinedStaticAndCreated = [
+                ...STATIC_SONGS_LIST,
+                ...createdSongs,
+            ];
+
             const updated = combinedStaticAndCreated.map((song) => {
                 const songMapping = mappings[song.id] || {
                     projectId: song.defaultProjectId,
@@ -667,7 +700,7 @@ export const useSongs = (): Song[] => {
                     isDeleted: false,
                     title: song.title,
                 };
-                
+
                 return {
                     id: song.id,
                     title: songMapping.title || song.title,
@@ -681,7 +714,10 @@ export const useSongs = (): Song[] => {
                     image: song.image,
                     audioSrc: song.audioSrc,
                     projectId: songMapping.projectId,
-                    projectName: getStoredProjectTitle(songMapping.projectId, songMapping.projectName),
+                    projectName: getStoredProjectTitle(
+                        songMapping.projectId,
+                        songMapping.projectName,
+                    ),
                     origin: songMapping.origin,
                     isFavorite: !!songMapping.isFavorite,
                     isDeleted: !!songMapping.isDeleted,
@@ -698,10 +734,13 @@ export const useSongs = (): Song[] => {
         // Listen for changes
         window.addEventListener(EVENT_NAME, updateSongsList);
         window.addEventListener("project-store-updated", updateSongsList); // Listen to project renames
-        
+
         return () => {
             window.removeEventListener(EVENT_NAME, updateSongsList);
-            window.removeEventListener("project-store-updated", updateSongsList);
+            window.removeEventListener(
+                "project-store-updated",
+                updateSongsList,
+            );
         };
     }, []);
 
