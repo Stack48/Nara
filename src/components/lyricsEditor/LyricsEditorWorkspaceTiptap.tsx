@@ -2310,23 +2310,63 @@ function RemoteCursorOverlay({
 	);
 }
 
+type FocusLineMapping = {
+	line: TipTapLyricLine;
+	section: TipTapLyricSection;
+	lineIndex: number;
+};
+
+function getFocusLineMappings(sections: TipTapLyricSection[]): FocusLineMapping[] {
+	const mappings: FocusLineMapping[] = [];
+	let currentLineIndex = 0;
+
+	sections.forEach((section: TipTapLyricSection): void => {
+		const visibleLines = getVisibleSectionLines(section);
+		visibleLines.forEach((line: TipTapLyricLine): void => {
+			mappings.push({
+				line,
+				section,
+				lineIndex: currentLineIndex,
+			});
+			currentLineIndex++;
+		});
+
+		currentLineIndex += focusSectionSeparatorNewlineCount;
+	});
+
+	return mappings;
+}
+
 function FocusLyricsDocument({
 	document,
 	lineStyle,
 	onDocumentTextChange,
 	onSelectionChange,
 	text,
+	rhymeHighlightsByLineId,
+	normalizedLookupTerm,
+	remotePresences,
+	showRhymes,
 }: {
 	document: TipTapLyricsDocument;
 	lineStyle: CSSProperties;
 	onDocumentTextChange: (text: string) => void;
 	onSelectionChange: (selection: TextLookupSelection | null) => void;
 	text: string;
+	rhymeHighlightsByLineId: RhymeHighlightsByLineId;
+	normalizedLookupTerm: string;
+	remotePresences: RemotePresence[];
+	showRhymes: boolean;
 }): ReactElement {
 	const focusSectionMarkers = useMemo(
 		(): FocusSectionMarker[] =>
 			createFocusSectionMarkersFromText(text, document.sections),
 		[document.sections, text],
+	);
+
+	const mappings = useMemo(
+		(): FocusLineMapping[] => getFocusLineMappings(document.sections),
+		[document.sections],
 	);
 
 	function handleTextSelection(textarea: HTMLTextAreaElement): void {
@@ -2392,8 +2432,80 @@ function FocusLyricsDocument({
 		lineCount * focusTextareaLineHeightPx + focusTextareaTopPaddingPx + 12,
 	);
 
+	const textareaLines = text.split("\n");
+
 	return (
 		<div className="relative w-full max-w-[820px] pt-2">
+			{/* Focus Mode Overlays */}
+			<div
+				aria-hidden="true"
+				className="pointer-events-none absolute left-0 right-0 top-2 select-none z-10"
+				style={{
+					height: textareaHeight,
+				}}
+			>
+				{mappings.map(({ line, section, lineIndex }): ReactElement | null => {
+					const rhymeHighlight = rhymeHighlightsByLineId[line.id];
+					const visibleRhymeHighlight =
+						showRhymes &&
+						line.text.trim().length > 0 &&
+						rhymeHighlight !== undefined
+							? rhymeHighlight
+							: null;
+					const lineText = textareaLines[lineIndex] ?? line.text;
+					const searchMatchRanges = createSearchMatchRanges(lineText, normalizedLookupTerm);
+					const remotePresencesForLine = remotePresences.filter(
+						(presence: RemotePresence): boolean =>
+							presence.sectionId === section.id &&
+							presence.lineId === line.id,
+					);
+
+					if (
+						!visibleRhymeHighlight &&
+						searchMatchRanges.length === 0 &&
+						remotePresencesForLine.length === 0
+					) {
+						return null;
+					}
+
+					const lineTop = lineIndex * focusTextareaLineHeightPx;
+
+					return (
+						<div
+							key={line.id}
+							className="absolute right-0"
+							style={{
+								left: focusTextareaLeftPaddingPx,
+								top: focusTextareaTopPaddingPx + lineTop,
+								height: focusTextareaLineHeightPx,
+							}}
+						>
+							{searchMatchRanges.length > 0 && (
+								<SearchHighlightOverlay
+									lineStyle={lineStyle}
+									ranges={searchMatchRanges}
+									text={lineText}
+								/>
+							)}
+							{visibleRhymeHighlight && (
+								<RhymeHighlightOverlay
+									highlight={visibleRhymeHighlight}
+									lineStyle={lineStyle}
+									text={lineText}
+								/>
+							)}
+							{remotePresencesForLine.length > 0 && (
+								<RemoteCursorOverlay
+									lineStyle={lineStyle}
+									presences={remotePresencesForLine}
+									text={lineText}
+								/>
+							)}
+						</div>
+					);
+				})}
+			</div>
+
 			<div
 				aria-hidden="true"
 				className="pointer-events-none absolute left-0 top-2 select-none"
@@ -2439,7 +2551,7 @@ function FocusLyricsDocument({
 					handleTextSelection(event.currentTarget);
 				}}
 				spellCheck={false}
-				className="block w-full resize-none overflow-hidden border-0 bg-transparent py-0 pr-0 text-[#F3F4F6] outline-none selection:bg-[#0B57D0] selection:text-white"
+				className="block w-full resize-none overflow-hidden border-0 bg-transparent py-0 pr-0 text-[#F3F4F6] outline-none selection:bg-[#0B57D0] selection:text-white relative z-20"
 				style={{
 					...lineStyle,
 					height: textareaHeight,
@@ -4053,6 +4165,10 @@ export default function LyricsEditorWorkspaceTiptap({
 								text={focusDraftText ?? structuredFocusText}
 								onDocumentTextChange={handleFocusDocumentTextChange}
 								onSelectionChange={setTextLookupSelection}
+								rhymeHighlightsByLineId={rhymeHighlightsByLineId}
+								normalizedLookupTerm={normalizedLookupTerm}
+								remotePresences={remotePresences}
+								showRhymes={showRhymes}
 							/>
 						) : (
 						<div className="w-full max-w-[1120px]">
