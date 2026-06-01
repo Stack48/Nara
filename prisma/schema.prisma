@@ -7,10 +7,67 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  ADMIN
+  LEAD_PAROLIER
+  PAROLIER
+  LECTURE_SEULE
+}
+
 model User {
+  id            String   @id @default(cuid())
+  cognitoId     String   @unique
+  email         String   @unique
+  name          String?
+  username      String?  @unique
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  memberships   ProjectMember[]
+  invitations   Invitation[]
+  ownedProjects Project[]       @relation("OwnedProjects")
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  genre       String?
+  status      String   @default("DRAFT")
+  ownerId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner       User            @relation("OwnedProjects", fields: [ownerId], references: [id], onDelete: Cascade)
+  members     ProjectMember[]
+  invitations Invitation[]
+}
+
+model ProjectMember {
   id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
+  role      Role     @default(PAROLIER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  userId    String
+  projectId String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId])
+}
+
+model Invitation {
+  id        String   @id @default(cuid())
+  email     String
+  role      Role     @default(PAROLIER)
+  token     String   @unique @default(cuid())
+  accepted  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  projectId String
+  invitedBy String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  inviter   User    @relation(fields: [invitedBy], references: [id])
 }

@@ -1,13 +1,12 @@
-import type { Metadata } from "next";
-import { Syne, Arimo } from "next/font/google"; // On importe les deux
-// import { Layout } from "@/components/nav/Layout";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { Unbounded, Arimo } from 'next/font/google';
+import './globals.css';
 
-// Configuration de Syne
-const syne = Syne({
-    subsets: ["latin"],
-    variable: "--font-syne", // Le nom qu'on a mis dans le CSS
-    weight: ["700", "800"],
+// Configuration de Unbounded
+const unbounded = Unbounded({
+  subsets: ['latin'],
+  variable: '--font-unbounded',
+  weight: ['300', '400', '500', '600', '700', '800', '900'],
 });
 
 // Configuration d'Arimo
@@ -29,9 +28,9 @@ export default function RootLayout({
 }) {
     return (
         <html lang="fr" className="dark">
-            {/* On applique les variables et la police par défaut (Arimo) */}
+            {/* On applique les variables et la police par défaut (Arimo et Unbounded) */}
             <body
-                className={`${syne.variable} ${arimo.variable} font-arimo antialiased bg-[#050505] text-white`}
+                className={`${unbounded.variable} ${arimo.variable} font-arimo antialiased bg-[#050505] text-white`}
             >
                 <>{children}</>
             </body>
