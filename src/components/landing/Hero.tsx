@@ -80,7 +80,7 @@ export const Hero = () => {
 
 								let transform = "";
 								let opacity = 1;
-								let zIndex = 10 - offset;
+								const zIndex = 10 - offset;
 
 								if (offset === 0) {
 									transform = "translateX(0) translateY(0) scale(1) rotate(0deg)";
