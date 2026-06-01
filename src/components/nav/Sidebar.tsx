@@ -7,7 +7,6 @@ import { usePathname, useRouter } from "next/navigation";
 import {
     Home,
     FolderOpen,
-    BookDashed,
     Users,
     Trash2,
     ChevronLeft,
@@ -18,76 +17,9 @@ import {
     Music,
 } from "lucide-react";
 
+import { useSongs, setSongProject } from "@/lib/songStore";
+import { useProjects } from "@/lib/projectStore";
 import avisProfil from "@/assets/user/haslem.png";
-
-// --- MOCK DATA (À remplacer plus tard par tes données réelles/API) ---
-// Triés par ordre alphabétique comme demandé
-const realDrafts = [
-    { id: "breathe", title: "breathe" },
-    { id: "Love_Is_Only_A_Feeling", title: "Love Is Only A Feeling" },
-    { id: "MHM", title: "MHM" },
-    { id: "test", title: "test" },
-    { id: "Time_killers", title: "Time killers" },
-    { id: "untitled_01", title: "untitled 01" },
-    { id: "WIDE_Open", title: "WIDE Open" },
-];
-
-const realProjects = [
-    {
-        id: "Alfredo_2",
-        title: "Alfredo 2",
-        tracks: [],
-    },
-    {
-        id: "Aquemini",
-        title: "Aquemini",
-        tracks: [],
-    },
-    {
-        id: "Let_God_Sort_Em_Out",
-        title: "Let God Sort Em Out",
-        tracks: [
-            { id: "Ace_Trumpets", title: "Ace Trumpets" },
-            { id: "All_Things_Considered", title: "All Things Considered" },
-            { id: "By_The_Grace_Of_God", title: "By The Grace Of God" },
-            { id: "Chains_Whips", title: "Chains & Whips" },
-            { id: "EBIDTA", title: "E.B.I.D.T.A." },
-            { id: "FICO", title: "F.I.C.O." },
-            { id: "Inglorious_Bastards", title: "Inglorious Bastards" },
-            { id: "Let_God_Sort_Em_Out_Chandeliers", title: "Let God Sort Em Out/Chandeliers" },
-            { id: "MTBTTF", title: "M.T.B.T.T.F." },
-            { id: "POV", title: "P.O.V." },
-            { id: "So_Be_It", title: "So Be It" },
-            { id: "So_Far_Ahead", title: "So Far Ahead" },
-            { id: "The_Birds_Dont_Sing", title: "The Birds Don't Sing" },
-        ],
-    },
-    {
-        id: "Microphone_Champion",
-        title: "Microphone Champion",
-        tracks: [],
-    },
-    {
-        id: "Mr_Clean_Modern_Day_Mugging",
-        title: "Mr. Clean / Modern Day Mugging",
-        tracks: [],
-    },
-    {
-        id: "The_Infamous",
-        title: "The Infamous",
-        tracks: [],
-    },
-    {
-        id: "This_Is_America",
-        title: "This Is America",
-        tracks: [],
-    },
-    {
-        id: "Who_Coppin",
-        title: "Who Coppin'",
-        tracks: [],
-    },
-];
 
 interface SidebarProps {
     collapsed: boolean;
@@ -99,8 +31,45 @@ export const Sidebar = ({ collapsed, toggleSidebar, openCreateModal }: SidebarPr
     const pathname = usePathname();
     const router = useRouter();
 
+    const songs = useSongs();
+    const allProjects = useProjects();
+    const projects = allProjects
+        .filter((p) => !p.isDeleted)
+        .sort((a, b) => a.title.localeCompare(b.title));
+        
+    const [dragOverProjectId, setDragOverProjectId] = useState<string | null>(null);
+    const [confirmModal, setConfirmModal] = useState<{
+        songId: string;
+        songTitle: string;
+        currentProjectName: string;
+        targetProjectId: string;
+        targetProjectTitle: string;
+    } | null>(null);
+
+    const handleDrop = (dragData: any, targetProjectId: string, targetProjectTitle: string) => {
+        const { id: songId, title: songTitle, projectId: currentProjectId, projectName: currentProjectName } = dragData;
+        
+        // If already in target project, ignore
+        if (currentProjectId === targetProjectId) {
+            return;
+        }
+
+        // If currently in another project, trigger warning confirmation
+        if (currentProjectId) {
+            setConfirmModal({
+                songId,
+                songTitle,
+                currentProjectName,
+                targetProjectId,
+                targetProjectTitle
+            });
+        } else {
+            // Standalone song, assign directly
+            setSongProject(songId, targetProjectId, targetProjectTitle);
+        }
+    };
+
     // États pour gérer l'ouverture des sous-menus (accordéons)
-    const [draftsOpen, setDraftsOpen] = useState(false);
     const [projectsOpen, setProjectsOpen] = useState(false);
     
     // Pour ouvrir chaque projet individuellement, on stocke son ID dans un objet/état
@@ -185,48 +154,14 @@ export const Sidebar = ({ collapsed, toggleSidebar, openCreateModal }: SidebarPr
 
                     <hr className="border-neutral-800/60 my-1 mx-2 shrink-0" />
 
-                    {/* --- SECTION DRAFTS (DÉROULANT) --- */}
-                    <div className="flex flex-col shrink-0">
-                        <button
-                            onClick={() => router.push("/drafts")}
-                            className={linkClass(pathname.startsWith("/drafts"))}
-                        >
-                            <BookDashed size={16} className="flex-shrink-0" />
-                            {!collapsed && (
-                                <div className={`flex items-center justify-between flex-1 ${textVisibilityClass}`}>
-                                    <span>Drafts</span>
-                                    <div 
-                                        className="p-1 hover:bg-neutral-800/50 rounded transition-colors"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setDraftsOpen(!draftsOpen);
-                                        }}
-                                    >
-                                        <ChevronDown
-                                            size={14}
-                                            className={`transition-transform duration-200 ${draftsOpen ? "rotate-180" : ""}`}
-                                        />
-                                    </div>
-                                </div>
-                            )}
-                        </button>
-
-                        {/* Liste des Drafts si ouvert et non-collapsed */}
-                        {!collapsed && draftsOpen && (
-                            <div className="flex flex-col pl-7 mt-0.5 border-l border-neutral-800/40 ml-5 gap-0.5">
-                                {realDrafts.map((draft) => (
-                                    <Link
-                                        key={draft.id}
-                                        href={`/drafts/${draft.id}`}
-                                        className="flex items-center h-8 px-2 text-xs text-neutral-400 hover:text-white rounded-md hover:bg-neutral-900/40 transition-colors whitespace-nowrap overflow-hidden text-ellipsis"
-                                    >
-                                        <Music size={12} className="mr-2 text-neutral-600 shrink-0" />
-                                        <span className="truncate">{draft.title}</span>
-                                    </Link>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+                    {/* --- SECTION SONGS (LIEN SIMPLE) --- */}
+                    <Link
+                        href="/songs"
+                        className={linkClass(pathname === "/songs" || pathname.startsWith("/songs"))}
+                    >
+                        <Music size={16} className="flex-shrink-0" />
+                        <span className={textVisibilityClass}>Songs</span>
+                    </Link>
 
                     {/* --- SECTION MY PROJECTS (DOUBLE DÉROULANT) --- */}
                     <div className="flex flex-col shrink-0">
@@ -257,20 +192,47 @@ export const Sidebar = ({ collapsed, toggleSidebar, openCreateModal }: SidebarPr
                         {/* Niveau 1 : Liste des projets */}
                         {!collapsed && projectsOpen && (
                             <div className="flex flex-col pl-4 mt-0.5 border-l border-neutral-800/40 ml-5 gap-0.5">
-                                {realProjects.map((project) => {
+                                {projects.map((project) => {
                                     const isProjectOpen = !!openProjectIds[project.id];
+                                    const projectTracks = songs.filter((s) => s.projectId === project.id && !s.isDeleted);
+                                    const isDraggedOver = dragOverProjectId === project.id;
+                                    
                                     return (
                                         <div key={project.id} className="flex flex-col shrink-0">
                                             {/* Bouton du projet (Album) */}
                                             <button
                                                 onClick={() => router.push(`/projects/${project.id}`)}
-                                                className="flex items-center justify-between w-full h-8 px-2 text-xs text-neutral-400 hover:text-white rounded-md hover:bg-neutral-900/40 transition-colors"
+                                                onDragOver={(e) => {
+                                                    e.preventDefault();
+                                                    setDragOverProjectId(project.id);
+                                                }}
+                                                onDragLeave={() => {
+                                                    setDragOverProjectId(null);
+                                                }}
+                                                onDrop={(e) => {
+                                                    e.preventDefault();
+                                                    setDragOverProjectId(null);
+                                                    try {
+                                                        const dragData = JSON.parse(e.dataTransfer.getData("text/plain"));
+                                                        handleDrop(dragData, project.id, project.title);
+                                                    } catch (err) {
+                                                        console.error("Failed to parse drag data", err);
+                                                    }
+                                                }}
+                                                className={`flex items-center justify-between w-full h-8 px-2 text-xs rounded-md transition-all ${
+                                                    isDraggedOver
+                                                        ? "bg-[#D90097]/25 border border-dashed border-[#D90097]/60 text-white scale-[1.03]"
+                                                        : "text-neutral-400 hover:text-white hover:bg-neutral-900/40 border border-transparent"
+                                                }`}
                                             >
-                                                <div className="flex items-center min-w-0">
+                                                <div className="flex items-center min-w-0 pointer-events-none">
                                                     <FolderOpen size={12} className="mr-2 text-neutral-500 shrink-0" />
                                                     <span className="truncate">{project.title}</span>
+                                                    {project.isFavorite && (
+                                                        <Heart size={10} className="ml-1.5 text-[#D90097] fill-[#D90097] shrink-0 animate-pulse" />
+                                                    )}
                                                 </div>
-                                                {project.tracks.length > 0 && (
+                                                {projectTracks.length > 0 && (
                                                     <div 
                                                         className="p-1 hover:bg-neutral-800/50 rounded transition-colors"
                                                         onClick={(e) => {
@@ -285,11 +247,11 @@ export const Sidebar = ({ collapsed, toggleSidebar, openCreateModal }: SidebarPr
                                                     </div>
                                                 )}
                                             </button>
-
+ 
                                             {/* Niveau 2 : Sons à l'intérieur du projet */}
                                             {isProjectOpen && (
                                                 <div className="flex flex-col pl-4 mt-0.5 border-l border-neutral-800/60 ml-4 gap-0.5 shrink-0">
-                                                    {project.tracks.map((track) => (
+                                                    {projectTracks.map((track) => (
                                                         <Link
                                                             key={track.id}
                                                             href={`/projects/${project.id}/${track.id}`}
@@ -345,6 +307,47 @@ export const Sidebar = ({ collapsed, toggleSidebar, openCreateModal }: SidebarPr
                     </span>
                 </div>
             </div>
+
+            {/* Warning Confirmation Modal for Drag & Drop */}
+            {confirmModal && (
+                <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+                    <div className="bg-[#121212] border border-neutral-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+                        {/* Header */}
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 rounded-full bg-[#D90097]/10 flex items-center justify-center text-[#D90097]">
+                                <Music size={20} />
+                            </div>
+                            <h3 className="font-syne font-bold text-white text-base">
+                                Move song?
+                            </h3>
+                        </div>
+                        
+                        {/* Body */}
+                        <p className="text-neutral-400 text-xs leading-relaxed mb-6">
+                            The song <span className="text-white font-semibold">"{confirmModal.songTitle}"</span> is already in the project <span className="text-white font-semibold">"{confirmModal.currentProjectName}"</span>. Do you want to move it to <span className="text-white font-semibold">"{confirmModal.targetProjectTitle}"</span>?
+                        </p>
+                        
+                        {/* Actions */}
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => setConfirmModal(null)}
+                                className="px-4 py-2 text-xs font-semibold text-neutral-400 hover:text-white border border-neutral-800 hover:border-neutral-700 rounded-lg transition-colors cursor-pointer"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setSongProject(confirmModal.songId, confirmModal.targetProjectId, confirmModal.targetProjectTitle);
+                                    setConfirmModal(null);
+                                }}
+                                className="px-4 py-2 text-xs font-semibold text-white bg-gradient-to-r from-[#AB0063] to-[#D50093] rounded-lg shadow-lg hover:opacity-90 hover:scale-[1.02] transition-all cursor-pointer"
+                            >
+                                Move Song
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </aside>
     );
 };

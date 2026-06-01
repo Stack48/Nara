@@ -7,6 +7,7 @@ import {
     CircleMinus,
     Circle,
     MoreVertical,
+    Music,
 } from "lucide-react";
 import alfredo from "@/assets/cover/alfredo.png";
 import allen from "@/assets/user/allen.png";
@@ -22,6 +23,7 @@ export const Home = () => {
         {
             name: "Tracy McGrady",
             time: "il y a 2 heures",
+            song: "F.I.C.O",
             text: "Le 1er couplet a une super vibe. Peut être faut-il renforcer la chute sur la dernière ligne ?",
             unread: true,
             image: mcgrady,
@@ -29,6 +31,7 @@ export const Home = () => {
         {
             name: "Tim Duncan",
             time: "il y a 2 heures",
+            song: "Ensalada",
             text: "Les adlibs en fin de refrain fonctionnent bien, à garder !",
             unread: false,
             image: duncan,
@@ -36,6 +39,7 @@ export const Home = () => {
         {
             name: "Ray Allen",
             time: "il y a 2 heures",
+            song: "Let God Sort Em Out/Chandeliers",
             text: "J'aime l'énergie ici. Le bridge manque encore d'impact, on creuse ça ensemble ce soir.",
             unread: false,
             image: allen,
@@ -309,7 +313,17 @@ export const Home = () => {
                                         className={`w-3 h-3 rounded-full mt-1 ${comment.unread ? "bg-[#D90097]" : "bg-neutral-700"}`}
                                     ></div>
                                 </div>
-                                <p className="text-sm text-neutral-300 leading-relaxed mt-3 pr-8">
+                                <div className="mt-3 flex items-center gap-1.5 text-xs text-neutral-400">
+                                    <Music size={12} className="text-[#D90097] flex-shrink-0" />
+                                    <span className="text-[11px] text-neutral-500">Sur</span>
+                                    <Link
+                                        href="/lyric-editor"
+                                        className="font-semibold text-neutral-200 text-[11px] truncate hover:text-[#D90097] hover:underline transition-colors duration-200 cursor-pointer"
+                                    >
+                                        {comment.song}
+                                    </Link>
+                                </div>
+                                <p className="text-sm text-neutral-300 leading-relaxed mt-2 pr-8">
                                     {comment.text}
                                 </p>
                             </div>
