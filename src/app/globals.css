@@ -2,7 +2,7 @@
 @import 'tailwindcss';
 
 @theme {
-  --font-arimo: 'Arimo', sans-serif;
+  --font-arimo: var(--font-arimo);
   --font-unbounded: var(--font-unbounded);
 
   --color-nara-black: #050505;
