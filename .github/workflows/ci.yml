@@ -2,7 +2,7 @@ name: CI/CD
 
 on:
   push:
-    branches: ["main", "feat/*", "feature/*"]
+    branches: ["main", "feat/*", "feature/*", "chore/*", "fix/*"]
   pull_request:
     branches: ["main"]
 
@@ -20,10 +20,21 @@ jobs:
           node-version: "22"
           cache: "npm"
 
-      - name: Install
+      - name: Restore node_modules from cache
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
         run: npm ci
 
       - name: Cache node_modules
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/cache@v4
         with:
           path: node_modules
@@ -43,13 +54,17 @@ jobs:
           node-version: "22"
           cache: "npm"
 
-      - name: Restore node_modules
+      - name: Restore node_modules from cache
+        id: cache
         uses: actions/cache@v4
         with:
           path: node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
-      - name: Install
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
         run: npm ci
 
       - name: Lint
@@ -72,13 +87,17 @@ jobs:
           node-version: "22"
           cache: "npm"
 
-      - name: Restore node_modules
+      - name: Restore node_modules from cache
+        id: cache
         uses: actions/cache@v4
         with:
           path: node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
-      - name: Install
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
         run: npm ci
 
       - name: Generate Prisma
