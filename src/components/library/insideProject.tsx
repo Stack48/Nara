@@ -18,7 +18,7 @@ import avatar4 from "@/assets/user/mcgrady.png";
 
 const ALL_AVATARS = [avatar1, avatar2, avatar3, avatar4];
 
-export const insideProject = () => {
+export const InsideProject = () => {
     const params = useParams();
     const projectId = (params?.id as string) || "Project";
     // Resolve title dynamically from store, fallback to slug
@@ -111,91 +111,91 @@ export const insideProject = () => {
 
                 {/* Filtres de droite */}
                 <div className="flex items-center gap-3 flex-wrap md:flex-nowrap pb-2 md:pb-0">
-                {/* Dropdown Tri (Last modified) */}
-                <div className="relative" ref={sortMenuRef}>
-                    <button
-                        type="button"
-                        onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
-                        className="flex items-center gap-2 bg-[#151515] border border-neutral-800 hover:border-neutral-700 transition-colors px-3 py-1.5 rounded-lg text-xs font-semibold text-white cursor-pointer"
-                    >
-                        <span>{getSortLabel()}</span>
-                        <ChevronDown size={14} className="text-neutral-400" />
-                    </button>
+                    {/* Dropdown Tri (Last modified) */}
+                    <div className="relative" ref={sortMenuRef}>
+                        <button
+                            type="button"
+                            onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
+                            className="flex items-center gap-2 bg-[#151515] border border-neutral-800 hover:border-neutral-700 transition-colors px-3 py-1.5 rounded-lg text-xs font-semibold text-white cursor-pointer"
+                        >
+                            <span>{getSortLabel()}</span>
+                            <ChevronDown size={14} className="text-neutral-400" />
+                        </button>
 
-                    {isSortMenuOpen && (
-                        <div className="absolute right-0 mt-2 w-48 bg-[#151515] border border-neutral-800 rounded-2xl shadow-2xl z-50 py-2.5 px-1.5 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
-                            {/* Section Sort by */}
-                            <div className="px-3 py-1 text-[11px] font-bold text-neutral-500 uppercase tracking-wider">
-                                Sort by
+                        {isSortMenuOpen && (
+                            <div className="absolute right-0 mt-2 w-48 bg-[#151515] border border-neutral-800 rounded-2xl shadow-2xl z-50 py-2.5 px-1.5 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
+                                {/* Section Sort by */}
+                                <div className="px-3 py-1 text-[11px] font-bold text-neutral-500 uppercase tracking-wider">
+                                    Sort by
+                                </div>
+                                {[
+                                    { id: "alphabetical", label: "Alphabetical" },
+                                    { id: "created", label: "Date created" },
+                                    { id: "modified", label: "Last modified" },
+                                ].map((option) => (
+                                    <button
+                                        key={option.id}
+                                        type="button"
+                                        onClick={() => {
+                                            setSortBy(option.id as any);
+                                            setIsSortMenuOpen(false);
+                                        }}
+                                        className="w-full text-left px-3 py-1.5 text-xs font-medium rounded-lg text-neutral-300 hover:text-white hover:bg-white/5 flex items-center gap-2 transition-colors cursor-pointer"
+                                    >
+                                        <div className="w-4 h-4 flex items-center justify-center shrink-0">
+                                            {sortBy === option.id && <Check size={12} strokeWidth={3} className="text-[#D90097]" />}
+                                        </div>
+                                        <span>{option.label}</span>
+                                    </button>
+                                ))}
+
+                                {/* Divider */}
+                                <hr className="border-neutral-800/80 my-1.5 mx-1" />
+
+                                {/* Section Order */}
+                                <div className="px-3 py-1 text-[11px] font-bold text-neutral-500 uppercase tracking-wider">
+                                    Order
+                                </div>
+                                {[
+                                    { id: "asc", label: sortBy === "alphabetical" ? "A to Z" : "Oldest first" },
+                                    { id: "desc", label: sortBy === "alphabetical" ? "Z to A" : "Newest first" },
+                                ].map((option) => (
+                                    <button
+                                        key={option.id}
+                                        type="button"
+                                        onClick={() => {
+                                            setSortOrder(option.id as any);
+                                            setIsSortMenuOpen(false);
+                                        }}
+                                        className="w-full text-left px-3 py-1.5 text-xs font-medium rounded-lg text-neutral-300 hover:text-white hover:bg-white/5 flex items-center gap-2 transition-colors cursor-pointer"
+                                    >
+                                        <div className="w-4 h-4 flex items-center justify-center shrink-0">
+                                            {sortOrder === option.id && <Check size={12} strokeWidth={3} className="text-[#D90097]" />}
+                                        </div>
+                                        <span>{option.label}</span>
+                                    </button>
+                                ))}
                             </div>
-                            {[
-                                { id: "alphabetical", label: "Alphabetical" },
-                                { id: "created", label: "Date created" },
-                                { id: "modified", label: "Last modified" },
-                            ].map((option) => (
-                                <button
-                                    key={option.id}
-                                    type="button"
-                                    onClick={() => {
-                                        setSortBy(option.id as any);
-                                        setIsSortMenuOpen(false);
-                                    }}
-                                    className="w-full text-left px-3 py-1.5 text-xs font-medium rounded-lg text-neutral-300 hover:text-white hover:bg-white/5 flex items-center gap-2 transition-colors cursor-pointer"
-                                >
-                                    <div className="w-4 h-4 flex items-center justify-center shrink-0">
-                                        {sortBy === option.id && <Check size={12} strokeWidth={3} className="text-[#D90097]" />}
-                                    </div>
-                                    <span>{option.label}</span>
-                                </button>
-                            ))}
+                        )}
+                    </div>
 
-                            {/* Divider */}
-                            <hr className="border-neutral-800/80 my-1.5 mx-1" />
-
-                            {/* Section Order */}
-                            <div className="px-3 py-1 text-[11px] font-bold text-neutral-500 uppercase tracking-wider">
-                                Order
-                            </div>
-                            {[
-                                { id: "asc", label: sortBy === "alphabetical" ? "A to Z" : "Oldest first" },
-                                { id: "desc", label: sortBy === "alphabetical" ? "Z to A" : "Newest first" },
-                            ].map((option) => (
-                                <button
-                                    key={option.id}
-                                    type="button"
-                                    onClick={() => {
-                                        setSortOrder(option.id as any);
-                                        setIsSortMenuOpen(false);
-                                    }}
-                                    className="w-full text-left px-3 py-1.5 text-xs font-medium rounded-lg text-neutral-300 hover:text-white hover:bg-white/5 flex items-center gap-2 transition-colors cursor-pointer"
-                                >
-                                    <div className="w-4 h-4 flex items-center justify-center shrink-0">
-                                        {sortOrder === option.id && <Check size={12} strokeWidth={3} className="text-[#D90097]" />}
-                                    </div>
-                                    <span>{option.label}</span>
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                {/* Toggle View */}
-                <div className="flex items-center border border-neutral-800 rounded-lg overflow-hidden ml-2">
-                    <button
-                        onClick={() => setViewMode("grid")}
-                        className={`p-1.5 transition-colors ${viewMode === "grid" ? "bg-neutral-800 text-white" : "bg-transparent text-neutral-500 hover:bg-neutral-800/50"}`}
-                    >
-                        <LayoutGrid size={16} />
-                    </button>
-                    <button
-                        onClick={() => setViewMode("list")}
-                        className={`p-1.5 transition-colors ${viewMode === "list" ? "bg-neutral-800 text-white" : "bg-transparent text-neutral-500 hover:bg-neutral-800/50"}`}
-                    >
-                        <List size={16} />
-                    </button>
+                    {/* Toggle View */}
+                    <div className="flex items-center border border-neutral-800 rounded-lg overflow-hidden ml-2">
+                        <button
+                            onClick={() => setViewMode("grid")}
+                            className={`p-1.5 transition-colors ${viewMode === "grid" ? "bg-neutral-800 text-white" : "bg-transparent text-neutral-500 hover:bg-neutral-800/50"}`}
+                        >
+                            <LayoutGrid size={16} />
+                        </button>
+                        <button
+                            onClick={() => setViewMode("list")}
+                            className={`p-1.5 transition-colors ${viewMode === "list" ? "bg-neutral-800 text-white" : "bg-transparent text-neutral-500 hover:bg-neutral-800/50"}`}
+                        >
+                            <List size={16} />
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
 
             {/* CONDITION D'AFFICHAGE SELON LE VIEWMODE */}
             {sortedProjectList.length === 0 ? (
@@ -206,10 +206,10 @@ export const insideProject = () => {
                 /* --- VUE GRILLE --- */
                 <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {sortedProjectList.map((song, index) => (
-                        <ProjectGridItem 
-                            key={song.id} 
-                            song={song} 
-                            index={index} 
+                        <ProjectGridItem
+                            key={song.id}
+                            song={song}
+                            index={index}
                             onContextMenu={(e) => handleContextMenu(e, song)}
                         />
                     ))}
@@ -228,10 +228,10 @@ export const insideProject = () => {
                     {/* Lignes du tableau */}
                     <div className="flex flex-col">
                         {sortedProjectList.map((song, index) => (
-                            <ProjectListItem 
-                                key={song.id} 
-                                song={song} 
-                                isLast={index === sortedProjectList.length - 1} 
+                            <ProjectListItem
+                                key={song.id}
+                                song={song}
+                                isLast={index === sortedProjectList.length - 1}
                                 onContextMenu={(e) => handleContextMenu(e, song)}
                             />
                         ))}
@@ -272,8 +272,8 @@ const ProjectGridItem = ({ song, index, onContextMenu }: { song: Song; index: nu
             onContextMenu={onContextMenu}
             className="bg-[#151515] border border-neutral-800/80 hover:border-neutral-600 hover:bg-[#1a1a1a] transition-all duration-300 rounded-2xl p-3 flex flex-col sm:flex-row gap-4 group cursor-context-menu"
         >
-            <div 
-                className="w-full aspect-square sm:w-32 sm:h-32 rounded-xl overflow-hidden flex-shrink-0 relative cursor-pointer" 
+            <div
+                className="w-full aspect-square sm:w-32 sm:h-32 rounded-xl overflow-hidden flex-shrink-0 relative cursor-pointer"
             >
                 <Image
                     src={song.image}
@@ -301,11 +301,10 @@ const ProjectGridItem = ({ song, index, onContextMenu }: { song: Song; index: nu
                         {song.title}
                     </h3>
                     <span
-                        className={`sm:absolute sm:top-0 sm:right-0 text-[10px] px-2 py-0.5 rounded uppercase tracking-wider flex-shrink-0 h-fit ${
-                            song.title === "F.I.C.O."
+                        className={`sm:absolute sm:top-0 sm:right-0 text-[10px] px-2 py-0.5 rounded uppercase tracking-wider flex-shrink-0 h-fit ${song.title === "F.I.C.O."
                                 ? "bg-[#D90097]/10 text-[#D90097] border border-[#D90097]/30 font-bold"
                                 : "border border-neutral-700 text-neutral-400"
-                        }`}
+                            }`}
                     >
                         {song.state}
                     </span>
@@ -352,8 +351,8 @@ const ProjectListItem = ({ song, isLast, onContextMenu }: { song: Song; isLast: 
         <div className="flex flex-col" onContextMenu={onContextMenu}>
             <div className="grid grid-cols-12 gap-4 items-center p-2 rounded-xl hover:bg-[#151515] transition-colors group cursor-context-menu">
                 <div className="col-span-5 flex items-center gap-4">
-                    <div 
-                        className="w-12 h-12 rounded-lg overflow-hidden relative flex-shrink-0 cursor-pointer" 
+                    <div
+                        className="w-12 h-12 rounded-lg overflow-hidden relative flex-shrink-0 cursor-pointer"
                     >
                         <Image
                             src={song.image}

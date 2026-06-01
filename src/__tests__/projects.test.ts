@@ -18,7 +18,7 @@ jest.mock('@/lib/prisma', () => ({
   },
 }));
 
-jest.mock('@/middleware/rbac.middleware', () => ({
+jest.mock('@/lib/rbac', () => ({
   requireRole: jest.fn(),
   forbidden: jest.fn((msg) => Response.json({ error: msg }, { status: 403 })),
   unauthorized: jest.fn(() =>
