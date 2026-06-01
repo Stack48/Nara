@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export type Role = "ADMIN" | "LEAD_PAROLIER" | "PAROLIER" | "LECTURE_SEULE";
+import { Role } from "@prisma/client";
+
+export { Role };
 
 // Hiérarchie des rôles
 const ROLE_HIERARCHY: Record<Role, number> = {
     ADMIN: 4,
-    LEAD_PAROLIER: 3,
-    PAROLIER: 2,
-    LECTURE_SEULE: 1,
+    LEAD_LYRICIST: 3,
+    LYRICIST: 2,
+    READONLY: 1,
 };
 
 // Vérifie si un rôle a les permissions suffisantes

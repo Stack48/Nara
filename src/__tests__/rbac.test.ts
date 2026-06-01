@@ -1,69 +1,64 @@
 import { hasPermission } from "@/middleware/rbac.middleware";
 
-// Mock Prisma
 jest.mock("@/lib/prisma", () => ({
     prisma: {
-        user: {
-            findUnique: jest.fn(),
-        },
+        user: { findUnique: jest.fn() },
         projectMember: {
             findMany: jest.fn(),
             update: jest.fn(),
             delete: jest.fn(),
         },
-        invitation: {
-            create: jest.fn(),
-        },
+        invitation: { create: jest.fn() },
     },
 }));
 
 describe("RBAC — hasPermission", () => {
 
-    // ✅ Admin peut tout faire
+    // ✅ Admin
     it("ADMIN peut accéder aux routes ADMIN", () => {
         expect(hasPermission("ADMIN", "ADMIN")).toBe(true);
     });
 
-    it("ADMIN peut accéder aux routes LEAD_PAROLIER", () => {
-        expect(hasPermission("ADMIN", "LEAD_PAROLIER")).toBe(true);
+    it("ADMIN peut accéder aux routes LEAD_LYRICIST", () => {
+        expect(hasPermission("ADMIN", "LEAD_LYRICIST")).toBe(true);
     });
 
-    it("ADMIN peut accéder aux routes LECTURE_SEULE", () => {
-        expect(hasPermission("ADMIN", "LECTURE_SEULE")).toBe(true);
+    it("ADMIN peut accéder aux routes READONLY", () => {
+        expect(hasPermission("ADMIN", "READONLY")).toBe(true);
     });
 
-    // ✅ Lead Parolier
-    it("LEAD_PAROLIER peut accéder aux routes PAROLIER", () => {
-        expect(hasPermission("LEAD_PAROLIER", "PAROLIER")).toBe(true);
+    // ✅ Lead Lyricist
+    it("LEAD_LYRICIST peut accéder aux routes LYRICIST", () => {
+        expect(hasPermission("LEAD_LYRICIST", "LYRICIST")).toBe(true);
     });
 
-    it("LEAD_PAROLIER ne peut pas accéder aux routes ADMIN", () => {
-        expect(hasPermission("LEAD_PAROLIER", "ADMIN")).toBe(false);
+    it("LEAD_LYRICIST ne peut pas accéder aux routes ADMIN", () => {
+        expect(hasPermission("LEAD_LYRICIST", "ADMIN")).toBe(false);
     });
 
-    // ✅ Parolier
-    it("PAROLIER peut accéder aux routes LECTURE_SEULE", () => {
-        expect(hasPermission("PAROLIER", "LECTURE_SEULE")).toBe(true);
+    // ✅ Lyricist
+    it("LYRICIST peut accéder aux routes READONLY", () => {
+        expect(hasPermission("LYRICIST", "READONLY")).toBe(true);
     });
 
-    it("PAROLIER ne peut pas accéder aux routes LEAD_PAROLIER", () => {
-        expect(hasPermission("PAROLIER", "LEAD_PAROLIER")).toBe(false);
+    it("LYRICIST ne peut pas accéder aux routes LEAD_LYRICIST", () => {
+        expect(hasPermission("LYRICIST", "LEAD_LYRICIST")).toBe(false);
     });
 
-    it("PAROLIER ne peut pas modifier directement", () => {
-        expect(hasPermission("PAROLIER", "ADMIN")).toBe(false);
+    it("LYRICIST ne peut pas modifier directement", () => {
+        expect(hasPermission("LYRICIST", "ADMIN")).toBe(false);
     });
 
-    // ✅ Lecture seule
-    it("LECTURE_SEULE ne peut accéder qu'aux routes LECTURE_SEULE", () => {
-        expect(hasPermission("LECTURE_SEULE", "LECTURE_SEULE")).toBe(true);
+    // ✅ Readonly
+    it("READONLY ne peut accéder qu'aux routes READONLY", () => {
+        expect(hasPermission("READONLY", "READONLY")).toBe(true);
     });
 
-    it("LECTURE_SEULE ne peut pas accéder aux routes PAROLIER", () => {
-        expect(hasPermission("LECTURE_SEULE", "PAROLIER")).toBe(false);
+    it("READONLY ne peut pas accéder aux routes LYRICIST", () => {
+        expect(hasPermission("READONLY", "LYRICIST")).toBe(false);
     });
 
-    it("LECTURE_SEULE ne peut pas accéder aux routes ADMIN", () => {
-        expect(hasPermission("LECTURE_SEULE", "ADMIN")).toBe(false);
+    it("READONLY ne peut pas accéder aux routes ADMIN", () => {
+        expect(hasPermission("READONLY", "ADMIN")).toBe(false);
     });
 });
