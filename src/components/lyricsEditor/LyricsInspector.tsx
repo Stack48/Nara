@@ -13,9 +13,11 @@ import {
 	useEffect,
 	useMemo,
 	useState,
+	useCallback,
 	type ChangeEvent,
 	type ReactElement,
 } from "react";
+import { useLinguistic } from "@/hooks/useLinguistic";
 
 export type LyricsInspectorPanelId =
 	| "rhymes"
@@ -172,6 +174,8 @@ function applyLookupTermToTargetFields(
 function LyricsInspectorPanelCard({
 	fieldValues,
 	onFieldChange,
+	onSearch,
+	onChipClick,
 	panel,
 }: {
 	fieldValues: Record<string, string>;
@@ -180,16 +184,23 @@ function LyricsInspectorPanelCard({
 		field: LyricsInspectorField,
 		value: string,
 	) => void;
-	panel: LyricsInspectorPanel;
+	onSearch: (panelId: LyricsInspectorPanelId, value: string) => void;
+	onChipClick: (panelId: LyricsInspectorPanelId, value: string) => void;
+	panel: LyricsInspectorPanel & { loading: boolean; error: string | null };
 }): ReactElement {
 	const Icon: LucideIcon = panel.icon;
 	const isCompactGrid: boolean = panel.fields.length > 1;
 
 	return (
 		<section className="min-w-0 border-b border-[#2C2C32] p-2.5">
-			<div className="mb-2 flex items-center gap-2">
-				<Icon size={13} strokeWidth={1.8} className="text-[#F3F4F6]" />
-				<h3 className="text-[12px] font-bold text-[#F3F4F6]">{panel.title}</h3>
+			<div className="mb-2 flex items-center justify-between">
+				<div className="flex items-center gap-2">
+					<Icon size={13} strokeWidth={1.8} className="text-[#F3F4F6]" />
+					<h3 className="text-[12px] font-bold text-[#F3F4F6]">{panel.title}</h3>
+				</div>
+				{panel.loading && (
+					<span className="text-[9px] text-[#A1A1AA] animate-pulse">Chargement...</span>
+				)}
 			</div>
 
 			<div
@@ -217,6 +228,16 @@ function LyricsInspectorPanelCard({
 											onFieldChange(panel.id, field, event.target.value);
 										}
 									}}
+									onKeyDown={(event: React.KeyboardEvent<HTMLInputElement>): void => {
+										if (event.key === "Enter" && canEdit) {
+											onSearch(panel.id, event.currentTarget.value);
+										}
+									}}
+									onBlur={(): void => {
+										if (canEdit) {
+											onSearch(panel.id, fieldValues[fieldKey] ?? field.value);
+										}
+									}}
 									className="h-5 min-w-0 w-full rounded-[2px] border border-[#A1A1AA] bg-transparent px-2 text-[9px] text-[#F3F4F6] outline-none transition-colors focus:border-[#F3F4F6]"
 								/>
 							</label>
@@ -225,6 +246,12 @@ function LyricsInspectorPanelCard({
 				)}
 			</div>
 
+			{panel.error && (
+				<div className="mt-1 text-[9px] text-red-400">
+					{panel.error}
+				</div>
+			)}
+
 			<div className="mt-2 flex min-w-0 items-start gap-1.5">
 				<div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
 					{panel.chips.map(
@@ -232,7 +259,8 @@ function LyricsInspectorPanelCard({
 							<button
 								key={`${panel.id}-${chip}`}
 								type="button"
-								className="h-5 max-w-full min-w-0 truncate rounded-[2px] bg-[#2C2C32] px-2 text-[9px] font-medium text-[#F3F4F6] transition-colors hover:bg-[#3A3A42]"
+								onClick={(): void => onChipClick(panel.id, chip)}
+								className="h-5 max-w-full min-w-0 truncate rounded-[2px] bg-[#2C2C32] px-2 text-[9px] font-medium text-[#F3F4F6] transition-colors hover:bg-[#3A3A42] cursor-pointer"
 							>
 								{chip}
 							</button>
@@ -312,17 +340,93 @@ export function LyricsInspector({
 	const [fieldValues, setFieldValues] = useState<Record<string, string>>(
 		() => createInitialFieldValues(panels),
 	);
+
+	const rhymesHook = useLinguistic("rhymes");
+	const synonymsHook = useLinguistic("synonyms");
+	const antonymsHook = useLinguistic("antonyms");
+	const lexicalHook = useLinguistic("lexical");
+
+	const handleSearch = useCallback((panelId: LyricsInspectorPanelId, term: string) => {
+		const cleanTerm = term.trim();
+		if (!cleanTerm) return;
+
+		if (panelId === "rhymes") rhymesHook.search(cleanTerm);
+		else if (panelId === "synonyms") synonymsHook.search(cleanTerm);
+		else if (panelId === "antonyms") antonymsHook.search(cleanTerm);
+		else if (panelId === "lexical") lexicalHook.search(cleanTerm);
+
+		onLookupTermChange?.(cleanTerm);
+	}, [rhymesHook, synonymsHook, antonymsHook, lexicalHook, onLookupTermChange]);
+
+	const handleChipClick = useCallback((panelId: LyricsInspectorPanelId, chip: string) => {
+		handleSearch(panelId, chip);
+	}, [handleSearch]);
+
+	const activePanels = useMemo(() => {
+		return panels.map((panel) => {
+			let chips = panel.chips;
+			let fields = [...panel.fields];
+			let loading = false;
+			let error = null;
+
+			if (panel.id === "rhymes") {
+				loading = rhymesHook.loading;
+				error = rhymesHook.error || (rhymesHook.data?.error ?? null);
+				if (rhymesHook.data) {
+					const rhymeData = rhymesHook.data as any;
+					chips = rhymeData.results || [];
+					fields = [
+						{ label: "Mot", value: rhymeData.word },
+						{ label: "Syllabes", value: String(rhymeData.syllables ?? "") },
+						{ label: "Category", value: rhymeData.category ?? "" },
+					];
+				}
+			} else if (panel.id === "synonyms") {
+				loading = synonymsHook.loading;
+				error = synonymsHook.error || (synonymsHook.data?.error ?? null);
+				if (synonymsHook.data) {
+					chips = synonymsHook.data.results || [];
+					fields = [{ label: "Mot", value: synonymsHook.data.word }];
+				}
+			} else if (panel.id === "antonyms") {
+				loading = antonymsHook.loading;
+				error = antonymsHook.error || (antonymsHook.data?.error ?? null);
+				if (antonymsHook.data) {
+					chips = antonymsHook.data.results || [];
+					fields = [{ label: "Mot", value: antonymsHook.data.word }];
+				}
+			} else if (panel.id === "lexical") {
+				loading = lexicalHook.loading;
+				error = lexicalHook.error || (lexicalHook.data?.error ?? null);
+				if (lexicalHook.data) {
+					chips = lexicalHook.data.results || [];
+					fields = [{ label: "Theme", value: lexicalHook.data.word }];
+				}
+			}
+
+			return {
+				...panel,
+				fields,
+				chips,
+				loading,
+				error,
+			};
+		});
+	}, [panels, rhymesHook.data, rhymesHook.loading, rhymesHook.error, synonymsHook.data, synonymsHook.loading, synonymsHook.error, antonymsHook.data, antonymsHook.loading, antonymsHook.error, lexicalHook.data, lexicalHook.loading, lexicalHook.error]);
+
 	const railTools: LyricsInspectorRailTool[] = useMemo(
 		(): LyricsInspectorRailTool[] => createRailTools(panels),
 		[panels],
 	);
-	const visiblePanels: LyricsInspectorPanel[] = useMemo(
-		(): LyricsInspectorPanel[] =>
-			panels.filter(
-				(panel: LyricsInspectorPanel): boolean => visiblePanelIds.has(panel.id),
+
+	const visiblePanels = useMemo(
+		() =>
+			activePanels.filter(
+				(panel) => visiblePanelIds.has(panel.id),
 			),
-		[panels, visiblePanelIds],
+		[activePanels, visiblePanelIds],
 	);
+
 	const hasVisiblePanels: boolean = visiblePanels.length > 0;
 
 	useEffect((): void => {
@@ -332,6 +436,44 @@ export function LyricsInspector({
 	useEffect((): void => {
 		setFieldValues(createInitialFieldValues(panels));
 	}, [panels]);
+
+	useEffect(() => {
+		if (rhymesHook.data) {
+			setFieldValues(prev => ({
+				...prev,
+				[createFieldKey("rhymes", "Mot")]: rhymesHook.data!.word,
+				[createFieldKey("rhymes", "Syllabes")]: String((rhymesHook.data as any).syllables ?? ""),
+				[createFieldKey("rhymes", "Category")]: (rhymesHook.data as any).category ?? "",
+			}));
+		}
+	}, [rhymesHook.data]);
+
+	useEffect(() => {
+		if (synonymsHook.data) {
+			setFieldValues(prev => ({
+				...prev,
+				[createFieldKey("synonyms", "Mot")]: synonymsHook.data!.word,
+			}));
+		}
+	}, [synonymsHook.data]);
+
+	useEffect(() => {
+		if (antonymsHook.data) {
+			setFieldValues(prev => ({
+				...prev,
+				[createFieldKey("antonyms", "Mot")]: antonymsHook.data!.word,
+			}));
+		}
+	}, [antonymsHook.data]);
+
+	useEffect(() => {
+		if (lexicalHook.data) {
+			setFieldValues(prev => ({
+				...prev,
+				[createFieldKey("lexical", "Theme")]: lexicalHook.data!.word,
+			}));
+		}
+	}, [lexicalHook.data]);
 
 	useEffect((): void => {
 		if (!lookupRequest) {
@@ -353,6 +495,7 @@ export function LyricsInspector({
 				return nextPanelIds;
 			},
 		);
+		
 		setFieldValues(
 			(currentValues: Record<string, string>): Record<string, string> =>
 				applyLookupTermToTargetFields(
@@ -362,6 +505,21 @@ export function LyricsInspector({
 					lookupRequest.term,
 				),
 		);
+
+		const term = lookupRequest.term.trim();
+		if (term) {
+			if (lookupRequest.target === "all") {
+				rhymesHook.search(term);
+				synonymsHook.search(term);
+				antonymsHook.search(term);
+				lexicalHook.search(term);
+			} else {
+				if (lookupRequest.target === "rhymes") rhymesHook.search(term);
+				if (lookupRequest.target === "synonyms") synonymsHook.search(term);
+				if (lookupRequest.target === "antonyms") antonymsHook.search(term);
+				if (lookupRequest.target === "lexical") lexicalHook.search(term);
+			}
+		}
 	}, [lookupRequest, panels]);
 
 	useEffect((): void => {
@@ -424,11 +582,13 @@ export function LyricsInspector({
 				<div className="flex min-h-0 w-[284px] min-w-0 flex-col">
 					<div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
 						{visiblePanels.map(
-							(panel: LyricsInspectorPanel): ReactElement => (
+							(panel): ReactElement => (
 								<LyricsInspectorPanelCard
 									key={panel.id}
 									fieldValues={fieldValues}
 									onFieldChange={handleFieldChange}
+									onSearch={handleSearch}
+									onChipClick={handleChipClick}
 									panel={panel}
 								/>
 							),
