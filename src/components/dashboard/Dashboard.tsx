@@ -17,7 +17,7 @@ import lgseo from "@/assets/cover/lgseo.png";
 import mcgrady from "@/assets/user/mcgrady.png";
 import vince from "@/assets/cover/vince.png";
 
-export const Home = () => {
+export const Dashboard = () => {
     // Données factices basées sur ton design
     const recentComments = [
         {
