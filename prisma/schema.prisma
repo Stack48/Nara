@@ -9,9 +9,9 @@ datasource db {
 
 enum Role {
   ADMIN
-  LEAD_PAROLIER
-  PAROLIER
-  LECTURE_SEULE
+  LEAD_LYRICIST
+  LYRICIST
+  READONLY
 }
 
 model User {
@@ -45,7 +45,7 @@ model Project {
 
 model ProjectMember {
   id        String   @id @default(cuid())
-  role      Role     @default(PAROLIER)
+  role      Role     @default(LYRICIST)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -60,7 +60,7 @@ model ProjectMember {
 model Invitation {
   id        String   @id @default(cuid())
   email     String
-  role      Role     @default(PAROLIER)
+  role      Role     @default(LYRICIST)
   token     String   @unique @default(cuid())
   accepted  Boolean  @default(false)
   createdAt DateTime @default(now())

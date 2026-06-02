@@ -63,19 +63,19 @@ async function main() {
     await prisma.projectMember.upsert({
         where: { userId_projectId: { userId: marcus.id, projectId: project.id } },
         update: {},
-        create: { userId: marcus.id, projectId: project.id, role: "LEAD_PAROLIER" },
+        create: { userId: marcus.id, projectId: project.id, role: "LEAD_LYRICIST" },
     });
 
     await prisma.projectMember.upsert({
         where: { userId_projectId: { userId: romain.id, projectId: project.id } },
         update: {},
-        create: { userId: romain.id, projectId: project.id, role: "LECTURE_SEULE" },
+        create: { userId: romain.id, projectId: project.id, role: "READONLY" },
     });
 
     console.log("✅ Seed terminé !");
     console.log(`👤 Léa (ADMIN) → cognitoId: cognito-lea-001`);
-    console.log(`👤 Marcus (LEAD_PAROLIER) → cognitoId: cognito-marcus-001`);
-    console.log(`👤 Romain (LECTURE_SEULE) → cognitoId: cognito-romain-001`);
+    console.log(`👤 Marcus (LEAD_LYRICIST) → cognitoId: cognito-marcus-001`);
+    console.log(`👤 Romain (READONLY) → cognitoId: cognito-romain-001`);
     console.log(`🎵 Projet: ${project.id}`);
 }
 
