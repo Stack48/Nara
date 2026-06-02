@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const protectedRoutes = ["/home", "/projects", "/studio"];
+const protectedRoutes = ["/home", /*"/projects",*/ "/studio"];
+
 const authRoutes = ["/connexion", "/inscription"];
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
-    const isProtected = protectedRoutes.some((route) => pathname.startsWith(route));
+    const isProtected = protectedRoutes.some((route) =>
+        pathname.startsWith(route),
+    );
     const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
 
     if (!isProtected && !isAuthRoute) return NextResponse.next();
@@ -14,7 +17,9 @@ export async function middleware(request: NextRequest) {
     // Vérifie si le cookie de session Amplify existe
     const cookies = request.cookies.getAll();
     const isAuthenticated = cookies.some(
-        (cookie) => cookie.name.includes("CognitoIdentityServiceProvider") && cookie.name.includes("idToken")
+        (cookie) =>
+            cookie.name.includes("CognitoIdentityServiceProvider") &&
+            cookie.name.includes("idToken"),
     );
 
     if (isProtected && !isAuthenticated) {

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Unbounded, Arimo } from 'next/font/google';
 import './globals.css';
+import { Toast } from '@/components/library/Toast';
 
 // Configuration de Unbounded
 const unbounded = Unbounded({
@@ -33,6 +34,7 @@ export default function RootLayout({
                 className={`${unbounded.variable} ${arimo.variable} font-arimo antialiased bg-[#050505] text-white`}
             >
                 <>{children}</>
+                <Toast />
             </body>
         </html>
     );
