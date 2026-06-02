@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useState, type ReactElement } from "react";
-import LyricsEditorWorkspaceTiptap from "@/components/lyricsEditor/LyricsEditorWorkspaceTiptap";
+import LyricsEditorWorkspace from "@/components/lyricsEditor/v2/LyricsEditorWorkspace";
 import LyricsHeader, {
 	type LyricsFormat,
-} from "@/components/lyricsEditor/LyricsHeader";
+} from "@/components/lyricsEditor/v2/LyricsHeader";
 
 const initialFormat: LyricsFormat = {
-	fontFamily: "Arimo",
-	fontSize: "16",
+	fontFamily: "Georgia",
+	fontSize: "18",
 	blockSize: "large",
 	bold: false,
 	italic: false,
@@ -19,8 +19,8 @@ const initialFormat: LyricsFormat = {
 	textOpacity: 100,
 	showTrackPanel: false,
 	showInspectorTools: true,
-	focusMode: false,
-	hideAppChrome: false,
+	focusMode: true, // Default to true in V2!
+	hideAppChrome: true, // Default to hide sidebar navigation in Focus Mode V2!
 	rhymes: false,
 	annotation: false,
 	syllables: true,
@@ -49,16 +49,18 @@ export default function LyricsEditorScreen(): ReactElement {
 	}, [format.focusMode, format.hideAppChrome]);
 
 	function handleFormatChange(patch: Partial<LyricsFormat>): void {
-		setFormat((currentFormat: LyricsFormat): LyricsFormat => ({
-			...currentFormat,
-			...patch,
-		}));
+		setFormat(
+			(currentFormat: LyricsFormat): LyricsFormat => ({
+				...currentFormat,
+				...patch,
+			}),
+		);
 	}
 
 	return (
 		<section className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[var(--nara-surface)]">
 			<LyricsHeader format={format} onFormatChange={handleFormatChange} />
-			<LyricsEditorWorkspaceTiptap
+			<LyricsEditorWorkspace
 				format={format}
 				onFormatChange={handleFormatChange}
 			/>
