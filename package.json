@@ -13,13 +13,14 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
-    "test": "jest"
+    "test": "jest",
+    "db:seed": "ts-node --project tsconfig.seed.json prisma/seed.ts"
   },
   "dependencies": {
     "@aws-amplify/auth": "^6.20.0",
     "@aws-sdk/client-cognito-identity-provider": "^3.1053.0",
-    "@aws-sdk/client-s3": "^3.1056.0",
-    "@aws-sdk/s3-request-presigner": "^3.1056.0",
+    "@aws-sdk/client-s3": "^3.1058.0",
+    "@aws-sdk/s3-request-presigner": "^3.1058.0",
     "@prisma/client": "^6.7.0",
     "aws-amplify": "^6.17.0",
     "axios": "^1.15.1",
