@@ -8,17 +8,18 @@ import {
     resetPassword,
     confirmResetPassword,
 } from "aws-amplify/auth";
+import { prisma } from "@/lib/prisma";
 import "@/lib/amplify";
 
-// INSCRIPTION
+// INSCRIPTION → enregistre dans Cognito ET en DB
 export async function register(
     email: string,
     password: string,
     username: string,
     name: string
 ) {
-    return await signUp({
-        username: username, // ← username à la place de email
+    const result = await signUp({
+        username,
         password,
         options: {
             userAttributes: {
@@ -28,24 +29,40 @@ export async function register(
             },
         },
     });
+
+    return result;
+}
+
+// Après confirmation → enregistre en DB PostgreSQL
+export async function syncUserToDB(
+    cognitoId: string,
+    email: string,
+    name: string,
+    username: string
+) {
+    return await prisma.user.upsert({
+        where: { cognitoId },
+        update: { email, name, username },
+        create: { cognitoId, email, name, username },
+    });
 }
 
 // CONFIRMATION CODE EMAIL
 export async function confirmEmail(username: string, code: string) {
-    return await confirmSignUp({ username: username, confirmationCode: code });
+    return await confirmSignUp({ username, confirmationCode: code });
 }
 
 // CONNEXION
 export async function login(email: string, password: string) {
     try {
-        await signOut({ global: true }); // nettoie toute session existante
+        await signOut();
     } catch {
         // ignore
     }
     return await signIn({ username: email, password });
 }
 
-// DÉCONNEXION
+// DÉCONNEXION — sans global pour ne pas déconnecter les autres appareils
 export async function logout() {
     return await signOut();
 }
@@ -59,7 +76,7 @@ export async function getUser() {
     }
 }
 
-// TOKEN JWT (pour les appels API)
+// TOKEN JWT
 export async function getToken() {
     try {
         const session = await fetchAuthSession();
@@ -71,6 +88,11 @@ export async function getToken() {
 
 // RESET MOT DE PASSE
 export async function forgotPassword(email: string) {
+    try {
+        await signOut();
+    } catch {
+        // ignore
+    }
     return await resetPassword({ username: email });
 }
 
