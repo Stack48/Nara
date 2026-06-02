@@ -63,55 +63,10 @@ export const Hero = () => {
 							</span>
 						</h1>
 
-				<div className="relative z-10 mx-auto flex w-full max-w-[760px] flex-col items-center px-1 pt-1 text-center sm:px-0 md:pt-0">
-					<h1
-						className={`${syne.className} max-w-[min(86vw,320px)] text-[clamp(30px,8vw,34px)] font-extrabold leading-[0.94] tracking-normal text-[#fff7fc] sm:max-w-none sm:text-[clamp(42px,6.4vw,72px)] sm:leading-[0.92] md:text-[clamp(44px,4.5vw,64px)] lg:text-[clamp(48px,3.75vw,72px)]`}
-					>
-						<span className="block sm:hidden">Le futur de la</span>
-						<span className="block sm:hidden">production</span>
-						<span className="block text-[#e60091] sm:hidden">
-							musicale.
-						</span>
-						<span className="hidden sm:block sm:whitespace-nowrap">
-							Le futur de la production
-						</span>
-						<span className="hidden text-[#e60091] sm:block">
-							musicale.
-						</span>
-					</h1>
-
-					<p className="mt-4 max-w-[min(82vw,540px)] text-[13px] leading-[1.5] text-[#a99aa4] sm:mt-[clamp(10px,1.4vh,18px)] sm:text-[clamp(12px,1.15vw,14px)]">
-						Nara centralise votre écriture, vos masters et votre
-						gestion de projet dans un hub immersif conçu pour
-						l&apos;excellence créative.
-					</p>
-
-					<Link
-						href="/GenaralAPP/home"
-						className="mt-5 inline-flex h-12 w-full max-w-[min(82vw,380px)] items-center justify-center rounded-[8px] bg-[#d9008d] px-5 text-sm font-bold text-[#fff7fc] transition hover:bg-[#e60091] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#e6008e] sm:mt-[clamp(18px,2.4vh,30px)] sm:h-[clamp(44px,5.2vh,56px)] sm:text-[clamp(12px,0.9vw,15px)]"
-					>
-						Essayer gratuitement !
-					</Link>
-
-					<div className="mt-[clamp(14px,2vh,24px)] flex flex-col items-center gap-3 sm:flex-row">
-						<div className="flex -space-x-2">
-							{avatars.map((src, index) => (
-								<div
-									key={src}
-									className="relative h-[clamp(24px,2vw,34px)] w-[clamp(24px,2vw,34px)] overflow-hidden rounded-full border border-[#191017] bg-[#171216]"
-								>
-									<Image
-										src={src}
-										alt={`Artiste ${index + 1}`}
-										fill
-										sizes="34px"
-										className="object-cover grayscale"
-									/>
-								</div>
-							))}
-						</div>
-						<p className="text-[clamp(8px,0.58vw,10px)] font-bold uppercase tracking-[0.16em] text-[#8f808b]">
-							Ils façonnent le son avec Nara
+						<p className="nara-subtitle mt-6 max-w-[500px] text-gray-300">
+							Nara centralise votre écriture, vos masters et votre
+							gestion de projet dans un hub immersif conçu pour
+							l&apos;excellence créative.
 						</p>
 
 						<Link
