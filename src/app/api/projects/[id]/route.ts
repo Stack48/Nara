@@ -25,7 +25,7 @@ export async function GET(
   const { authorized } = await requireRole(
     cognitoId,
     params.id,
-    'LECTURE_SEULE',
+    'READONLY',
   );
   if (!authorized) return forbidden();
 
@@ -58,7 +58,7 @@ export async function PATCH(
   const { authorized } = await requireRole(
     cognitoId,
     params.id,
-    'LEAD_PAROLIER',
+    'LEAD_LYRICIST',
   );
   if (!authorized)
     return forbidden('Seul un Lead Parolier ou Admin peut modifier le projet');

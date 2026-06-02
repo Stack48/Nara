@@ -18,7 +18,7 @@ jest.mock('@/lib/prisma', () => ({
   },
 }));
 
-jest.mock('@/middleware/rbac.middleware', () => ({
+jest.mock('@/lib/rbac', () => ({
   requireRole: jest.fn(),
   forbidden: jest.fn((msg) => Response.json({ error: msg }, { status: 403 })),
   unauthorized: jest.fn(() =>
@@ -50,22 +50,22 @@ describe('Projects API', () => {
     const { authorized } = await requireRole(
       'cognitoId',
       'projectId',
-      'LEAD_PAROLIER',
+      'LEAD_LYRICIST',
     );
     expect(authorized).toBe(false);
   });
 
   // ✅ Accès autorisé → 200
-  it('PATCH /projects/:id autorisé si LEAD_PAROLIER', async () => {
+  it('PATCH /projects/:id autorisé si LEAD_LYRICIST', async () => {
     (requireRole as jest.Mock).mockResolvedValue({
       authorized: true,
-      role: 'LEAD_PAROLIER',
+      role: 'LEAD_LYRICIST',
     });
 
     const { authorized } = await requireRole(
       'cognitoId',
       'projectId',
-      'LEAD_PAROLIER',
+      'LEAD_LYRICIST',
     );
     expect(authorized).toBe(true);
   });

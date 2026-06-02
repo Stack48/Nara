@@ -4,7 +4,7 @@ import { requireRole, forbidden, unauthorized } from '@/lib/rbac';
 import { z } from 'zod';
 
 const updateRoleSchema = z.object({
-  role: z.enum(['ADMIN', 'LEAD_PAROLIER', 'PAROLIER', 'LECTURE_SEULE']),
+  role: z.enum(['ADMIN', 'LEAD_LYRICIST', 'LYRICIST', 'READONLY']),
 });
 
 function getCognitoId(request: NextRequest): string | null {
