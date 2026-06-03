@@ -396,7 +396,7 @@ const STATIC_SONGS_LIST = [
     {
         id: "Ensalada",
         title: "Ensalada",
-        time: "Shared 2 hours ago",
+        time: "Edited 2 hours ago",
         collabs: 2,
         state: "Terminé",
         lastModified: "2 hours ago",
@@ -414,7 +414,7 @@ const STATIC_SONGS_LIST = [
     {
         id: "Ghetto_Dreams",
         title: "Ghetto Dreams",
-        time: "Shared 6 days ago",
+        time: "Edited 6 days ago",
         collabs: 1,
         state: "Terminé",
         lastModified: "6 days ago",

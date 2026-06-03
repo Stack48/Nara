@@ -108,12 +108,12 @@ const STATIC_PROJECTS = [
         id: "Alfredo_2",
         title: "Alfredo 2",
         type: "Album",
-        collabs: 0,
+        collabs: 5,
         state: "En cours",
         lastModified: "2 days ago",
-        created: "1.5 months ago",
+        created: "2 months ago",
         lastModifiedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-        createdDate: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000),
+        createdDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
         imageKey: "Alfredo_2",
         isDeleted: false,
         isShared: true,
@@ -186,36 +186,8 @@ export const getProjectsFromStorage = (): StoredProjects => {
         return {};
     }
     const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (stored) {
-        try {
-            const parsed = JSON.parse(stored);
-            if (
-                parsed["Aquemini"] &&
-                parsed["Aquemini"].isDeleted !== true &&
-                !localStorage.getItem("aquemini_migrated")
-            ) {
-                parsed["Aquemini"].isDeleted = true;
-                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(parsed));
-                localStorage.setItem("aquemini_migrated", "true");
-            }
-            if (
-                parsed["Alfredo_2"] &&
-                !localStorage.getItem("alfredo2_shared_migrated")
-            ) {
-                parsed["Alfredo_2"].isDeleted = false;
-                parsed["Alfredo_2"].isShared = true;
-                parsed["Alfredo_2"].owner = "Tim Duncan";
-                parsed["Alfredo_2"].type = "Album";
-                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(parsed));
-                localStorage.setItem("alfredo2_shared_migrated", "true");
-            }
-            return parsed;
-        } catch (e) {
-            console.error("Failed to parse local storage projects", e);
-        }
-    }
-
-    // Default initial storage creation
+    
+    // Default initial projects structure from STATIC_PROJECTS
     const initialProjects: StoredProjects = {};
     STATIC_PROJECTS.forEach((proj) => {
         initialProjects[proj.id] = {
@@ -235,6 +207,61 @@ export const getProjectsFromStorage = (): StoredProjects => {
             owner: (proj as any).owner || "",
         };
     });
+
+    if (stored) {
+        try {
+            const parsed = JSON.parse(stored);
+            
+            // Sync static project updates (like collabs, created, lastModified, owner, type, state) from STATIC_PROJECTS code
+            // while preserving user interaction fields (isFavorite, isDeleted)
+            Object.keys(initialProjects).forEach((id) => {
+                if (parsed[id]) {
+                    parsed[id] = {
+                        ...parsed[id],
+                        title: initialProjects[id].title,
+                        type: initialProjects[id].type,
+                        collabs: initialProjects[id].collabs,
+                        state: initialProjects[id].state,
+                        lastModified: initialProjects[id].lastModified,
+                        created: initialProjects[id].created,
+                        lastModifiedDate: initialProjects[id].lastModifiedDate,
+                        createdDate: initialProjects[id].createdDate,
+                        imageKey: initialProjects[id].imageKey,
+                        isShared: initialProjects[id].isShared,
+                        owner: initialProjects[id].owner,
+                    };
+                } else {
+                    parsed[id] = initialProjects[id];
+                }
+            });
+
+            // Perform migrations if needed
+            if (
+                parsed["Aquemini"] &&
+                parsed["Aquemini"].isDeleted !== true &&
+                !localStorage.getItem("aquemini_migrated")
+            ) {
+                parsed["Aquemini"].isDeleted = true;
+                localStorage.setItem("aquemini_migrated", "true");
+            }
+            if (
+                parsed["Alfredo_2"] &&
+                !localStorage.getItem("alfredo2_shared_migrated")
+            ) {
+                parsed["Alfredo_2"].isDeleted = false;
+                parsed["Alfredo_2"].isShared = true;
+                parsed["Alfredo_2"].owner = "Tim Duncan";
+                parsed["Alfredo_2"].type = "Album";
+                localStorage.setItem("alfredo2_shared_migrated", "true");
+            }
+
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(parsed));
+            return parsed;
+        } catch (e) {
+            console.error("Failed to parse local storage projects", e);
+        }
+    }
+
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(initialProjects));
     return initialProjects;
 };
