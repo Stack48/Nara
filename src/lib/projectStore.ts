@@ -38,6 +38,8 @@ export interface Project {
     image: any;
     isFavorite: boolean;
     isDeleted: boolean;
+    isShared?: boolean;
+    owner?: string;
 }
 
 const STATIC_PROJECTS = [
@@ -88,6 +90,7 @@ const STATIC_PROJECTS = [
         lastModifiedDate: new Date(Date.now() - 2 * 60 * 60 * 1000),
         createdDate: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
         imageKey: "Aquemini",
+        isDeleted: true,
     },
     {
         id: "The_Infamous",
@@ -112,6 +115,9 @@ const STATIC_PROJECTS = [
         lastModifiedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
         createdDate: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000),
         imageKey: "Alfredo_2",
+        isDeleted: false,
+        isShared: true,
+        owner: "Tim Duncan",
     },
     {
         id: "Microphone_Champion",
@@ -156,6 +162,8 @@ interface StoredProjects {
         imageKey: string;
         isFavorite: boolean;
         isDeleted: boolean;
+        isShared?: boolean;
+        owner?: string;
     };
 }
 
@@ -165,7 +173,9 @@ const getSongsCountForProject = (projectId: string): number => {
     if (!stored) return 0;
     try {
         const mappings = JSON.parse(stored);
-        return Object.values(mappings).filter((song: any) => song.projectId === projectId && !song.isDeleted).length;
+        return Object.values(mappings).filter(
+            (song: any) => song.projectId === projectId && !song.isDeleted,
+        ).length;
     } catch {
         return 0;
     }
@@ -178,7 +188,28 @@ export const getProjectsFromStorage = (): StoredProjects => {
     const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (stored) {
         try {
-            return JSON.parse(stored);
+            const parsed = JSON.parse(stored);
+            if (
+                parsed["Aquemini"] &&
+                parsed["Aquemini"].isDeleted !== true &&
+                !localStorage.getItem("aquemini_migrated")
+            ) {
+                parsed["Aquemini"].isDeleted = true;
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(parsed));
+                localStorage.setItem("aquemini_migrated", "true");
+            }
+            if (
+                parsed["Alfredo_2"] &&
+                !localStorage.getItem("alfredo2_shared_migrated")
+            ) {
+                parsed["Alfredo_2"].isDeleted = false;
+                parsed["Alfredo_2"].isShared = true;
+                parsed["Alfredo_2"].owner = "Tim Duncan";
+                parsed["Alfredo_2"].type = "Album";
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(parsed));
+                localStorage.setItem("alfredo2_shared_migrated", "true");
+            }
+            return parsed;
         } catch (e) {
             console.error("Failed to parse local storage projects", e);
         }
@@ -199,7 +230,9 @@ export const getProjectsFromStorage = (): StoredProjects => {
             createdDate: proj.createdDate.toISOString(),
             imageKey: proj.imageKey,
             isFavorite: false,
-            isDeleted: false,
+            isDeleted: (proj as any).isDeleted || false,
+            isShared: (proj as any).isShared || false,
+            owner: (proj as any).owner || "",
         };
     });
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(initialProjects));
@@ -223,7 +256,7 @@ export const setProjectDeleted = (projectId: string, isDeleted: boolean) => {
         current[projectId].isDeleted = isDeleted;
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(current));
         window.dispatchEvent(new CustomEvent(EVENT_NAME));
-        
+
         // Also trigger sidebar project updates event
         window.dispatchEvent(new CustomEvent("song-project-updated"));
     }
@@ -236,17 +269,20 @@ export const renameProject = (projectId: string, newTitle: string) => {
         current[projectId].title = newTitle;
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(current));
         window.dispatchEvent(new CustomEvent(EVENT_NAME));
-        
+
         // Dispatch update song event too so songs in this project reflect name change
         window.dispatchEvent(new CustomEvent("song-project-updated"));
     }
 };
 
-export const createProject = (title: string, type: "Album" | "EP" | "Single") => {
+export const createProject = (
+    title: string,
+    type: "Album" | "EP" | "Single",
+) => {
     if (typeof window === "undefined") return;
     const current = getProjectsFromStorage();
     const id = title.replace(/\s+/g, "_");
-    
+
     current[id] = {
         id,
         title,
@@ -261,7 +297,7 @@ export const createProject = (title: string, type: "Album" | "EP" | "Single") =>
         isFavorite: false,
         isDeleted: false,
     };
-    
+
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(current));
     window.dispatchEvent(new CustomEvent(EVENT_NAME));
     window.dispatchEvent(new CustomEvent("song-project-updated"));
@@ -296,6 +332,8 @@ export const useProjects = (): Project[] => {
                     image: PROJECT_IMAGES[proj.imageKey] || lgseo,
                     isFavorite: !!proj.isFavorite,
                     isDeleted: !!proj.isDeleted,
+                    isShared: !!proj.isShared,
+                    owner: proj.owner || "",
                 };
             });
             setProjects(list);
@@ -305,10 +343,13 @@ export const useProjects = (): Project[] => {
 
         window.addEventListener(EVENT_NAME, updateProjectsList);
         window.addEventListener("song-project-updated", updateProjectsList); // Listen to song updates to update song counts!
-        
+
         return () => {
             window.removeEventListener(EVENT_NAME, updateProjectsList);
-            window.removeEventListener("song-project-updated", updateProjectsList);
+            window.removeEventListener(
+                "song-project-updated",
+                updateProjectsList,
+            );
         };
     }, []);
 
