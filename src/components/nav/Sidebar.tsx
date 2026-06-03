@@ -27,7 +27,11 @@ interface SidebarProps {
     openCreateModal: () => void;
 }
 
-export const Sidebar = ({ collapsed, toggleSidebar, openCreateModal }: SidebarProps) => {
+export const Sidebar = ({
+    collapsed,
+    toggleSidebar,
+    openCreateModal,
+}: SidebarProps) => {
     const pathname = usePathname();
     const router = useRouter();
 
@@ -36,8 +40,10 @@ export const Sidebar = ({ collapsed, toggleSidebar, openCreateModal }: SidebarPr
     const projects = allProjects
         .filter((p) => !p.isDeleted)
         .sort((a, b) => a.title.localeCompare(b.title));
-        
-    const [dragOverProjectId, setDragOverProjectId] = useState<string | null>(null);
+
+    const [dragOverProjectId, setDragOverProjectId] = useState<string | null>(
+        null,
+    );
     const [confirmModal, setConfirmModal] = useState<{
         songId: string;
         songTitle: string;
@@ -46,9 +52,18 @@ export const Sidebar = ({ collapsed, toggleSidebar, openCreateModal }: SidebarPr
         targetProjectTitle: string;
     } | null>(null);
 
-    const handleDrop = (dragData: any, targetProjectId: string, targetProjectTitle: string) => {
-        const { id: songId, title: songTitle, projectId: currentProjectId, projectName: currentProjectName } = dragData;
-        
+    const handleDrop = (
+        dragData: any,
+        targetProjectId: string,
+        targetProjectTitle: string,
+    ) => {
+        const {
+            id: songId,
+            title: songTitle,
+            projectId: currentProjectId,
+            projectName: currentProjectName,
+        } = dragData;
+
         // If already in target project, ignore
         if (currentProjectId === targetProjectId) {
             return;
@@ -61,7 +76,7 @@ export const Sidebar = ({ collapsed, toggleSidebar, openCreateModal }: SidebarPr
                 songTitle,
                 currentProjectName,
                 targetProjectId,
-                targetProjectTitle
+                targetProjectTitle,
             });
         } else {
             // Standalone song, assign directly
@@ -71,9 +86,11 @@ export const Sidebar = ({ collapsed, toggleSidebar, openCreateModal }: SidebarPr
 
     // États pour gérer l'ouverture des sous-menus (accordéons)
     const [projectsOpen, setProjectsOpen] = useState(false);
-    
+
     // Pour ouvrir chaque projet individuellement, on stocke son ID dans un objet/état
-    const [openProjectIds, setOpenProjectIds] = useState<Record<string, boolean>>({});
+    const [openProjectIds, setOpenProjectIds] = useState<
+        Record<string, boolean>
+    >({});
 
     const toggleProject = (id: string) => {
         setOpenProjectIds((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -81,7 +98,7 @@ export const Sidebar = ({ collapsed, toggleSidebar, openCreateModal }: SidebarPr
 
     // Liens simples (statiques)
     const topLinks = [
-        { label: "Home", href: "/", icon: Home },
+        { label: "Home", href: "/dashboard", icon: Home },
         { label: "Recents", href: "/recents", icon: Clock },
         { label: "Favorites", href: "/favorites", icon: Heart },
     ];
@@ -128,13 +145,16 @@ export const Sidebar = ({ collapsed, toggleSidebar, openCreateModal }: SidebarPr
             </button>
 
             {/* CONTENU SIDEBAR */}
-            <div className={`flex flex-col flex-1 py-5 gap-4 overflow-y-auto overflow-x-hidden ${collapsed ? "px-1" : "px-3"}`}>
-                
+            <div
+                className={`flex flex-col flex-1 py-5 gap-4 overflow-y-auto overflow-x-hidden ${collapsed ? "px-1" : "px-3"}`}
+            >
                 {/* BUTTON CREATE */}
                 <button
                     onClick={openCreateModal}
                     className={`flex items-center justify-center bg-gradient-to-r from-[#AB0063] from-[0%] to-[#D50093] to-[100%] shadow-lg transition-all hover:scale-[1.02] hover:opacity-90 text-white font-bold rounded-lg h-10 shrink-0 ${
-                        collapsed ? "w-10 px-0 mx-auto" : "w-11/12 mx-auto px-4 gap-2"
+                        collapsed
+                            ? "w-10 px-0 mx-auto"
+                            : "w-11/12 mx-auto px-4 gap-2"
                     }`}
                 >
                     <Plus size={20} className="flex-shrink-0" />
@@ -143,12 +163,17 @@ export const Sidebar = ({ collapsed, toggleSidebar, openCreateModal }: SidebarPr
 
                 {/* NAVIGATION PRINCIPALE */}
                 <div className="flex flex-col gap-1 mt-2">
-                    
                     {/* Liens du haut (Home, Recents, Favorites) */}
                     {topLinks.map((link) => (
-                        <Link key={link.href} href={link.href} className={linkClass(pathname === link.href)}>
+                        <Link
+                            key={link.href}
+                            href={link.href}
+                            className={linkClass(pathname === link.href)}
+                        >
                             <link.icon size={16} className="flex-shrink-0" />
-                            <span className={textVisibilityClass}>{link.label}</span>
+                            <span className={textVisibilityClass}>
+                                {link.label}
+                            </span>
                         </Link>
                     ))}
 
@@ -157,7 +182,10 @@ export const Sidebar = ({ collapsed, toggleSidebar, openCreateModal }: SidebarPr
                     {/* --- SECTION SONGS (LIEN SIMPLE) --- */}
                     <Link
                         href="/songs"
-                        className={linkClass(pathname === "/songs" || pathname.startsWith("/songs"))}
+                        className={linkClass(
+                            pathname === "/songs" ||
+                                pathname.startsWith("/songs"),
+                        )}
                     >
                         <Music size={16} className="flex-shrink-0" />
                         <span className={textVisibilityClass}>Songs</span>
@@ -167,13 +195,17 @@ export const Sidebar = ({ collapsed, toggleSidebar, openCreateModal }: SidebarPr
                     <div className="flex flex-col shrink-0">
                         <button
                             onClick={() => router.push("/projects")}
-                            className={linkClass(pathname.startsWith("/projects"))}
+                            className={linkClass(
+                                pathname.startsWith("/projects"),
+                            )}
                         >
                             <FolderOpen size={16} className="flex-shrink-0" />
                             {!collapsed && (
-                                <div className={`flex items-center justify-between flex-1 ${textVisibilityClass}`}>
+                                <div
+                                    className={`flex items-center justify-between flex-1 ${textVisibilityClass}`}
+                                >
                                     <span>My Projects</span>
-                                    <div 
+                                    <div
                                         className="p-1 hover:bg-neutral-800/50 rounded transition-colors"
                                         onClick={(e) => {
                                             e.stopPropagation();
@@ -193,18 +225,33 @@ export const Sidebar = ({ collapsed, toggleSidebar, openCreateModal }: SidebarPr
                         {!collapsed && projectsOpen && (
                             <div className="flex flex-col pl-4 mt-0.5 border-l border-neutral-800/40 ml-5 gap-0.5">
                                 {projects.map((project) => {
-                                    const isProjectOpen = !!openProjectIds[project.id];
-                                    const projectTracks = songs.filter((s) => s.projectId === project.id && !s.isDeleted);
-                                    const isDraggedOver = dragOverProjectId === project.id;
-                                    
+                                    const isProjectOpen =
+                                        !!openProjectIds[project.id];
+                                    const projectTracks = songs.filter(
+                                        (s) =>
+                                            s.projectId === project.id &&
+                                            !s.isDeleted,
+                                    );
+                                    const isDraggedOver =
+                                        dragOverProjectId === project.id;
+
                                     return (
-                                        <div key={project.id} className="flex flex-col shrink-0">
+                                        <div
+                                            key={project.id}
+                                            className="flex flex-col shrink-0"
+                                        >
                                             {/* Bouton du projet (Album) */}
                                             <button
-                                                onClick={() => router.push(`/projects/${project.id}`)}
+                                                onClick={() =>
+                                                    router.push(
+                                                        `/projects/${project.id}`,
+                                                    )
+                                                }
                                                 onDragOver={(e) => {
                                                     e.preventDefault();
-                                                    setDragOverProjectId(project.id);
+                                                    setDragOverProjectId(
+                                                        project.id,
+                                                    );
                                                 }}
                                                 onDragLeave={() => {
                                                     setDragOverProjectId(null);
@@ -213,10 +260,22 @@ export const Sidebar = ({ collapsed, toggleSidebar, openCreateModal }: SidebarPr
                                                     e.preventDefault();
                                                     setDragOverProjectId(null);
                                                     try {
-                                                        const dragData = JSON.parse(e.dataTransfer.getData("text/plain"));
-                                                        handleDrop(dragData, project.id, project.title);
+                                                        const dragData =
+                                                            JSON.parse(
+                                                                e.dataTransfer.getData(
+                                                                    "text/plain",
+                                                                ),
+                                                            );
+                                                        handleDrop(
+                                                            dragData,
+                                                            project.id,
+                                                            project.title,
+                                                        );
                                                     } catch (err) {
-                                                        console.error("Failed to parse drag data", err);
+                                                        console.error(
+                                                            "Failed to parse drag data",
+                                                            err,
+                                                        );
                                                     }
                                                 }}
                                                 className={`flex items-center justify-between w-full h-8 px-2 text-xs rounded-md transition-all ${
@@ -226,18 +285,28 @@ export const Sidebar = ({ collapsed, toggleSidebar, openCreateModal }: SidebarPr
                                                 }`}
                                             >
                                                 <div className="flex items-center min-w-0 pointer-events-none">
-                                                    <FolderOpen size={12} className="mr-2 text-neutral-500 shrink-0" />
-                                                    <span className="truncate">{project.title}</span>
+                                                    <FolderOpen
+                                                        size={12}
+                                                        className="mr-2 text-neutral-500 shrink-0"
+                                                    />
+                                                    <span className="truncate">
+                                                        {project.title}
+                                                    </span>
                                                     {project.isFavorite && (
-                                                        <Heart size={10} className="ml-1.5 text-[#D90097] fill-[#D90097] shrink-0 animate-pulse" />
+                                                        <Heart
+                                                            size={10}
+                                                            className="ml-1.5 text-[#D90097] fill-[#D90097] shrink-0 animate-pulse"
+                                                        />
                                                     )}
                                                 </div>
                                                 {projectTracks.length > 0 && (
-                                                    <div 
+                                                    <div
                                                         className="p-1 hover:bg-neutral-800/50 rounded transition-colors"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            toggleProject(project.id);
+                                                            toggleProject(
+                                                                project.id,
+                                                            );
                                                         }}
                                                     >
                                                         <ChevronDown
@@ -247,20 +316,29 @@ export const Sidebar = ({ collapsed, toggleSidebar, openCreateModal }: SidebarPr
                                                     </div>
                                                 )}
                                             </button>
- 
+
                                             {/* Niveau 2 : Sons à l'intérieur du projet */}
                                             {isProjectOpen && (
                                                 <div className="flex flex-col pl-4 mt-0.5 border-l border-neutral-800/60 ml-4 gap-0.5 shrink-0">
-                                                    {projectTracks.map((track) => (
-                                                        <Link
-                                                            key={track.id}
-                                                            href={`/projects/${project.id}/${track.id}`}
-                                                            className="flex items-center h-7 px-2 text-[11px] text-neutral-500 hover:text-[#D90097] rounded-md transition-colors whitespace-nowrap overflow-hidden text-ellipsis"
-                                                        >
-                                                            <Music size={10} className="mr-1.5 opacity-60 shrink-0" />
-                                                            <span className="truncate">{track.title}</span>
-                                                        </Link>
-                                                    ))}
+                                                    {projectTracks.map(
+                                                        (track) => (
+                                                            <Link
+                                                                key={track.id}
+                                                                href={`/projects/${project.id}/${track.id}`}
+                                                                className="flex items-center h-7 px-2 text-[11px] text-neutral-500 hover:text-[#D90097] rounded-md transition-colors whitespace-nowrap overflow-hidden text-ellipsis"
+                                                            >
+                                                                <Music
+                                                                    size={10}
+                                                                    className="mr-1.5 opacity-60 shrink-0"
+                                                                />
+                                                                <span className="truncate">
+                                                                    {
+                                                                        track.title
+                                                                    }
+                                                                </span>
+                                                            </Link>
+                                                        ),
+                                                    )}
                                                 </div>
                                             )}
                                         </div>
@@ -274,12 +352,17 @@ export const Sidebar = ({ collapsed, toggleSidebar, openCreateModal }: SidebarPr
 
                     {/* Liens du bas (Shared, Deleted) */}
                     {bottomLinks.map((link) => (
-                        <Link key={link.href} href={link.href} className={linkClass(pathname === link.href)}>
+                        <Link
+                            key={link.href}
+                            href={link.href}
+                            className={linkClass(pathname === link.href || pathname.startsWith(`${link.href}/`))}
+                        >
                             <link.icon size={16} className="flex-shrink-0" />
-                            <span className={textVisibilityClass}>{link.label}</span>
+                            <span className={textVisibilityClass}>
+                                {link.label}
+                            </span>
                         </Link>
                     ))}
-
                 </div>
             </div>
 
@@ -321,12 +404,24 @@ export const Sidebar = ({ collapsed, toggleSidebar, openCreateModal }: SidebarPr
                                 Move song?
                             </h3>
                         </div>
-                        
+
                         {/* Body */}
                         <p className="text-neutral-400 text-xs leading-relaxed mb-6">
-                            The song <span className="text-white font-semibold">"{confirmModal.songTitle}"</span> is already in the project <span className="text-white font-semibold">"{confirmModal.currentProjectName}"</span>. Do you want to move it to <span className="text-white font-semibold">"{confirmModal.targetProjectTitle}"</span>?
+                            The song{" "}
+                            <span className="text-white font-semibold">
+                                "{confirmModal.songTitle}"
+                            </span>{" "}
+                            is already in the project{" "}
+                            <span className="text-white font-semibold">
+                                "{confirmModal.currentProjectName}"
+                            </span>
+                            . Do you want to move it to{" "}
+                            <span className="text-white font-semibold">
+                                "{confirmModal.targetProjectTitle}"
+                            </span>
+                            ?
                         </p>
-                        
+
                         {/* Actions */}
                         <div className="flex justify-end gap-3">
                             <button
@@ -337,7 +432,11 @@ export const Sidebar = ({ collapsed, toggleSidebar, openCreateModal }: SidebarPr
                             </button>
                             <button
                                 onClick={() => {
-                                    setSongProject(confirmModal.songId, confirmModal.targetProjectId, confirmModal.targetProjectTitle);
+                                    setSongProject(
+                                        confirmModal.songId,
+                                        confirmModal.targetProjectId,
+                                        confirmModal.targetProjectTitle,
+                                    );
                                     setConfirmModal(null);
                                 }}
                                 className="px-4 py-2 text-xs font-semibold text-white bg-gradient-to-r from-[#AB0063] to-[#D50093] rounded-lg shadow-lg hover:opacity-90 hover:scale-[1.02] transition-all cursor-pointer"

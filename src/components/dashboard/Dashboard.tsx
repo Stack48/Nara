@@ -1,5 +1,10 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
+import { ContextMenu } from "@/components/library/ContextMenu";
+import { useSongs, Song } from "@/lib/songStore";
 import {
     Pencil,
     MoreHorizontal,
@@ -46,40 +51,31 @@ export const Dashboard = () => {
         },
     ];
 
-    const recentProjects = [
-        {
-            title: "F.I.C.O",
-            album: "Let God Sort Em Out",
-            time: "il y a 2 heures",
-            author: "Udonis Haslem",
-            status: "En écriture",
-            image: lgseo,
-        },
-        {
-            title: "MHM",
-            album: "Draft",
-            time: "il y a 2 heures",
-            author: "Udonis Haslem",
-            status: "Statut",
-            image: vince,
-        },
-        {
-            title: "Let God Sort Em Out/Chandeliers",
-            album: "Let God Sort Em Out",
-            time: "il y a 2 heures",
-            author: "Udonis Haslem",
-            status: "Statut",
-            image: lgseo,
-        },
-        {
-            title: "Ensalada",
-            album: "Alfredo 2",
-            time: "il y a 2 heures",
-            author: "Tim Duncan",
-            status: "Statut",
-            image: alfredo,
-        },
-    ];
+    const allSongs = useSongs();
+    const ficoSong = allSongs.find((s) => s.id === "FICO") || allSongs[0];
+    const recentSongs = [...allSongs]
+        .filter((s) => !s.isDeleted)
+        .sort(
+            (a, b) =>
+                b.lastModifiedDate.getTime() - a.lastModifiedDate.getTime(),
+        )
+        .slice(0, 4);
+
+    const [contextMenu, setContextMenu] = useState<{
+        x: number;
+        y: number;
+        song: Song;
+    } | null>(null);
+
+    const handleContextMenu = (e: React.MouseEvent, song: Song) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setContextMenu({
+            x: e.clientX,
+            y: e.clientY,
+            song,
+        });
+    };
 
     return (
         <div className="w-full flex-1 flex flex-col font-arimo pb-2">
@@ -121,19 +117,25 @@ export const Dashboard = () => {
 
                             <div className="mt-4">
                                 <h2 className="text-5xl sm:text-6xl font-extrabold font-syne tracking-widest text-white drop-shadow-lg">
-                                    F.I.C.O
+                                    {ficoSong?.title || "F.I.C.O"}
                                 </h2>
                                 <p className="text-xl text-neutral-300 mt-1">
                                     from{" "}
-                                    <span className="underline decoration-neutral-500 underline-offset-4 hover:text-white transition-colors cursor-pointer">
-                                        Let God Sort Em Out
-                                    </span>
+                                    {ficoSong?.projectName ? (
+                                        <Link href={`/projects/${ficoSong.projectId}`} className="underline decoration-neutral-500 underline-offset-4 hover:text-white transition-colors cursor-pointer">
+                                            {ficoSong.projectName}
+                                        </Link>
+                                    ) : (
+                                        <span className="underline decoration-neutral-500 underline-offset-4 hover:text-white transition-colors cursor-pointer">
+                                            Standalone
+                                        </span>
+                                    )}
                                 </p>
                             </div>
 
                             <div className="flex items-center gap-3 mt-6">
                                 <span className="text-neutral-400 text-sm">
-                                    Dernière modification il y a 2 heures
+                                    Last edited 8 minutes ago
                                 </span>
                                 <div className="flex items-center gap-2">
                                     <Image
@@ -314,8 +316,13 @@ export const Dashboard = () => {
                                     ></div>
                                 </div>
                                 <div className="mt-3 flex items-center gap-1.5 text-xs text-neutral-400">
-                                    <Music size={12} className="text-[#D90097] flex-shrink-0" />
-                                    <span className="text-[11px] text-neutral-500">Sur</span>
+                                    <Music
+                                        size={12}
+                                        className="text-[#D90097] flex-shrink-0"
+                                    />
+                                    <span className="text-[11px] text-neutral-500">
+                                        Sur
+                                    </span>
                                     <Link
                                         href="/lyric-editor"
                                         className="font-semibold text-neutral-200 text-[11px] truncate hover:text-[#D90097] hover:underline transition-colors duration-200 cursor-pointer"
@@ -414,13 +421,18 @@ export const Dashboard = () => {
                     </div>
 
                     <div className="flex flex-col gap-2 overflow-y-auto flex-1 min-h-0 pr-2 custom-scrollbar">
-                        {recentProjects.map((project, index) => (
-                            <div key={index} className="flex flex-col">
-                                <div className="flex items-center justify-between p-2 hover:bg-neutral-800 transition-colors rounded-lg group cursor-pointer">
+                        {recentSongs.map((song, index) => (
+                            <div key={song.id} className="flex flex-col">
+                                <div
+                                    className="flex items-center justify-between p-2 hover:bg-neutral-800 transition-colors rounded-lg group cursor-pointer"
+                                    onContextMenu={(e) =>
+                                        handleContextMenu(e, song)
+                                    }
+                                >
                                     <div className="flex items-center gap-4">
                                         <Image
-                                            src={project.image}
-                                            alt={project.title}
+                                            src={song.image}
+                                            alt={song.title}
                                             width={56}
                                             height={56}
                                             className="w-14 h-14 rounded-md object-cover flex-shrink-0"
@@ -428,14 +440,21 @@ export const Dashboard = () => {
 
                                         <div className="flex flex-col">
                                             <p className="font-bold text-sm">
-                                                {project.title}{" "}
+                                                {song.title}{" "}
                                                 <span className="font-normal text-neutral-400 underline decoration-neutral-600 underline-offset-2">
-                                                    ({project.album})
+                                                    {song.projectName ? (
+                                                        <Link href={`/projects/${song.projectId}`} className="hover:text-white transition-colors">
+                                                            ({song.projectName})
+                                                        </Link>
+                                                    ) : (
+                                                        <Link href="/songs" className="hover:text-white transition-colors">
+                                                            (Standalone)
+                                                        </Link>
+                                                    )}
                                                 </span>
                                             </p>
                                             <p className="text-xs text-neutral-500 mt-1">
-                                                Modifié {project.time} •{" "}
-                                                {project.author}
+                                                Edited {song.lastModified.replace('mins', 'minutes')}
                                             </p>
                                         </div>
                                     </div>
@@ -443,19 +462,24 @@ export const Dashboard = () => {
                                     <div className="flex items-center gap-4">
                                         <span
                                             className={`text-[11px] px-3 py-1.5 rounded-md ${
-                                                project.status === "En écriture"
+                                                song.state === "En écriture"
                                                     ? "bg-[#D90097]/10 text-[#D90097] border border-[#D90097]/30 font-bold"
                                                     : "bg-neutral-800 text-neutral-300"
                                             }`}
                                         >
-                                            {project.status}
+                                            {song.state}
                                         </span>
-                                        <button className="text-neutral-500 hover:text-white">
+                                        <button
+                                            onClick={(e) =>
+                                                handleContextMenu(e, song)
+                                            }
+                                            className="text-neutral-500 hover:text-white"
+                                        >
                                             <MoreVertical size={18} />
                                         </button>
                                     </div>
                                 </div>
-                                {index !== recentProjects.length - 1 && (
+                                {index !== recentSongs.length - 1 && (
                                     <div className="border-b border-neutral-800 mx-2 my-1"></div>
                                 )}
                             </div>
@@ -463,6 +487,19 @@ export const Dashboard = () => {
                     </div>
                 </div>
             </div>
+            {contextMenu && (
+                <ContextMenu
+                    x={contextMenu.x}
+                    y={contextMenu.y}
+                    itemType="song"
+                    song={contextMenu.song}
+                    onClose={() => setContextMenu(null)}
+                    onRenameClick={() => {
+                        // In dashboard we just close it for now, can be implemented similar to Songs.tsx
+                        setContextMenu(null);
+                    }}
+                />
+            )}
         </div>
     );
 };
