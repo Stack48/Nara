@@ -295,7 +295,7 @@ export const Sidebar = ({
                                                     {project.isFavorite && (
                                                         <Heart
                                                             size={10}
-                                                            className="ml-1.5 text-[#D90097] fill-[#D90097] shrink-0 animate-pulse"
+                                                            className="ml-1.5 text-[#D90097] fill-[#D90097] shrink-0"
                                                         />
                                                     )}
                                                 </div>
