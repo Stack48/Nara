@@ -2,13 +2,12 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 
-// Global track of active playback to avoid overlapping previews
-let activeAudio: HTMLAudioElement | null = null;
-let activeSetIsPlaying: ((playing: boolean) => void) | null = null;
+const AUDIO_PLAY_EVENT = "nara-audio-play";
 
 export const useAudioClick = (audioSrc: string, startTimeOffset: number = 30) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
+    const instanceId = useRef(Math.random().toString(36).substring(7));
 
     // Initialize audio instance on client side
     useEffect(() => {
@@ -23,21 +22,33 @@ export const useAudioClick = (audioSrc: string, startTimeOffset: number = 30) =>
                 audioRef.current.src = "";
                 audioRef.current = null;
             }
-            if (activeAudio === audioRef.current) {
-                activeAudio = null;
-                activeSetIsPlaying = null;
-            }
         };
     }, [audioSrc]);
 
-    // Cleanup state if another component forces play
+    // Handle play events from other hook instances to pause ourselves
     useEffect(() => {
-        const interval = setInterval(() => {
-            if (isPlaying && activeAudio !== audioRef.current) {
-                setIsPlaying(false);
+        const handleAudioPlay = (e: Event) => {
+            const customEvent = e as CustomEvent<{ instanceId: string }>;
+            if (
+                customEvent.detail &&
+                customEvent.detail.instanceId !== instanceId.current
+            ) {
+                if (audioRef.current && isPlaying) {
+                    audioRef.current.pause();
+                    setIsPlaying(false);
+                }
             }
-        }, 100);
-        return () => clearInterval(interval);
+        };
+
+        if (typeof window !== "undefined") {
+            window.addEventListener(AUDIO_PLAY_EVENT, handleAudioPlay);
+        }
+
+        return () => {
+            if (typeof window !== "undefined") {
+                window.removeEventListener(AUDIO_PLAY_EVENT, handleAudioPlay);
+            }
+        };
     }, [isPlaying]);
 
     const togglePlay = useCallback((e?: React.MouseEvent) => {
@@ -50,26 +61,19 @@ export const useAudioClick = (audioSrc: string, startTimeOffset: number = 30) =>
         if (isPlaying) {
             audioRef.current.pause();
             setIsPlaying(false);
-            if (activeAudio === audioRef.current) {
-                activeAudio = null;
-                activeSetIsPlaying = null;
-            }
         } else {
-            // Stop whatever is playing
-            if (activeAudio && activeAudio !== audioRef.current) {
-                activeAudio.pause();
-                if (activeSetIsPlaying) {
-                    activeSetIsPlaying(false);
-                }
-            }
+            // Notify all other instances to pause immediately
+            window.dispatchEvent(
+                new CustomEvent(AUDIO_PLAY_EVENT, {
+                    detail: { instanceId: instanceId.current },
+                }),
+            );
 
             audioRef.current.currentTime = startTimeOffset;
             audioRef.current
                 .play()
                 .then(() => {
                     setIsPlaying(true);
-                    activeAudio = audioRef.current;
-                    activeSetIsPlaying = setIsPlaying;
                 })
                 .catch((err) => console.log("Audio playback prevented:", err));
         }
