@@ -7,6 +7,8 @@ import {
 	MoreHorizontal,
 	Shuffle,
 	Sparkles,
+	X,
+	Check,
 	type LucideIcon,
 } from "lucide-react";
 import {
@@ -349,6 +351,12 @@ export function LyricsInspector({
 		() => createInitialFieldValues(panels),
 	);
 
+	const [failedLookups, setFailedLookups] = useState<Record<string, number>>({});
+	const [modalWord, setModalWord] = useState<string | null>(null);
+	const [modalForm, setModalForm] = useState({ description: "", synonyms: "", antonyms: "" });
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [lastSearchedWord, setLastSearchedWord] = useState<string>("");
+
 	const rhymesHook = useLinguistic("rhymes");
 	const synonymsHook = useLinguistic("synonyms");
 	const antonymsHook = useLinguistic("antonyms");
@@ -357,6 +365,8 @@ export function LyricsInspector({
 	const handleSearch = useCallback((panelId: LyricsInspectorPanelId, term: string) => {
 		const cleanTerm = term.trim();
 		if (!cleanTerm) return;
+
+		setLastSearchedWord(cleanTerm);
 
 		if (panelId === "rhymes") rhymesHook.search(cleanTerm);
 		else if (panelId === "synonyms") synonymsHook.search(cleanTerm);
@@ -487,6 +497,45 @@ export function LyricsInspector({
 		}
 	}, [lexicalHook.data]);
 
+	const processedWordRef = useRef<string | null>(null);
+
+	useEffect(() => {
+		if (!lastSearchedWord) return;
+
+		const isLoading = rhymesHook.loading || synonymsHook.loading || antonymsHook.loading || lexicalHook.loading;
+		if (isLoading) return;
+
+		if (processedWordRef.current === lastSearchedWord) return;
+
+		// Helper to check if a hook failed (has network error OR empty/error data)
+		const didFail = (hook: { error: string | null, data: any }) => {
+			if (hook.error) return true;
+			if (!hook.data) return true; // No data means it failed to get anything
+			return !!hook.data.error || (Array.isArray(hook.data.results) && hook.data.results.length === 0);
+		};
+
+		// The word is truly missing only if ALL searched hooks failed
+		const allFailed = didFail(rhymesHook) && didFail(synonymsHook) && didFail(antonymsHook) && didFail(lexicalHook);
+
+		if (allFailed) {
+			setFailedLookups(prev => {
+				const count = (prev[lastSearchedWord] || 0) + 1;
+				if (count >= 2) {
+					setModalWord(lastSearchedWord);
+				}
+				return { ...prev, [lastSearchedWord]: count };
+			});
+		}
+
+		processedWordRef.current = lastSearchedWord;
+	}, [
+		lastSearchedWord, 
+		rhymesHook.loading, rhymesHook.error, rhymesHook.data,
+		synonymsHook.loading, synonymsHook.error, synonymsHook.data,
+		antonymsHook.loading, antonymsHook.error, antonymsHook.data,
+		lexicalHook.loading, lexicalHook.error, lexicalHook.data
+	]);
+
 	useEffect((): void => {
 		if (!lookupRequest) {
 			return;
@@ -520,6 +569,7 @@ export function LyricsInspector({
 
 		const term = lookupRequest.term.trim();
 		if (term) {
+			setLastSearchedWord(term);
 			if (lookupRequest.target === "all") {
 				rhymesHook.search(term);
 				synonymsHook.search(term);
@@ -620,6 +670,104 @@ export function LyricsInspector({
 				visiblePanelIds={visiblePanelIds}
 				onTogglePanel={handleTogglePanel}
 			/>
+
+			{modalWord && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+					<div className="w-full max-w-sm rounded-2xl border border-white/[0.08] bg-[#1a1a20] p-6 shadow-2xl flex flex-col gap-4">
+						<div className="flex items-center justify-between">
+							<h3 className="text-sm font-bold text-white tracking-wide">Mot introuvable</h3>
+							<button onClick={() => setModalWord(null)} className="text-white/40 hover:text-white transition-colors">
+								<X size={16} strokeWidth={2} />
+							</button>
+						</div>
+						
+						<p className="text-[13px] leading-relaxed text-white/60">
+							Le mot <strong className="text-white font-semibold">"{modalWord}"</strong> n'a pas été trouvé dans notre base de données linguistique. Voulez-vous suggérer son ajout ?
+						</p>
+
+						<div className="flex flex-col gap-3 pt-2">
+							<div>
+								<label className="text-[11px] font-bold text-white/50 uppercase tracking-wider mb-1.5 block">Description (Obligatoire)</label>
+								<input
+									type="text"
+									value={modalForm.description}
+									onChange={(e) => setModalForm(prev => ({ ...prev, description: e.target.value }))}
+									placeholder="Courte définition..."
+									className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 text-[13px] text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]/50 focus:bg-white/[0.05] transition-all"
+								/>
+							</div>
+							
+							<div className="flex gap-3">
+								<div className="flex-1">
+									<label className="text-[11px] font-bold text-white/50 uppercase tracking-wider mb-1.5 block">Synonymes</label>
+									<input
+										type="text"
+										value={modalForm.synonyms}
+										onChange={(e) => setModalForm(prev => ({ ...prev, synonyms: e.target.value }))}
+										placeholder="Séparés par des virgules"
+										className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 text-[12px] text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]/50 focus:bg-white/[0.05] transition-all"
+									/>
+								</div>
+								<div className="flex-1">
+									<label className="text-[11px] font-bold text-white/50 uppercase tracking-wider mb-1.5 block">Antonymes</label>
+									<input
+										type="text"
+										value={modalForm.antonyms}
+										onChange={(e) => setModalForm(prev => ({ ...prev, antonyms: e.target.value }))}
+										placeholder="Séparés par des virgules"
+										className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 text-[12px] text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]/50 focus:bg-white/[0.05] transition-all"
+									/>
+								</div>
+							</div>
+						</div>
+
+						<div className="flex items-center gap-3 pt-4 border-t border-white/[0.06]">
+							<button
+								onClick={() => {
+									setModalWord(null);
+									setModalForm({ description: "", synonyms: "", antonyms: "" });
+								}}
+								className="flex-1 rounded-xl bg-white/[0.04] border border-white/[0.08] py-2.5 text-[12px] font-semibold text-white/70 hover:bg-white/[0.08] hover:text-white transition-all active:scale-95"
+							>
+								Annuler
+							</button>
+							<button
+								onClick={async () => {
+									if (!modalForm.description.trim()) return;
+									setIsSubmitting(true);
+									try {
+										await fetch("/api/linguistic/add", {
+											method: "POST",
+											headers: { "Content-Type": "application/json" },
+											body: JSON.stringify({ 
+												word: modalWord,
+												description: modalForm.description.trim(),
+												synonyms: modalForm.synonyms.trim() || undefined,
+												antonyms: modalForm.antonyms.trim() || undefined
+											}),
+										});
+										setModalWord(null);
+										setModalForm({ description: "", synonyms: "", antonyms: "" });
+									} catch (e) {
+										console.error("Failed to add word", e);
+									} finally {
+										setIsSubmitting(false);
+									}
+								}}
+								disabled={isSubmitting || !modalForm.description.trim()}
+								className="flex-1 rounded-xl bg-[#0A84FF] border border-[#0A84FF]/50 py-2.5 text-[12px] font-semibold text-white shadow-[0_4px_12px_rgba(10,132,255,0.3)] hover:bg-[#3399FF] transition-all active:scale-95 flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:active:scale-100"
+							>
+								{isSubmitting ? "Envoi..." : (
+									<>
+										<Check size={14} strokeWidth={2.5} />
+										Soumettre
+									</>
+								)}
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
 		</aside>
 	);
 }

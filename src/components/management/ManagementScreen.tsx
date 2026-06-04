@@ -31,9 +31,9 @@ import {
 	type ReactNode,
 } from "react";
 import {
-	lyricsEditorCommentsStorageKey,
-	lyricsEditorDocumentStorageKey,
-} from "@/components/lyricsEditor/lyricsEditorStorage";
+	commentsStorageKey as lyricsEditorCommentsStorageKey,
+	storageKey as lyricsEditorDocumentStorageKey,
+} from "@/components/lyricsEditor/v2/lyricsEditorStorage";
 
 const syne = Syne({
 	weight: "800",
@@ -378,7 +378,9 @@ function parseStoredLyricsLines(value: unknown): StoredLyricsLine[] {
 	}
 
 	return value
-		.map((line: unknown): StoredLyricsLine | null => parseStoredLyricsLine(line))
+		.map((line: unknown): StoredLyricsLine | null =>
+			parseStoredLyricsLine(line),
+		)
 		.filter(
 			(line: StoredLyricsLine | null): line is StoredLyricsLine =>
 				line !== null,
@@ -422,11 +424,14 @@ function parseStoredLyricsAlternatives(
 		.filter(
 			(
 				alternative: StoredLyricsSectionAlternative | null,
-			): alternative is StoredLyricsSectionAlternative => alternative !== null,
+			): alternative is StoredLyricsSectionAlternative =>
+				alternative !== null,
 		);
 }
 
-function parseStoredLyricsDocument(value: unknown): StoredLyricsDocument | null {
+function parseStoredLyricsDocument(
+	value: unknown,
+): StoredLyricsDocument | null {
 	if (!isRecord(value) || !Array.isArray(value.sections)) {
 		return null;
 	}
@@ -448,9 +453,12 @@ function parseStoredLyricsDocument(value: unknown): StoredLyricsDocument | null 
 					typeof section.activeAlternativeId === "string"
 						? section.activeAlternativeId
 						: null,
-				alternatives: parseStoredLyricsAlternatives(section.alternatives),
+				alternatives: parseStoredLyricsAlternatives(
+					section.alternatives,
+				),
 				id: section.id,
-				kind: typeof section.kind === "string" ? section.kind : "couplet",
+				kind:
+					typeof section.kind === "string" ? section.kind : "couplet",
 				lines,
 				title:
 					typeof section.title === "string"
@@ -459,8 +467,9 @@ function parseStoredLyricsDocument(value: unknown): StoredLyricsDocument | null 
 			};
 		})
 		.filter(
-			(section: StoredLyricsSection | null): section is StoredLyricsSection =>
-				section !== null,
+			(
+				section: StoredLyricsSection | null,
+			): section is StoredLyricsSection => section !== null,
 		);
 
 	if (sections.length === 0) {
@@ -470,7 +479,8 @@ function parseStoredLyricsDocument(value: unknown): StoredLyricsDocument | null 
 	return {
 		id: typeof value.id === "string" ? value.id : currentProject.id,
 		sections,
-		title: typeof value.title === "string" ? value.title : currentProject.name,
+		title:
+			typeof value.title === "string" ? value.title : currentProject.name,
 		updatedAt: typeof value.updatedAt === "string" ? value.updatedAt : null,
 	};
 }
@@ -481,8 +491,8 @@ function parseLineCommentsById(value: unknown): StoredLineCommentsById {
 	}
 
 	return Object.fromEntries(
-		Object.entries(value).filter(
-			(entry: [string, unknown]): boolean => Array.isArray(entry[1]),
+		Object.entries(value).filter((entry: [string, unknown]): boolean =>
+			Array.isArray(entry[1]),
 		),
 	) as StoredLineCommentsById;
 }
@@ -588,7 +598,10 @@ function createProjectSnapshot(
 		activity: recentActivity,
 		participation,
 		settings: projectSettings.map(
-			({ description, label }: ProjectSetting): Omit<ProjectSetting, "icon"> => ({
+			({
+				description,
+				label,
+			}: ProjectSetting): Omit<ProjectSetting, "icon"> => ({
 				description,
 				label,
 			}),
@@ -607,7 +620,12 @@ function createProjectExportData(snapshot: ProjectSnapshot): ProjectExportData {
 		project: snapshot.project,
 		lyrics: snapshot.lyrics,
 		metrics: snapshot.metrics.map(
-			({ description, label, tone, value }: Metric): ExportableMetric => ({
+			({
+				description,
+				label,
+				tone,
+				value,
+			}: Metric): ExportableMetric => ({
 				description,
 				label,
 				tone,
@@ -623,7 +641,11 @@ function createProjectExportData(snapshot: ProjectSnapshot): ProjectExportData {
 }
 
 function downloadProjectExport(snapshot: ProjectSnapshot): void {
-	const exportJson = JSON.stringify(createProjectExportData(snapshot), null, 2);
+	const exportJson = JSON.stringify(
+		createProjectExportData(snapshot),
+		null,
+		2,
+	);
 	const exportBlob = new Blob([exportJson], {
 		type: "application/json;charset=utf-8",
 	});
@@ -761,7 +783,19 @@ function CollaboratorsCard(): ReactElement {
 								className="grid min-h-9 grid-cols-[1.2fr_1fr_1.3fr_24px] items-center text-[11px]"
 							>
 								<div className="flex min-w-0 items-center gap-2">
-									<Avatar tone={collaborator.roleTone === "owner" ? "pink" : collaborator.roleTone === "editor" ? "blue" : collaborator.roleTone === "commenter" ? "violet" : "green"}>
+									<Avatar
+										tone={
+											collaborator.roleTone === "owner"
+												? "pink"
+												: collaborator.roleTone ===
+													  "editor"
+													? "blue"
+													: collaborator.roleTone ===
+														  "commenter"
+														? "violet"
+														: "green"
+										}
+									>
 										{collaborator.avatar}
 									</Avatar>
 									<span className="truncate font-medium text-[var(--nara-text-primary)]">
@@ -799,7 +833,11 @@ function CollaboratorsCard(): ReactElement {
 	);
 }
 
-function StatusBadge({ status }: { status: SectionStatus["status"] }): ReactElement {
+function StatusBadge({
+	status,
+}: {
+	status: SectionStatus["status"];
+}): ReactElement {
 	const label =
 		status === "validated"
 			? "Valide"
@@ -924,9 +962,14 @@ function ParticipationCard(): ReactElement {
 			<div className="mt-5 space-y-2.5">
 				{participation.map(
 					(item: Participation): ReactElement => (
-						<div key={item.name} className="grid grid-cols-[56px_1fr_auto] items-center gap-3">
+						<div
+							key={item.name}
+							className="grid grid-cols-[56px_1fr_auto] items-center gap-3"
+						>
 							<div className="flex min-w-0 items-center gap-2">
-								<Avatar tone={item.tone}>{item.initials}</Avatar>
+								<Avatar tone={item.tone}>
+									{item.initials}
+								</Avatar>
 								<span className="truncate text-[12px] font-medium text-[var(--nara-text-primary)]">
 									{item.name}
 								</span>
@@ -953,37 +996,35 @@ function SettingsCard(): ReactElement {
 		<DashboardCard className="h-full p-3">
 			<CardHeader>Parametres du projet</CardHeader>
 			<div className="mt-4 grid gap-1">
-				{projectSettings.map(
-					(item: ProjectSetting): ReactElement => {
-						const Icon = item.icon;
+				{projectSettings.map((item: ProjectSetting): ReactElement => {
+					const Icon = item.icon;
 
-						return (
-							<button
-								key={item.label}
-								type="button"
-								className="grid min-h-9 grid-cols-[22px_minmax(0,1fr)_16px] items-center gap-2 rounded-[5px] px-1.5 text-left transition-colors hover:bg-[var(--nara-action-hover)]"
-							>
-								<Icon
-									size={15}
-									className="text-[var(--nara-text-primary)]"
-									strokeWidth={1.8}
-								/>
-								<span className="min-w-0">
-									<span className="block truncate text-[12px] font-semibold leading-4 text-[var(--nara-text-primary)]">
-										{item.label}
-									</span>
-									<span className="block truncate text-[10px] font-medium text-[var(--nara-text-secondary)]">
-										{item.description}
-									</span>
+					return (
+						<button
+							key={item.label}
+							type="button"
+							className="grid min-h-9 grid-cols-[22px_minmax(0,1fr)_16px] items-center gap-2 rounded-[5px] px-1.5 text-left transition-colors hover:bg-[var(--nara-action-hover)]"
+						>
+							<Icon
+								size={15}
+								className="text-[var(--nara-text-primary)]"
+								strokeWidth={1.8}
+							/>
+							<span className="min-w-0">
+								<span className="block truncate text-[12px] font-semibold leading-4 text-[var(--nara-text-primary)]">
+									{item.label}
 								</span>
-								<ChevronRight
-									size={15}
-									className="text-[var(--nara-text-secondary)]"
-								/>
-							</button>
-						);
-					},
-				)}
+								<span className="block truncate text-[10px] font-medium text-[var(--nara-text-secondary)]">
+									{item.description}
+								</span>
+							</span>
+							<ChevronRight
+								size={15}
+								className="text-[var(--nara-text-secondary)]"
+							/>
+						</button>
+					);
+				})}
 			</div>
 		</DashboardCard>
 	);
@@ -1004,7 +1045,9 @@ function QuickActionsCard({
 
 	function handleExportProject(): void {
 		const latestSnapshot = createCurrentProjectSnapshot();
-		const exportSnapshot = latestSnapshot.lyrics.document ? latestSnapshot : snapshot;
+		const exportSnapshot = latestSnapshot.lyrics.document
+			? latestSnapshot
+			: snapshot;
 
 		downloadProjectExport(exportSnapshot);
 		onSnapshotChange(exportSnapshot);
@@ -1106,7 +1149,9 @@ function QuickActionsCard({
 						className="flex h-10 items-center justify-center gap-2 rounded-[5px] border border-[var(--nara-border)] bg-[var(--nara-surface-raised)] text-[11px] font-semibold text-[var(--nara-text-primary)] transition-colors hover:bg-[var(--nara-action-hover)]"
 					>
 						<Download size={14} />
-						{exportState === "exported" ? "Export pret" : "Exporter le projet"}
+						{exportState === "exported"
+							? "Export pret"
+							: "Exporter le projet"}
 					</button>
 				</div>
 				<div className="grid grid-cols-1 gap-3">

@@ -2072,7 +2072,7 @@ export function SectionAddMenu({
 	onAddLine: () => void;
 }): ReactElement {
 	return (
-		<div className="absolute left-8 top-5 z-30 w-[214px] rounded-[18px] border border-[#5A5A63] bg-[#2B2B31] px-4 py-5 shadow-[0_18px_36px_rgba(0,0,0,0.35)]">
+		<div className="section-menu-container w-[214px] rounded-[18px] border border-[#5A5A63] bg-[#2B2B31] px-4 py-5 shadow-[0_18px_36px_rgba(0,0,0,0.35)]">
 			<div className="grid gap-2">
 				{editableSectionKinds.map(
 					(kind: Exclude<SectionKind, "untitled">): ReactElement => (
@@ -2116,7 +2116,7 @@ export function SectionOptionsMenu({
 	const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
 
 	return (
-		<div className="absolute left-8 top-5 z-30 flex items-start gap-3">
+		<div className="section-menu-container flex items-start gap-3">
 			<div className="w-[216px] rounded-[18px] border border-[#5A5A63] bg-[#2B2B31] px-4 py-4 shadow-[0_18px_36px_rgba(0,0,0,0.35)]">
 				<div className="grid gap-1">
 					{sectionMenuToggleOrder.map(
@@ -2428,6 +2428,44 @@ export default function LyricsEditorWorkspace({
 	const [remotePresencesBySessionId, setRemotePresencesBySessionId] =
 		useState<RemotePresenceBySessionId>({});
 	const presenceSessionIdRef = useRef<string>(createPresenceSessionId());
+
+	useEffect((): (() => void) | undefined => {
+		if (!openOptionsMenuSectionId && !openAddMenuSectionId) {
+			return undefined;
+		}
+
+		function handlePointerDown(event: globalThis.PointerEvent): void {
+			const target: EventTarget | null = event.target;
+
+			if (!(target instanceof Element)) {
+				return;
+			}
+
+			if (
+				!target.closest(".section-menu-container") &&
+				!target.closest("[aria-label='Options et deplacement de la section']") &&
+				!target.closest("[aria-label='Ajouter section']")
+			) {
+				setOpenOptionsMenuSectionId(null);
+				setOpenAddMenuSectionId(null);
+			}
+		}
+
+		function handleKeyDown(event: globalThis.KeyboardEvent): void {
+			if (event.key === "Escape") {
+				setOpenOptionsMenuSectionId(null);
+				setOpenAddMenuSectionId(null);
+			}
+		}
+
+		document.addEventListener("pointerdown", handlePointerDown);
+		document.addEventListener("keydown", handleKeyDown);
+
+		return (): void => {
+			document.removeEventListener("pointerdown", handlePointerDown);
+			document.removeEventListener("keydown", handleKeyDown);
+		};
+	}, [openOptionsMenuSectionId, openAddMenuSectionId]);
 	const presenceChannelRef = useRef<BroadcastChannel | null>(null);
 	const presenceDocumentRef = useRef<TipTapLyricsDocument>(document);
 	const presenceActiveLineIdRef = useRef<string | null>(activeLineId);
@@ -2812,7 +2850,7 @@ export default function LyricsEditorWorkspace({
 		});
 	}
 
-	function handleSave(): void {
+	function handleSave(isCheckpoint: boolean = false): void {
 		const storage = getClientStorage();
 		const savedDocument: TipTapLyricsDocument = {
 			...document,
@@ -2825,7 +2863,32 @@ export default function LyricsEditorWorkspace({
 		setIsDirty(false);
 		setSaveState("saved");
 		window.setTimeout((): void => setSaveState("idle"), 1400);
+
+		// Sauvegarde en arrière-plan (BDD)
+		const payload: any = {
+			projectId: "demo-project", // À remplacer par l'ID réel via router/props
+			content: savedDocument,
+		};
+
+		if (isCheckpoint) {
+			payload.name = `Version du ${new Date().toLocaleString('fr-FR')}`;
+		}
+
+		fetch("/api/projects/save", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(payload),
+		}).catch(err => console.error("Save failed", err));
 	}
+
+	// Auto-save toutes les 5 secondes en cas de modifications non sauvegardées
+	useEffect(() => {
+		if (!isDirty) return;
+		const timer = setTimeout(() => {
+			handleSave(false);
+		}, 5000);
+		return () => clearTimeout(timer);
+	}, [document, isDirty]);
 
 	function handleToggle(key: EditorToggleKey): void {
 		setToggles((currentToggles: EditorToggle[]): EditorToggle[] =>
@@ -3662,7 +3725,7 @@ export default function LyricsEditorWorkspace({
 									: lineGridStyle
 							}
 						>
-							{!format.focusMode && (
+							{!format.focusMode && !isAlternative && (
 								<button
 									type="button"
 									aria-label="Numero de ligne et deplacer ligne"
@@ -4004,7 +4067,7 @@ export default function LyricsEditorWorkspace({
 								</h1>
 								<button
 									type="button"
-									onClick={handleSave}
+									onClick={() => handleSave(true)}
 									className="inline-flex h-6 items-center gap-1.5 rounded-[4px] border border-[#2C2C32] px-2 text-[10px] font-semibold text-[#F3F4F6] transition-colors hover:border-[#4A4A52] hover:bg-[#1C1C22]"
 								>
 									<Save size={12} strokeWidth={1.8} />
@@ -4172,10 +4235,6 @@ export default function LyricsEditorWorkspace({
 																section.id
 																	? 0
 																	: 1,
-															pointerEvents:
-																draggedSectionId
-																	? "none"
-																	: "auto",
 														}}
 													>
 														{/* Section title/picker at the top: small grey label above lyrics */}
@@ -4561,10 +4620,6 @@ export default function LyricsEditorWorkspace({
 															section.id
 																? 0
 																: 1,
-														pointerEvents:
-															draggedSectionId
-																? "none"
-																: "auto",
 													}}
 												>
 													{isSideBySide ? (
@@ -4572,38 +4627,66 @@ export default function LyricsEditorWorkspace({
 															{/* Column 1: Base Lyrics */}
 															<div>
 																<div className="buttons mb-2 flex h-auto flex-row items-center gap-2">
-																	<button
-																		type="button"
-																		aria-expanded={
-																			openAddMenuSectionId ===
-																			section.id
-																		}
-																		onClick={(): void =>
-																			handleToggleAddMenu(
-																				section.id,
-																			)
-																		}
-																		className={`inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded-[5px] text-[#38383C] transition-opacity duration-150 hover:bg-[#202027] hover:text-[#F3F4F6] ${
-																			openAddMenuSectionId ===
-																				section.id ||
-																			openOptionsMenuSectionId ===
+																	<div className="relative inline-flex">
+																		<button
+																			type="button"
+																			aria-label="Ajouter section"
+																			aria-expanded={
+																				openAddMenuSectionId ===
 																				section.id
-																				? "opacity-100"
-																				: "opacity-0 group-hover:opacity-100"
-																		}`}
-																	>
-																		<Plus
-																			size={
-																				20
 																			}
-																			strokeWidth={
-																				1.8
+																			onClick={(): void =>
+																				handleToggleAddMenu(
+																					section.id,
+																				)
 																			}
-																		/>
-																	</button>
-																	<button
-																		type="button"
-																		aria-label="Options et deplacement de la section"
+																			className={`inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded-[5px] text-[#38383C] transition-opacity duration-150 hover:bg-[#202027] hover:text-[#F3F4F6] ${
+																				openAddMenuSectionId ===
+																					section.id ||
+																				openOptionsMenuSectionId ===
+																					section.id
+																					? "opacity-100"
+																					: "opacity-0 group-hover:opacity-100"
+																			}`}
+																		>
+																			<Plus
+																				size={
+																					20
+																				}
+																				strokeWidth={
+																					1.8
+																				}
+																			/>
+																		</button>
+																		{!format.focusMode &&
+																			openAddMenuSectionId ===
+																				section.id && (
+																				<div className="absolute left-0 top-full z-50 mt-1">
+																					<SectionAddMenu
+																						onAddSection={(
+																							kind: SectionKind,
+																						): void => {
+																							handleAddSection(
+																								section.id,
+																								kind,
+																							);
+																						}}
+																						onAddLine={(): void => {
+																							handleAddLine(
+																								section.id,
+																							);
+																							setOpenAddMenuSectionId(
+																								null,
+																							);
+																						}}
+																					/>
+																				</div>
+																			)}
+																	</div>
+																	<div className="relative inline-flex">
+																		<button
+																			type="button"
+																			aria-label="Options et deplacement de la section"
 																		aria-expanded={
 																			openOptionsMenuSectionId ===
 																			section.id
@@ -4700,6 +4783,46 @@ export default function LyricsEditorWorkspace({
 																			}
 																		/>
 																	</button>
+																	{!format.focusMode &&
+																		openOptionsMenuSectionId ===
+																			section.id && (
+																			<div className="absolute left-0 top-full z-50 mt-1">
+																				<SectionOptionsMenu
+																					options={getSectionOptions(
+																						section.id,
+																					)}
+																					onToggleOption={(
+																						key: SectionOptionKey,
+																					): void => {
+																						handleToggleSectionOption(
+																							section.id,
+																							key,
+																						);
+																					}}
+																					onCreateAlternative={(): void =>
+																						handleCreateSectionAlternative(
+																							section.id,
+																						)
+																					}
+																					onDuplicate={(): void =>
+																						handleDuplicateSection(
+																							section.id,
+																						)
+																					}
+																					onDelete={(): void =>
+																						handleDeleteSection(
+																							section.id,
+																						)
+																					}
+																					onValidate={(): void =>
+																						setOpenOptionsMenuSectionId(
+																							null,
+																						)
+																					}
+																				/>
+																			</div>
+																		)}
+																</div>
 																	<span
 																		className="h-2.5 w-2.5 rounded-full"
 																		style={{
@@ -4781,65 +4904,7 @@ export default function LyricsEditorWorkspace({
 																	/>
 																</div>
 
-																{!format.focusMode &&
-																	openAddMenuSectionId ===
-																		section.id && (
-																		<SectionAddMenu
-																			onAddSection={(
-																				kind: SectionKind,
-																			): void => {
-																				handleAddSection(
-																					section.id,
-																					kind,
-																				);
-																			}}
-																			onAddLine={(): void => {
-																				handleAddLine(
-																					section.id,
-																				);
-																				setOpenAddMenuSectionId(
-																					null,
-																				);
-																			}}
-																		/>
-																	)}
-																{!format.focusMode &&
-																	openOptionsMenuSectionId ===
-																		section.id && (
-																		<SectionOptionsMenu
-																			options={getSectionOptions(
-																				section.id,
-																			)}
-																			onToggleOption={(
-																				key: SectionOptionKey,
-																			): void => {
-																				handleToggleSectionOption(
-																					section.id,
-																					key,
-																				);
-																			}}
-																			onCreateAlternative={(): void =>
-																				handleCreateSectionAlternative(
-																					section.id,
-																				)
-																			}
-																			onDuplicate={(): void =>
-																				handleDuplicateSection(
-																					section.id,
-																				)
-																			}
-																			onDelete={(): void =>
-																				handleDeleteSection(
-																					section.id,
-																				)
-																			}
-																			onValidate={(): void =>
-																				setOpenOptionsMenuSectionId(
-																					null,
-																				)
-																			}
-																		/>
-																	)}
+																{/* Menus were moved inside relative wrappers */}
 
 																{renderSectionTextZone(
 																	section,
@@ -4951,9 +5016,6 @@ export default function LyricsEditorWorkspace({
 															<div>
 																<div
 																	className="mb-2 flex h-6 items-center"
-																	style={{
-																		paddingLeft: `${lineNumberColumnWidth + 8}px`,
-																	}}
 																>
 																	<span className="text-[13px] font-medium text-[#6F6F78]">
 																		{
@@ -4974,9 +5036,6 @@ export default function LyricsEditorWorkspace({
 
 																<div
 																	className="mt-2 flex items-center gap-2 px-4"
-																	style={{
-																		paddingLeft: `${lineNumberColumnWidth + 24}px`,
-																	}}
 																>
 																	<button
 																		type="button"
@@ -5004,65 +5063,7 @@ export default function LyricsEditorWorkspace({
 														</div>
 													) : (
 														<>
-															{!format.focusMode &&
-																openAddMenuSectionId ===
-																	section.id && (
-																	<SectionAddMenu
-																		onAddSection={(
-																			kind: SectionKind,
-																		): void => {
-																			handleAddSection(
-																				section.id,
-																				kind,
-																			);
-																		}}
-																		onAddLine={(): void => {
-																			handleAddLine(
-																				section.id,
-																			);
-																			setOpenAddMenuSectionId(
-																				null,
-																			);
-																		}}
-																	/>
-																)}
-															{!format.focusMode &&
-																openOptionsMenuSectionId ===
-																	section.id && (
-																	<SectionOptionsMenu
-																		options={getSectionOptions(
-																			section.id,
-																		)}
-																		onToggleOption={(
-																			key: SectionOptionKey,
-																		): void => {
-																			handleToggleSectionOption(
-																				section.id,
-																				key,
-																			);
-																		}}
-																		onCreateAlternative={(): void =>
-																			handleCreateSectionAlternative(
-																				section.id,
-																			)
-																		}
-																		onDuplicate={(): void =>
-																			handleDuplicateSection(
-																				section.id,
-																			)
-																		}
-																		onDelete={(): void =>
-																			handleDeleteSection(
-																				section.id,
-																			)
-																		}
-																		onValidate={(): void =>
-																			setOpenOptionsMenuSectionId(
-																				null,
-																			)
-																		}
-																	/>
-																)}
+															{/* Menus were moved inside relative wrappers */}
 															<div className="buttons mb-2 flex h-auto flex-row items-center gap-2">
 																{format.focusMode && (
 																	<div className="absolute left-0 top-0 flex h-5 w-8 items-center justify-center text-[11px] font-medium text-[#D6D6DD]">
@@ -5073,37 +5074,65 @@ export default function LyricsEditorWorkspace({
 																)}
 																{!format.focusMode && (
 																	<>
-																		<button
-																			type="button"
-																			aria-expanded={
-																				openAddMenuSectionId ===
-																				section.id
-																			}
-																			onClick={(): void =>
-																				handleToggleAddMenu(
-																					section.id,
-																				)
-																			}
-																			className={`inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded-[5px] text-[#38383C] transition-opacity duration-150 hover:bg-[#202027] hover:text-[#F3F4F6] ${
-																				openAddMenuSectionId ===
-																					section.id ||
-																				openOptionsMenuSectionId ===
+																		<div className="relative inline-flex">
+																			<button
+																				type="button"
+																				aria-label="Ajouter section"
+																				aria-expanded={
+																					openAddMenuSectionId ===
 																					section.id
-																					? "opacity-100"
-																					: "opacity-0 group-hover:opacity-100"
-																			}`}
-																		>
-																			<Plus
-																				size={
-																					20
 																				}
-																				strokeWidth={
-																					1.8
+																				onClick={(): void =>
+																					handleToggleAddMenu(
+																						section.id,
+																					)
 																				}
-																			/>
-																		</button>
-																		<button
-																			type="button"
+																				className={`inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded-[5px] text-[#38383C] transition-opacity duration-150 hover:bg-[#202027] hover:text-[#F3F4F6] ${
+																					openAddMenuSectionId ===
+																						section.id ||
+																					openOptionsMenuSectionId ===
+																						section.id
+																						? "opacity-100"
+																						: "opacity-0 group-hover:opacity-100"
+																				}`}
+																			>
+																				<Plus
+																					size={
+																						20
+																					}
+																					strokeWidth={
+																						1.8
+																					}
+																				/>
+																			</button>
+																			{!format.focusMode &&
+																				openAddMenuSectionId ===
+																					section.id && (
+																					<div className="absolute left-0 top-full z-50 mt-1">
+																						<SectionAddMenu
+																							onAddSection={(
+																								kind: SectionKind,
+																							): void => {
+																								handleAddSection(
+																									section.id,
+																									kind,
+																								);
+																							}}
+																							onAddLine={(): void => {
+																								handleAddLine(
+																									section.id,
+																								);
+																								setOpenAddMenuSectionId(
+																									null,
+																								);
+																							}}
+																						/>
+																					</div>
+																				)}
+																		</div>
+																		<div className="relative inline-flex">
+																			<button
+																				type="button"
 																			aria-label="Options et deplacement de la section"
 																			aria-expanded={
 																				openOptionsMenuSectionId ===
@@ -5201,6 +5230,46 @@ export default function LyricsEditorWorkspace({
 																				}
 																			/>
 																		</button>
+																		{!format.focusMode &&
+																			openOptionsMenuSectionId ===
+																				section.id && (
+																				<div className="absolute left-0 top-full z-50 mt-1">
+																					<SectionOptionsMenu
+																						options={getSectionOptions(
+																							section.id,
+																						)}
+																						onToggleOption={(
+																							key: SectionOptionKey,
+																						): void => {
+																							handleToggleSectionOption(
+																								section.id,
+																								key,
+																							);
+																						}}
+																						onCreateAlternative={(): void =>
+																							handleCreateSectionAlternative(
+																								section.id,
+																							)
+																						}
+																						onDuplicate={(): void =>
+																							handleDuplicateSection(
+																								section.id,
+																							)
+																						}
+																						onDelete={(): void =>
+																							handleDeleteSection(
+																								section.id,
+																							)
+																						}
+																						onValidate={(): void =>
+																							setOpenOptionsMenuSectionId(
+																								null,
+																							)
+																						}
+																					/>
+																				</div>
+																			)}
+																	</div>
 																		<span
 																			className="h-2.5 w-2.5 rounded-full"
 																			style={{
