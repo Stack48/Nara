@@ -1,3 +1,9 @@
+import { SharedFiles } from "@/components/library/SharedFiles";
+
 export default function SharedWithMePage() {
-	return <h1 className="text-2xl font-bold">Shared with me</h1>;
+	return (
+		<div className="h-full w-full overflow-y-auto p-4">
+			<SharedFiles />
+		</div>
+	);
 }

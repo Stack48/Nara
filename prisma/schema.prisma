@@ -58,15 +58,35 @@ model Project {
   genre       String?
   status      String   @default("DRAFT")
   ownerId     String
+  content     String?  // Auto-saved content
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   owner       User            @relation("OwnedProjects", fields: [ownerId], references: [id], onDelete: Cascade)
   members     ProjectMember[]
   invitations Invitation[]
-  lyrics      Lyrics[]
-  files       File[]
-  labelCopies LabelCopy[]
+  versions    ProjectVersion[]
+}
+
+model ProjectVersion {
+  id          String   @id @default(cuid())
+  name        String?  // Ex: "V1 - Premier jet"
+  content     String   // Le JSON du document ou texte
+  createdAt   DateTime @default(now())
+
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model WordSuggestion {
+  id               String   @id @default(cuid())
+  word             String   @unique
+  description      String
+  synonyms         String?
+  antonyms         String?
+  isVerifiedByNara Boolean  @default(false)
+  status           String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt        DateTime @default(now())
 }
 
 model ProjectMember {

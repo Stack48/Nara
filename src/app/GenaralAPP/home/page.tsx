@@ -1,3 +1,9 @@
+import { Dashboard } from "@/components/dashboard/Dashboard";
+
 export default function Home() {
-	return <h1 className="text-2xl font-bold">HomePage</h1>;
+	return (
+		<div className="w-full h-full overflow-y-auto p-4">
+			<Dashboard />
+		</div>
+	);
 }

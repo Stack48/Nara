@@ -1,3 +1,9 @@
+import { Deleted } from "@/components/library/Deleted";
+
 export default function DeletedPage() {
-	return <h1 className="text-2xl font-bold">Deleted</h1>;
+	return (
+		<div className="w-full h-full overflow-y-auto p-4">
+			<Deleted />
+		</div>
+	);
 }

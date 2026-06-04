@@ -2043,7 +2043,7 @@ function SectionAddMenu({
 	onAddLine: () => void;
 }): ReactElement {
 	return (
-		<div className="absolute left-8 top-5 z-30 w-[214px] rounded-[18px] border border-[#5A5A63] bg-[#2B2B31] px-4 py-5 shadow-[0_18px_36px_rgba(0,0,0,0.35)]">
+		<div className="section-menu-container w-[214px] rounded-[18px] border border-[#5A5A63] bg-[#2B2B31] px-4 py-5 shadow-[0_18px_36px_rgba(0,0,0,0.35)]">
 			<div className="grid gap-2">
 				{editableSectionKinds.map(
 					(kind: Exclude<SectionKind, "untitled">): ReactElement => (
@@ -2087,7 +2087,7 @@ function SectionOptionsMenu({
 	const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
 
 	return (
-		<div className="absolute left-8 top-5 z-30 flex items-start gap-3">
+		<div className="section-menu-container flex items-start gap-3">
 			<div className="w-[216px] rounded-[18px] border border-[#5A5A63] bg-[#2B2B31] px-4 py-4 shadow-[0_18px_36px_rgba(0,0,0,0.35)]">
 				<div className="grid gap-1">
 					{sectionMenuToggleOrder.map(
@@ -3025,6 +3025,46 @@ export default function LyricsEditorWorkspaceTiptap({
 	const [remotePresencesBySessionId, setRemotePresencesBySessionId] =
 		useState<RemotePresenceBySessionId>({});
 	const presenceSessionIdRef = useRef<string>(createPresenceSessionId());
+
+	useEffect((): (() => void) | undefined => {
+		if (!openOptionsMenuSectionId && !openAddMenuSectionId) {
+			return undefined;
+		}
+
+		function handlePointerDown(event: globalThis.PointerEvent): void {
+			const target: EventTarget | null = event.target;
+
+			if (!(target instanceof Element)) {
+				return;
+			}
+
+			if (
+				!target.closest(".section-menu-container") &&
+				!target.closest(
+					"[aria-label='Options et deplacement de la section']",
+				) &&
+				!target.closest("[aria-label='Ajouter section']")
+			) {
+				setOpenOptionsMenuSectionId(null);
+				setOpenAddMenuSectionId(null);
+			}
+		}
+
+		function handleKeyDown(event: globalThis.KeyboardEvent): void {
+			if (event.key === "Escape") {
+				setOpenOptionsMenuSectionId(null);
+				setOpenAddMenuSectionId(null);
+			}
+		}
+
+		document.addEventListener("pointerdown", handlePointerDown);
+		document.addEventListener("keydown", handleKeyDown);
+
+		return (): void => {
+			document.removeEventListener("pointerdown", handlePointerDown);
+			document.removeEventListener("keydown", handleKeyDown);
+		};
+	}, [openOptionsMenuSectionId, openAddMenuSectionId]);
 	const presenceChannelRef = useRef<BroadcastChannel | null>(null);
 	const presenceDocumentRef = useRef<TipTapLyricsDocument>(document);
 	const presenceActiveLineIdRef = useRef<string | null>(activeLineId);
@@ -3747,7 +3787,7 @@ export default function LyricsEditorWorkspaceTiptap({
 		});
 	}
 
-	function handleSave(): void {
+	function handleSave(isCheckpoint: boolean = false): void {
 		const storage = getClientStorage();
 		const savedDocument: TipTapLyricsDocument = {
 			...document,
@@ -3760,7 +3800,32 @@ export default function LyricsEditorWorkspaceTiptap({
 		setIsDirty(false);
 		setSaveState("saved");
 		window.setTimeout((): void => setSaveState("idle"), 1400);
+
+		// Sauvegarde en arrière-plan (BDD)
+		const payload: any = {
+			projectId: "demo-project", // À remplacer par l'ID réel via router/props
+			content: savedDocument,
+		};
+
+		if (isCheckpoint) {
+			payload.name = `Version du ${new Date().toLocaleString("fr-FR")}`;
+		}
+
+		fetch("/api/projects/save", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(payload),
+		}).catch((err) => console.error("Save failed", err));
 	}
+
+	// Auto-save toutes les 5 secondes en cas de modifications non sauvegardées
+	useEffect(() => {
+		if (!isDirty) return;
+		const timer = setTimeout(() => {
+			handleSave(false);
+		}, 5000);
+		return () => clearTimeout(timer);
+	}, [document, isDirty]);
 
 	function handleToggle(key: EditorToggleKey): void {
 		setToggles((currentToggles: EditorToggle[]): EditorToggle[] =>
@@ -4502,7 +4567,7 @@ export default function LyricsEditorWorkspaceTiptap({
 								</h1>
 								<button
 									type="button"
-									onClick={handleSave}
+									onClick={() => handleSave(true)}
 									className="inline-flex h-6 items-center gap-1.5 rounded-[4px] border border-[#2C2C32] px-2 text-[10px] font-semibold text-[#F3F4F6] transition-colors hover:border-[#4A4A52] hover:bg-[#1C1C22]"
 								>
 									<Save size={12} strokeWidth={1.8} />
