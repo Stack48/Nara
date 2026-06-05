@@ -14,9 +14,6 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: result.error }, { status: 404 });
         }
 
-        // TODO: envoyer l'email avec le lien
-        // Le lien sera : /reset-password?token=result.token
-        console.log(`Reset link: ${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${result.token}`);
 
         return NextResponse.json({ success: true });
     } catch (error) {
