@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/rbac";
-import { addMemberSchema, updateRoleSchema } from "@/schemas/projectMember.schema";
+import { addMemberSchema } from "@/schemas/projectMember.schema";
+import { updateRoleSchema } from "@/schemas/updateRole.schema";
 
 // GET — liste les membres d'un projet
 export async function getMembers(cognitoId: string, projectId: string) {
