@@ -14,18 +14,41 @@ enum Role {
   READONLY
 }
 
-model User {
-  id            String   @id @default(cuid())
-  cognitoId     String   @unique
-  email         String   @unique
-  name          String?
-  username      String?  @unique
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+enum SectionType {
+  COUPLET
+  REFRAIN
+  PONT
+  INTRO
+  OUTRO
+  BRIDGE
+}
 
-  memberships   ProjectMember[]
-  invitations   Invitation[]
-  ownedProjects Project[]       @relation("OwnedProjects")
+enum SuggestionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id             String   @id @default(cuid())
+  cognitoId      String   @unique @default("")
+  email          String   @unique
+  name           String?
+  username       String?  @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  memberships    ProjectMember[]
+  invitations    Invitation[]
+  ownedProjects  Project[]            @relation("OwnedProjects")
+  lyrics         Lyrics[]
+  suggestions    Suggestion[]
+  lyricVersions  LyricVersion[]
+  files          File[]
+  auditLogs      AuditLog[]
+  rgpdConsent    RgpdConsent?
+  markers        AudioMarker[]
+  passwordResets PasswordResetRequest[]
 }
 
 model Project {
@@ -41,6 +64,9 @@ model Project {
   owner       User            @relation("OwnedProjects", fields: [ownerId], references: [id], onDelete: Cascade)
   members     ProjectMember[]
   invitations Invitation[]
+  lyrics      Lyrics[]
+  files       File[]
+  labelCopies LabelCopy[]
 }
 
 model ProjectMember {
@@ -70,4 +96,130 @@ model Invitation {
   invitedBy String
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   inviter   User    @relation(fields: [invitedBy], references: [id])
+}
+
+model Lyrics {
+  id          String      @id @default(cuid())
+  title       String
+  content     Json
+  order       Int         @default(0)
+  sectionType SectionType @default(COUPLET)
+  projectId   String
+  authorId    String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  project     Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  author      User           @relation(fields: [authorId], references: [id])
+  suggestions Suggestion[]
+  versions    LyricVersion[]
+  markers     AudioMarker[]
+}
+
+model Suggestion {
+  id        String           @id @default(cuid())
+  content   Json
+  status    SuggestionStatus @default(PENDING)
+  lyricsId  String
+  authorId  String
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  lyrics    Lyrics @relation(fields: [lyricsId], references: [id], onDelete: Cascade)
+  author    User   @relation(fields: [authorId], references: [id])
+}
+
+model LyricVersion {
+  id        String   @id @default(cuid())
+  content   Json
+  version   Int
+  lyricsId  String
+  authorId  String
+  createdAt DateTime @default(now())
+
+  lyrics    Lyrics @relation(fields: [lyricsId], references: [id], onDelete: Cascade)
+  author    User   @relation(fields: [authorId], references: [id])
+}
+
+model File {
+  id           String   @id @default(cuid())
+  name         String
+  originalName String
+  mimeType     String
+  size         Int
+  s3Key        String   @unique
+  s3Bucket     String
+  projectId    String
+  uploadedBy   String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  project      Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploader     User          @relation(fields: [uploadedBy], references: [id])
+  markers      AudioMarker[]
+}
+
+model AudioMarker {
+  id        String   @id @default(cuid())
+  timecode  Float
+  label     String?
+  lyricsId  String
+  fileId    String
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lyrics    Lyrics   @relation(fields: [lyricsId], references: [id], onDelete: Cascade)
+  file      File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  creator   User     @relation(fields: [createdBy], references: [id])
+}
+
+model LabelCopy {
+  id            String    @id @default(cuid())
+  title         String
+  isrc          String?
+  composers     String[]
+  publishers    String[]
+  recordLabel   String?
+  releaseDate   DateTime?
+  projectId     String
+  bridgeAudioId String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  resource  String
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model RgpdConsent {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  accepted  Boolean
+  version   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PasswordResetRequest {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique @default(cuid())
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
