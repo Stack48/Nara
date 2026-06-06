@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-
 import { Role } from "@/schemas/updateRole.schema";
 
 // Hiérarchie des rôles
