@@ -9,9 +9,9 @@ datasource db {
 
 enum Role {
   ADMIN
-  LEAD_PAROLIER
-  PAROLIER
-  LECTURE_SEULE
+  LEAD_LYRICIST
+  LYRICIST
+  READONLY
 }
 
 enum SectionType {
@@ -30,23 +30,25 @@ enum SuggestionStatus {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  cognitoId     String   @unique
-  email         String   @unique
-  name          String?
-  username      String?  @unique
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id             String   @id @default(cuid())
+  cognitoId      String   @unique @default("")
+  email          String   @unique
+  name           String?
+  username       String?  @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  memberships   ProjectMember[]
-  invitations   Invitation[]
-  ownedProjects Project[]       @relation("OwnedProjects")
-  lyrics        Lyrics[]
-  suggestions   Suggestion[]
-  lyricVersions LyricVersion[]
-  files         File[]
-  auditLogs     AuditLog[]
-  rgpdConsent   RgpdConsent?
+  memberships    ProjectMember[]
+  invitations    Invitation[]
+  ownedProjects  Project[]            @relation("OwnedProjects")
+  lyrics         Lyrics[]
+  suggestions    Suggestion[]
+  lyricVersions  LyricVersion[]
+  files          File[]
+  auditLogs      AuditLog[]
+  rgpdConsent    RgpdConsent?
+  markers        AudioMarker[]
+  passwordResets PasswordResetRequest[]
 }
 
 model Project {
@@ -64,11 +66,12 @@ model Project {
   invitations Invitation[]
   lyrics      Lyrics[]
   files       File[]
+  labelCopies LabelCopy[]
 }
 
 model ProjectMember {
   id        String   @id @default(cuid())
-  role      Role     @default(PAROLIER)
+  role      Role     @default(LYRICIST)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -83,7 +86,7 @@ model ProjectMember {
 model Invitation {
   id        String   @id @default(cuid())
   email     String
-  role      Role     @default(PAROLIER)
+  role      Role     @default(LYRICIST)
   token     String   @unique @default(cuid())
   accepted  Boolean  @default(false)
   createdAt DateTime @default(now())
@@ -110,6 +113,7 @@ model Lyrics {
   author      User           @relation(fields: [authorId], references: [id])
   suggestions Suggestion[]
   versions    LyricVersion[]
+  markers     AudioMarker[]
 }
 
 model Suggestion {
@@ -150,8 +154,40 @@ model File {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  uploader     User     @relation(fields: [uploadedBy], references: [id])
+  project      Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploader     User          @relation(fields: [uploadedBy], references: [id])
+  markers      AudioMarker[]
+}
+
+model AudioMarker {
+  id        String   @id @default(cuid())
+  timecode  Float
+  label     String?
+  lyricsId  String
+  fileId    String
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lyrics    Lyrics   @relation(fields: [lyricsId], references: [id], onDelete: Cascade)
+  file      File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  creator   User     @relation(fields: [createdBy], references: [id])
+}
+
+model LabelCopy {
+  id            String    @id @default(cuid())
+  title         String
+  isrc          String?
+  composers     String[]
+  publishers    String[]
+  recordLabel   String?
+  releaseDate   DateTime?
+  projectId     String
+  bridgeAudioId String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model AuditLog {
@@ -173,6 +209,17 @@ model RgpdConsent {
   version   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PasswordResetRequest {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique @default(cuid())
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
