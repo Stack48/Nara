@@ -25,7 +25,7 @@ export async function GET(
   const { authorized } = await requireRole(
     cognitoId,
     params.id,
-    'LECTURE_SEULE',
+    'READONLY',
   );
   if (!authorized) return forbidden();
 
@@ -58,7 +58,7 @@ export async function PATCH(
   const { authorized } = await requireRole(
     cognitoId,
     params.id,
-    'LEAD_PAROLIER',
+    'LEAD_LYRICIST',
   );
   if (!authorized)
     return forbidden('Seul un Lead Parolier ou Admin peut modifier le projet');
@@ -84,16 +84,17 @@ export async function PATCH(
 // DELETE /api/projects/:id
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
+  const { id } = await params;
   const cognitoId = getCognitoId(request);
   if (!cognitoId) return unauthorized();
 
-  const { authorized } = await requireRole(cognitoId, params.id, 'ADMIN');
+  const { authorized } = await requireRole(cognitoId, id, 'ADMIN');
   if (!authorized) return forbidden('Seul un Admin peut supprimer un projet');
 
   await prisma.project.delete({
-    where: { id: params.id },
+    where: { id: id },
   });
 
   return NextResponse.json({ success: true });
