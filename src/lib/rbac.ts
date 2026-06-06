@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-
-export type Role = "ADMIN" | "LEAD_LYRICIST" | "LYRICIST" | "READONLY";
+import { Role } from "@/schemas/updateRole.schema";
 
 // Hiérarchie des rôles
 const ROLE_HIERARCHY: Record<Role, number> = {
