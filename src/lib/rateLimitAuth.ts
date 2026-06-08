@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { redis } from "@/server/redis.client";
 
-const WINDOW_MS = 60 * 1000; // 1 minute
+const WINDOW_MS = 60 * 1000;
 const MAX_REQUESTS = 10;
 
 export async function rateLimitAuth(request: NextRequest): Promise<NextResponse | null> {
@@ -10,7 +10,6 @@ export async function rateLimitAuth(request: NextRequest): Promise<NextResponse 
         "unknown";
 
     const key = `rate:auth:${ip}`;
-
     const current = await redis.incr(key);
 
     if (current === 1) {
