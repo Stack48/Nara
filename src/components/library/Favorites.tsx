@@ -8,8 +8,9 @@ import { useSongs, Song, renameSong } from "@/lib/songStore";
 import { useProjects, Project, renameProject } from "@/lib/projectStore";
 import { ProjectCard } from "./projectCard";
 import { SongCard } from "./songCard";
-import { ContextMenu } from "./ContextMenu";
+import { MenuContext } from "@/context/MenuContext";
 import { RenameModal } from "../modals/RenameModal";
+import { useSelection } from "@/context/SelectionContext";
 
 import {
     useLibrarySortAndFilter,
@@ -41,6 +42,8 @@ export const Favorites = () => {
         projectId: string;
         initialTitle: string;
     } | null>(null);
+
+    const { selectedIds, handleSelect } = useSelection();
 
     const allSongs = useSongs();
     const favoritesSongs = allSongs.filter(
@@ -116,6 +119,7 @@ export const Favorites = () => {
     );
 
     const totalFavoritesCount = filteredSongs.length + filteredProjects.length;
+    const combinedViewItems = [...filteredProjects, ...filteredSongs];
 
     return (
         <div className="w-full font-arimo text-white pb-10">
@@ -167,13 +171,15 @@ export const Favorites = () => {
                                         Projects ({filteredProjects.length})
                                     </h2>
                                     {viewMode === "grid" ? (
-                                        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
                                             {filteredProjects.map((project) => (
                                                 <ProjectCard
                                                     key={project.id}
                                                     project={project}
                                                     viewMode="grid"
                                                     context="favorite"
+                                                    isSelected={selectedIds.includes(project.id)}
+                                                    onSelect={(e) => handleSelect(project.id, "project", project, e, combinedViewItems)}
                                                     onContextMenu={(e) =>
                                                         handleProjectContextMenu(
                                                             e,
@@ -198,6 +204,8 @@ export const Favorites = () => {
                                                             filteredProjects.length -
                                                                 1
                                                         }
+                                                        isSelected={selectedIds.includes(project.id)}
+                                                        onSelect={(e) => handleSelect(project.id, "project", project, e, combinedViewItems)}
                                                         onContextMenu={(e) =>
                                                             handleProjectContextMenu(
                                                                 e,
@@ -228,6 +236,8 @@ export const Favorites = () => {
                                                     viewMode="grid"
                                                     context="favorite"
                                                     index={index}
+                                                    isSelected={selectedIds.includes(song.id)}
+                                                    onSelect={(e) => handleSelect(song.id, "song", song, e, combinedViewItems)}
                                                     onContextMenu={(e) =>
                                                         handleSongContextMenu(
                                                             e,
@@ -252,6 +262,8 @@ export const Favorites = () => {
                                                             filteredSongs.length -
                                                                 1
                                                         }
+                                                        isSelected={selectedIds.includes(song.id)}
+                                                        onSelect={(e) => handleSelect(song.id, "song", song, e, combinedViewItems)}
                                                         onContextMenu={(e) =>
                                                             handleSongContextMenu(
                                                                 e,
@@ -270,7 +282,7 @@ export const Favorites = () => {
             )}
 
             {songContextMenu && (
-                <ContextMenu
+                <MenuContext
                     x={songContextMenu.x}
                     y={songContextMenu.y}
                     itemType="song"
@@ -286,7 +298,7 @@ export const Favorites = () => {
             )}
 
             {projectContextMenu && (
-                <ContextMenu
+                <MenuContext
                     x={projectContextMenu.x}
                     y={projectContextMenu.y}
                     itemType="project"

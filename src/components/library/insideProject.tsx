@@ -5,11 +5,12 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useSongs, Song, renameSong } from "@/lib/songStore";
 import { getProjectTitle } from "@/lib/projectStore";
-import { ContextMenu } from "./ContextMenu";
+import { MenuContext } from "@/context/MenuContext";
 import { RenameModal } from "../modals/RenameModal";
 import { useLibrarySortAndFilter } from "@/hooks/useLibrarySortAndFilter";
 import { LibraryHeader } from "./LibraryHeader";
 import { SongCard } from "./songCard";
+import { useSelection } from "@/context/SelectionContext";
 
 export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
     const params = useParams();
@@ -29,6 +30,8 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
         songId: string;
         initialTitle: string;
     } | null>(null);
+
+    const { selectedIds, handleSelect } = useSelection();
 
     const songs = useSongs();
     const insideProjectList = songs.filter(
@@ -96,13 +99,20 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
             />
 
             {/* CONDITION D'AFFICHAGE SELON LE VIEWMODE */}
-            {sortedProjectList.length === 0 ? (
+            {sortedProjectList.length === 0 && searchQuery ? (
                 <div className="flex flex-col items-center justify-center py-20 text-neutral-500 border border-neutral-800/80 rounded-2xl bg-[#151515] border-dashed">
-                    <p>No tracks in this project yet.</p>
+                    <p>No tracks matching "{searchQuery}" in this project.</p>
                 </div>
             ) : viewMode === "grid" ? (
                 /* --- VUE GRILLE --- */
                 <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <SongCard
+                        viewMode="grid"
+                        context="insideProject"
+                        isCreatePlaceholder={true}
+                        projectId={projectId}
+                        projectName={displayTitle}
+                    />
                     {sortedProjectList.map((song, index) => (
                         <SongCard
                             key={song.id}
@@ -110,6 +120,8 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
                             viewMode="grid"
                             context="insideProject"
                             index={index}
+                            isSelected={selectedIds.includes(song.id)}
+                            onSelect={(e) => handleSelect(song.id, "song", song, e, sortedProjectList)}
                             onContextMenu={(e) => handleContextMenu(e, song)}
                         />
                     ))}
@@ -127,6 +139,13 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
 
                     {/* Lignes du tableau */}
                     <div className="flex flex-col">
+                        <SongCard
+                            viewMode="list"
+                            context="insideProject"
+                            isCreatePlaceholder={true}
+                            projectId={projectId}
+                            projectName={displayTitle}
+                        />
                         {sortedProjectList.map((song, index) => (
                             <SongCard
                                 key={song.id}
@@ -135,6 +154,8 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
                                 context="insideProject"
                                 index={index}
                                 isLast={index === sortedProjectList.length - 1}
+                                isSelected={selectedIds.includes(song.id)}
+                                onSelect={(e) => handleSelect(song.id, "song", song, e, sortedProjectList)}
                                 onContextMenu={(e) =>
                                     handleContextMenu(e, song)
                                 }
@@ -146,7 +167,7 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
 
             {/* Custom overlays for actions */}
             {contextMenu && (
-                <ContextMenu
+                <MenuContext
                     x={contextMenu.x}
                     y={contextMenu.y}
                     itemType="song"

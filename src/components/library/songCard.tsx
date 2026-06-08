@@ -2,10 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Play, Pause, Heart, RotateCcw, Trash2 } from "lucide-react";
+import { Play, Pause, Heart, RotateCcw, Trash2, Plus, Music } from "lucide-react";
 import { useAudioClick } from "@/hooks/useAudioClick";
 import { Song } from "@/lib/songStore";
 import { ALL_AVATARS, getOwnerAvatar } from "@/lib/avatars";
+import { useRouter } from "next/navigation";
+import { useRef } from "react";
 
 const formatDeletedTime = (timeStr: string) => {
     if (!timeStr) return "Deleted recently";
@@ -18,7 +20,7 @@ const formatDeletedTime = (timeStr: string) => {
 };
 
 export interface SongCardProps {
-    song: Song;
+    song?: Song;
     viewMode: "grid" | "list";
     context?:
         | "library"
@@ -27,24 +29,100 @@ export interface SongCardProps {
         | "favorite"
         | "recent"
         | "insideProject";
-    index: number;
+    index?: number;
     isLast?: boolean;
     onContextMenu?: React.MouseEventHandler;
     onRestore?: (id: string, title: string) => void;
     onPermanentDelete?: (id: string, title: string) => void;
+    isCreatePlaceholder?: boolean;
+    projectId?: string;
+    projectName?: string;
+    isSelected?: boolean;
+    onSelect?: (e: React.MouseEvent) => void;
 }
 
 export const SongCard = ({
     song,
     viewMode,
     context = "library",
-    index,
+    index = 0,
     isLast = false,
     onContextMenu,
     onRestore,
     onPermanentDelete,
+    isCreatePlaceholder = false,
+    projectId = "",
+    projectName = "",
+    isSelected = false,
+    onSelect,
 }: SongCardProps) => {
-    const { togglePlay, isPlaying } = useAudioClick(song.audioSrc || "", 30);
+    const router = useRouter();
+    const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const { togglePlay, isPlaying } = useAudioClick(song?.audioSrc || "", 30);
+
+    if (isCreatePlaceholder) {
+        const handleClick = () => {
+            window.dispatchEvent(
+                new CustomEvent("open-create-modal", {
+                    detail: {
+                        type: "song",
+                        projectId: projectId,
+                        projectName: projectName,
+                    },
+                }),
+            );
+        };
+
+        if (viewMode === "grid") {
+            return (
+                <button
+                    type="button"
+                    onClick={handleClick}
+                    className="bg-[#151515]/30 border border-dashed border-neutral-800 hover:border-[#D90097]/60 hover:bg-[#121212]/50 transition-all duration-300 rounded-2xl p-3 flex flex-col sm:flex-row gap-4 group cursor-pointer animate-in fade-in relative items-center text-left"
+                >
+                    {/* Cover Image Container Placeholder */}
+                    <div className="w-full aspect-square sm:w-32 sm:h-32 rounded-xl border border-dashed border-neutral-800/80 group-hover:border-[#D90097]/40 flex items-center justify-center flex-shrink-0 bg-[#171717]/50 transition-colors">
+                        <Plus
+                            size={24}
+                            className="text-neutral-500 group-hover:text-[#D90097] transition-colors"
+                        />
+                    </div>
+                    {/* Content Container */}
+                    <div className="flex flex-col flex-1 justify-center py-1.5">
+                        <h3 className="font-syne font-bold text-neutral-400 group-hover:text-white transition-colors text-base">
+                            New Song
+                        </h3>
+                        <p className="text-xs text-neutral-500 mt-1 font-medium font-arimo">
+                            Create a standalone track or add to project
+                        </p>
+                    </div>
+                </button>
+            );
+        }
+
+        // List View
+        return (
+            <button
+                type="button"
+                onClick={handleClick}
+                className="w-full grid grid-cols-12 gap-4 items-center p-3 rounded-xl border border-dashed border-neutral-800/80 hover:border-[#D90097]/60 hover:bg-[#121212]/50 transition-all duration-300 group cursor-pointer text-left mb-2"
+            >
+                <div className="col-span-12 flex items-center gap-4 pl-1">
+                    <div className="w-12 h-12 rounded-xl border border-dashed border-neutral-700/80 group-hover:border-[#D90097]/40 flex items-center justify-center bg-[#171717]/50 transition-colors">
+                        <Plus
+                            size={16}
+                            className="text-neutral-400 group-hover:text-[#D90097]"
+                        />
+                    </div>
+                    <span className="font-bold text-sm text-neutral-400 group-hover:text-white transition-colors font-syne">
+                        New Song
+                    </span>
+                </div>
+            </button>
+        );
+    }
+
+    if (!song) return null;
 
     const isDeletedView = context === "deleted";
     const isSharedView = context === "shared";
@@ -65,14 +143,56 @@ export const SongCard = ({
         );
     };
 
+    const handleClick = (e: React.MouseEvent) => {
+        if (isCreatePlaceholder) return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        const ctrlKey = e.ctrlKey || e.metaKey;
+        const metaKey = e.metaKey;
+        const shiftKey = e.shiftKey;
+
+        if (clickTimeoutRef.current) {
+            clearTimeout(clickTimeoutRef.current);
+            clickTimeoutRef.current = null;
+            return;
+        }
+
+        clickTimeoutRef.current = setTimeout(() => {
+            if (onSelect) {
+                onSelect({ ctrlKey, metaKey, shiftKey } as any);
+            }
+            clickTimeoutRef.current = null;
+        }, 200);
+    };
+
+    const handleDoubleClick = (e: React.MouseEvent) => {
+        if (isCreatePlaceholder) return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (clickTimeoutRef.current) {
+            clearTimeout(clickTimeoutRef.current);
+            clickTimeoutRef.current = null;
+        }
+
+        router.push(`/songs/${song.id}`);
+    };
+
     // Grid View
     if (viewMode === "grid") {
         return (
             <div
-                className={`bg-[#151515] border border-neutral-800/80 hover:border-neutral-600 hover:bg-[#1a1a1a] transition-all duration-300 rounded-2xl p-3 flex flex-col sm:flex-row gap-4 group ${
+                onClick={handleClick}
+                onDoubleClick={handleDoubleClick}
+                className={`border transition-all duration-300 rounded-2xl p-3 flex flex-col sm:flex-row gap-4 group ${
+                    isSelected
+                        ? "bg-[#D90097]/5 border-[#D90097] shadow-[0_0_15px_rgba(217,0,151,0.15)]"
+                        : "bg-[#151515] border-neutral-800/80 hover:border-neutral-600 hover:bg-[#1a1a1a]"
+                } ${
                     isDeletedView
                         ? "cursor-context-menu"
-                        : "cursor-grab active:cursor-grabbing"
+                        : "cursor-grab active:cursor-grabbing song-card"
                 } animate-in fade-in relative`}
                 draggable={!isDeletedView}
                 onDragStart={handleDragStart}
@@ -80,18 +200,32 @@ export const SongCard = ({
             >
                 {/* Cover Image Container */}
                 <div className="w-full aspect-square sm:w-32 sm:h-32 rounded-xl overflow-hidden flex-shrink-0 relative cursor-pointer">
-                    <Image
-                        src={song.image}
-                        alt={song.title}
-                        fill
-                        className={`object-cover transition-transform duration-500 ${isPlaying ? "scale-105" : "group-hover:scale-105"}`}
-                        sizes="(max-width: 640px) 100vw, 128px"
-                    />
+                    {song.image ? (
+                        <Image
+                            src={song.image}
+                            alt={song.title}
+                            fill
+                            className={`object-cover transition-transform duration-500 ${isPlaying ? "scale-105" : "group-hover:scale-105"}`}
+                            sizes="(max-width: 640px) 100vw, 128px"
+                        />
+                    ) : (
+                        <div className="absolute inset-0 bg-gradient-to-br from-neutral-900 via-[#181818] to-neutral-950 flex items-center justify-center transition-all duration-500 group-hover:scale-105">
+                            <div className="relative flex items-center justify-center w-16 h-16 rounded-full bg-neutral-800/10 border border-neutral-800/30 group-hover:border-[#D90097]/20 group-hover:bg-[#D90097]/5 transition-all duration-500">
+                                <Music
+                                    size={28}
+                                    className="text-neutral-500 group-hover:text-[#D90097] transition-all duration-500"
+                                />
+                            </div>
+                        </div>
+                    )}
 
                     {/* Favorite badge */}
                     {song.isFavorite && (
                         <div className="absolute top-2 left-2 z-20 bg-black/60 backdrop-blur-sm p-1 rounded-full text-[#D90097]">
-                            <Heart size={12} className="fill-[#D90097]" />
+                            <Heart
+                                size={12}
+                                className=" text-red-500 fill-red-500"
+                            />
                         </div>
                     )}
 
@@ -101,7 +235,10 @@ export const SongCard = ({
                             className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-300 ${isPlaying ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
                         >
                             <button
-                                onClick={togglePlay}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    togglePlay();
+                                }}
                                 className={`w-10 h-10 rounded-full bg-[#D90097] flex items-center justify-center shadow-[0_0_15px_rgba(217,0,151,0.5)] transform hover:scale-105 transition-transform duration-200 ${isPlaying ? "animate-pulse" : ""}`}
                             >
                                 {isPlaying ? (
@@ -122,41 +259,15 @@ export const SongCard = ({
 
                 {/* Content Container */}
                 <div className="flex flex-col flex-1 justify-between py-1.5 relative sm:min-h-[128px]">
-                    {/* Actions overlay for deleted view */}
-                    {isDeletedView && (
-                        <div className="absolute top-0 right-0 flex gap-1.5 z-20">
-                            <button
-                                className="p-1.5 bg-[#151515]/90 border border-neutral-800 text-neutral-400 hover:text-[#D90097] hover:bg-neutral-800/90 rounded-lg transition-colors"
-                                title="Restaurer"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onRestore?.(song.id, song.title);
-                                }}
-                            >
-                                <RotateCcw size={12} />
-                            </button>
-                            <button
-                                className="p-1.5 bg-[#151515]/90 border border-neutral-800 text-neutral-400 hover:text-red-500 hover:bg-neutral-800/90 rounded-lg transition-colors"
-                                title="Supprimer définitivement"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onPermanentDelete?.(song.id, song.title);
-                                }}
-                            >
-                                <Trash2 size={12} />
-                            </button>
-                        </div>
-                    )}
-
                     {/* Vertical centering container for Title + Project */}
                     <div
-                        className={`flex-1 flex flex-col justify-center ${isDeletedView ? "pr-16" : ""}`}
+                        className="flex-1 flex flex-col justify-center"
                     >
                         <h3
                             className={`font-bold text-white line-clamp-2 leading-snug pr-2 ${
                                 isInsideProjectView
                                     ? "text-base mt-1"
-                                    : "text-[17px] sm:text-[18px] sm:pr-20"
+                                    : `text-[17px] sm:text-[18px] ${!isDeletedView ? "sm:pr-16" : ""}`
                             }`}
                         >
                             {song.title}
@@ -281,8 +392,8 @@ export const SongCard = ({
                     </div>
 
                     {/* State Badge in Top Right */}
-                    {!isDeletedView && (
-                        !isInsideProjectView ? (
+                    {!isDeletedView &&
+                        (!isInsideProjectView ? (
                             <span className="absolute top-0 right-0 border border-neutral-800 bg-neutral-900/50 text-neutral-400 text-[9px] px-1.5 py-0.5 rounded uppercase tracking-wider font-semibold">
                                 {song.state}
                             </span>
@@ -296,8 +407,7 @@ export const SongCard = ({
                             >
                                 {song.state}
                             </span>
-                        )
-                    )}
+                        ))}
                 </div>
             </div>
         );
@@ -305,7 +415,11 @@ export const SongCard = ({
 
     // --- VUE LISTE (TABLEAU) ---
     const listContent = (
-        <div className="grid grid-cols-12 gap-4 items-center p-2 rounded-xl hover:bg-[#151515] transition-colors group">
+        <div className={`grid grid-cols-12 gap-4 items-center p-2 rounded-xl transition-all duration-200 group ${
+            isSelected
+                ? "bg-[#D90097]/10 border border-[#D90097]/30 shadow-[0_0_10px_rgba(217,0,151,0.1)]"
+                : "hover:bg-[#151515]"
+        }`}>
             {/* Name + Image */}
             <div
                 className={`${
@@ -317,14 +431,21 @@ export const SongCard = ({
                 } flex items-center gap-4 pl-1`}
             >
                 <div className="relative w-14 h-14 flex-shrink-0 mt-1 mb-1">
-                    <div className="relative w-full h-full rounded-xl overflow-hidden shadow-lg border border-neutral-700 z-10">
-                        <Image
-                            src={song.image}
-                            alt={song.title}
-                            fill
-                            className="object-cover"
-                            sizes="56px"
-                        />
+                    <div className="relative w-full h-full rounded-xl overflow-hidden shadow-lg border border-neutral-700 z-10 bg-gradient-to-br from-neutral-900 to-neutral-950 flex items-center justify-center">
+                        {song.image ? (
+                            <Image
+                                src={song.image}
+                                alt={song.title}
+                                fill
+                                className="object-cover"
+                                sizes="56px"
+                            />
+                        ) : (
+                            <Music
+                                size={20}
+                                className="text-neutral-500 group-hover:text-[#D90097] transition-colors duration-300"
+                            />
+                        )}
                         {song.audioSrc && (
                             <div
                                 className={`absolute inset-0 bg-black/50 flex items-center justify-center transition-opacity duration-300 ${isPlaying ? "opacity-100" : "opacity-0 group-hover:opacity-100"} z-20`}
@@ -363,7 +484,7 @@ export const SongCard = ({
                         {song.isFavorite && (
                             <Heart
                                 size={12}
-                                className="text-[#D90097] fill-[#D90097] flex-shrink-0"
+                                className=" text-red-500 fill-red-500 flex-shrink-0"
                             />
                         )}
                     </div>
@@ -611,7 +732,9 @@ export const SongCard = ({
 
     return (
         <div
-            className={`flex flex-col ${isDeletedView ? "" : "cursor-grab active:cursor-grabbing"}`}
+            className={`flex flex-col song-card ${isDeletedView ? "" : "cursor-grab active:cursor-grabbing"}`}
+            onClick={handleClick}
+            onDoubleClick={handleDoubleClick}
             draggable={!isDeletedView}
             onDragStart={handleDragStart}
             onContextMenu={onContextMenu}

@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useSongs, Song } from "@/lib/songStore";
 import { useProjects, Project } from "@/lib/projectStore";
-import { ContextMenu } from "./ContextMenu";
+import { MenuContext } from "@/context/MenuContext";
 import { LibraryHeader } from "./LibraryHeader";
+import { useSelection } from "@/context/SelectionContext";
 import {
     SortByOption,
     SortOrderOption,
@@ -26,6 +27,8 @@ export const SharedFiles = () => {
         project?: Project;
         itemType: "song" | "project";
     } | null>(null);
+
+    const { selectedIds, handleSelect } = useSelection();
 
     const allSongs = useSongs();
     const sharedList = allSongs.filter(
@@ -84,6 +87,7 @@ export const SharedFiles = () => {
 
     const totalSharedCount =
         filteredShared.length + filteredSharedProjects.length;
+    const combinedViewItems = [...filteredSharedProjects, ...filteredShared];
 
     return (
         <div className="w-full font-arimo text-white pb-10">
@@ -141,7 +145,7 @@ export const SharedFiles = () => {
                                         Projects ({filteredSharedProjects.length})
                                     </h2>
                                     {viewMode === "grid" ? (
-                                        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
                                             {filteredSharedProjects.map(
                                                 (proj, index) => (
                                                     <ProjectCard
@@ -149,6 +153,8 @@ export const SharedFiles = () => {
                                                         project={proj}
                                                         viewMode="grid"
                                                         context="shared"
+                                                        isSelected={selectedIds.includes(proj.id)}
+                                                        onSelect={(e) => handleSelect(proj.id, "project", proj, e, combinedViewItems)}
                                                         onContextMenu={(e) =>
                                                             handleContextMenu(
                                                                 e,
@@ -176,6 +182,8 @@ export const SharedFiles = () => {
                                                                 filteredSharedProjects.length -
                                                                     1
                                                             }
+                                                            isSelected={selectedIds.includes(proj.id)}
+                                                            onSelect={(e) => handleSelect(proj.id, "project", proj, e, combinedViewItems)}
                                                             onContextMenu={(e) =>
                                                                 handleContextMenu(
                                                                     e,
@@ -208,6 +216,8 @@ export const SharedFiles = () => {
                                                     viewMode="grid"
                                                     context="shared"
                                                     index={index}
+                                                    isSelected={selectedIds.includes(file.id)}
+                                                    onSelect={(e) => handleSelect(file.id, "song", file, e, combinedViewItems)}
                                                     onContextMenu={(e) =>
                                                         handleContextMenu(
                                                             e,
@@ -234,6 +244,8 @@ export const SharedFiles = () => {
                                                                 filteredShared.length -
                                                                     1
                                                             }
+                                                            isSelected={selectedIds.includes(file.id)}
+                                                            onSelect={(e) => handleSelect(file.id, "song", file, e, combinedViewItems)}
                                                             onContextMenu={(e) =>
                                                                 handleContextMenu(
                                                                     e,
@@ -254,7 +266,7 @@ export const SharedFiles = () => {
             )}
 
             {contextMenu && (
-                <ContextMenu
+                <MenuContext
                     x={contextMenu.x}
                     y={contextMenu.y}
                     context="shared"

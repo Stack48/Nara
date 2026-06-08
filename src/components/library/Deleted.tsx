@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { useSongs, setSongDeleted, Song } from "@/lib/songStore";
 import { useProjects, setProjectDeleted, Project } from "@/lib/projectStore";
-import { ContextMenu } from "./ContextMenu";
+import { useSelection } from "@/context/SelectionContext";
+import { MenuContext } from "@/context/MenuContext";
+
 import { LibraryHeader } from "./LibraryHeader";
 import {
     SortByOption,
@@ -19,6 +21,17 @@ export const Deleted = () => {
     const [sortBy, setSortBy] = useState<SortByOption>("modified");
     const [sortOrder, setSortOrder] = useState<SortOrderOption>("desc");
     const [filterValue, setFilterValue] = useState<string>("all");
+
+    // Context menu state
+    const [contextMenu, setContextMenu] = useState<{
+        x: number;
+        y: number;
+        itemType: "song" | "project";
+        itemId: string;
+        itemTitle: string;
+    } | null>(null);
+
+    const { selectedIds, handleSelect } = useSelection();
 
     const allSongs = useSongs();
     const deletedSongs = allSongs.filter((song) => song.isDeleted);
@@ -54,8 +67,26 @@ export const Deleted = () => {
         );
     };
 
-    const handleContextMenu = (e: React.MouseEvent) => {
+    const handleSongContextMenu = (e: React.MouseEvent, song: Song) => {
         e.preventDefault();
+        setContextMenu({
+            x: e.clientX,
+            y: e.clientY,
+            itemType: "song",
+            itemId: song.id,
+            itemTitle: song.title,
+        });
+    };
+
+    const handleProjectContextMenu = (e: React.MouseEvent, project: Project) => {
+        e.preventDefault();
+        setContextMenu({
+            x: e.clientX,
+            y: e.clientY,
+            itemType: "project",
+            itemId: project.id,
+            itemTitle: project.title,
+        });
     };
 
     const filteredSongs = sortItems(
@@ -82,6 +113,7 @@ export const Deleted = () => {
     );
 
     const totalDeletedCount = filteredSongs.length + filteredProjects.length;
+    const combinedViewItems = [...filteredProjects, ...filteredSongs];
 
     return (
         <div className="w-full font-arimo text-white pb-10">
@@ -137,18 +169,20 @@ export const Deleted = () => {
                                         Projects ({filteredProjects.length})
                                     </h2>
                                     {viewMode === "grid" ? (
-                                        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
                                             {filteredProjects.map((project) => (
                                                 <ProjectCard
                                                     key={project.id}
                                                     project={project}
                                                     viewMode="grid"
                                                     context="deleted"
+                                                    isSelected={selectedIds.includes(project.id)}
+                                                    onSelect={(e) => handleSelect(project.id, "project", project, e, combinedViewItems)}
                                                     onRestore={handleProjectRestore}
                                                     onPermanentDelete={
                                                         handlePermanentDelete
                                                     }
-                                                    onContextMenu={handleContextMenu}
+                                                    onContextMenu={(e) => handleProjectContextMenu(e, project)}
                                                 />
                                             ))}
                                         </div>
@@ -168,13 +202,15 @@ export const Deleted = () => {
                                                                 filteredProjects.length -
                                                                     1
                                                             }
+                                                            isSelected={selectedIds.includes(project.id)}
+                                                            onSelect={(e) => handleSelect(project.id, "project", project, e, combinedViewItems)}
                                                             onRestore={
                                                                 handleProjectRestore
                                                             }
                                                             onPermanentDelete={
                                                                 handlePermanentDelete
                                                             }
-                                                            onContextMenu={handleContextMenu}
+                                                            onContextMenu={(e) => handleProjectContextMenu(e, project)}
                                                         />
                                                     ),
                                                 )}
@@ -200,6 +236,8 @@ export const Deleted = () => {
                                                     viewMode="grid"
                                                     context="deleted"
                                                     index={index}
+                                                    isSelected={selectedIds.includes(song.id)}
+                                                    onSelect={(e) => handleSelect(song.id, "song", song, e, combinedViewItems)}
                                                     onRestore={handleSongRestore}
                                                     onPermanentDelete={(
                                                         id,
@@ -207,7 +245,7 @@ export const Deleted = () => {
                                                     ) =>
                                                         handlePermanentDelete(title)
                                                     }
-                                                    onContextMenu={handleContextMenu}
+                                                    onContextMenu={(e) => handleSongContextMenu(e, song)}
                                                 />
                                             ))}
                                         </div>
@@ -227,6 +265,8 @@ export const Deleted = () => {
                                                                 filteredSongs.length -
                                                                     1
                                                             }
+                                                            isSelected={selectedIds.includes(song.id)}
+                                                            onSelect={(e) => handleSelect(song.id, "song", song, e, combinedViewItems)}
                                                             onRestore={
                                                                 handleSongRestore
                                                             }
@@ -238,7 +278,7 @@ export const Deleted = () => {
                                                                     title,
                                                                 )
                                                             }
-                                                            onContextMenu={handleContextMenu}
+                                                            onContextMenu={(e) => handleSongContextMenu(e, song)}
                                                         />
                                                     ),
                                                 )}
@@ -251,7 +291,27 @@ export const Deleted = () => {
                 </div>
             )}
 
-
+            {contextMenu && (
+                <MenuContext
+                    x={contextMenu.x}
+                    y={contextMenu.y}
+                    context="trash"
+                    itemType={contextMenu.itemType}
+                    itemId={contextMenu.itemId}
+                    itemTitle={contextMenu.itemTitle}
+                    onClose={() => setContextMenu(null)}
+                    onRestore={(id, title) => {
+                        if (contextMenu.itemType === "song") {
+                            handleSongRestore(id, title);
+                        } else {
+                            handleProjectRestore(id, title);
+                        }
+                    }}
+                    onPermanentDelete={(id, title) => {
+                        handlePermanentDelete(title);
+                    }}
+                />
+            )}
         </div>
     );
 };

@@ -2,8 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, RotateCcw, Trash2 } from "lucide-react";
+import { Heart, RotateCcw, Trash2, Plus, FolderOpen } from "lucide-react";
 import { Project } from "@/lib/projectStore";
+import { useRouter } from "next/navigation";
+import { useRef } from "react";
 
 import { ALL_AVATARS, getOwnerAvatar } from "@/lib/avatars";
 
@@ -18,7 +20,7 @@ const formatDeletedTime = (timeStr: string) => {
 };
 
 export interface ProjectCardProps {
-    project: Project;
+    project?: Project;
     viewMode: "grid" | "list";
     context?: "library" | "shared" | "deleted" | "favorite" | "recent";
     index?: number;
@@ -26,6 +28,9 @@ export interface ProjectCardProps {
     onContextMenu?: React.MouseEventHandler;
     onRestore?: (id: string, title: string) => void;
     onPermanentDelete?: (title: string) => void;
+    isCreatePlaceholder?: boolean;
+    isSelected?: boolean;
+    onSelect?: (e: React.MouseEvent) => void;
 }
 
 export const ProjectCard = ({
@@ -37,7 +42,63 @@ export const ProjectCard = ({
     onContextMenu,
     onRestore,
     onPermanentDelete,
+    isCreatePlaceholder = false,
+    isSelected = false,
+    onSelect,
 }: ProjectCardProps) => {
+    const router = useRouter();
+    const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    if (isCreatePlaceholder) {
+        const handleClick = () => {
+            window.dispatchEvent(
+                new CustomEvent("open-create-modal", {
+                    detail: { type: "project" },
+                }),
+            );
+        };
+
+        if (viewMode === "grid") {
+            return (
+                <button
+                    type="button"
+                    onClick={handleClick}
+                    className="group relative aspect-square rounded-2xl overflow-hidden border border-dashed border-neutral-800/80 hover:border-[#D90097]/60 hover:bg-[#121212]/50 transition-all duration-300 flex flex-col items-center justify-center gap-3 bg-[#151515]/30 cursor-pointer animate-in fade-in"
+                >
+                    <div className="w-12 h-12 rounded-full border border-neutral-800/80 group-hover:border-[#D90097]/40 bg-[#171717] group-hover:bg-[#D90097]/10 flex items-center justify-center transition-all duration-300">
+                        <Plus
+                            size={20}
+                            className="text-neutral-400 group-hover:text-[#D90097] transition-colors"
+                        />
+                    </div>
+                    <span className="font-syne font-bold text-sm text-neutral-400 group-hover:text-white transition-colors">
+                        New Project
+                    </span>
+                </button>
+            );
+        }
+
+        // List View
+        return (
+            <button
+                type="button"
+                onClick={handleClick}
+                className="w-full grid grid-cols-12 gap-4 items-center p-3 rounded-xl border border-dashed border-neutral-800/80 hover:border-[#D90097]/60 hover:bg-[#121212]/50 transition-all duration-300 group cursor-pointer text-left mb-2"
+            >
+                <div className="col-span-12 flex items-center gap-4 pl-1">
+                    <div className="w-12 h-12 rounded-xl border border-dashed border-neutral-700/80 group-hover:border-[#D90097]/40 flex items-center justify-center bg-[#171717]/50 transition-colors">
+                        <Plus
+                            size={16}
+                            className="text-neutral-400 group-hover:text-[#D90097]"
+                        />
+                    </div>
+                    <span className="font-bold text-sm text-neutral-400 group-hover:text-white transition-colors font-syne">
+                        New Project
+                    </span>
+                </div>
+            </button>
+        );
+    }
+    if (!project) return null;
     const isDeletedView = context === "deleted";
     const isSharedView = context === "shared";
 
@@ -52,52 +113,77 @@ export const ProjectCard = ({
 
     const href = getHref();
 
+    const handleClick = (e: React.MouseEvent) => {
+        if (isCreatePlaceholder) return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        const ctrlKey = e.ctrlKey || e.metaKey;
+        const metaKey = e.metaKey;
+        const shiftKey = e.shiftKey;
+
+        if (clickTimeoutRef.current) {
+            clearTimeout(clickTimeoutRef.current);
+            clickTimeoutRef.current = null;
+            return;
+        }
+
+        clickTimeoutRef.current = setTimeout(() => {
+            if (onSelect) {
+                onSelect({ ctrlKey, metaKey, shiftKey } as any);
+            }
+            clickTimeoutRef.current = null;
+        }, 200);
+    };
+
+    const handleDoubleClick = (e: React.MouseEvent) => {
+        if (isCreatePlaceholder) return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (clickTimeoutRef.current) {
+            clearTimeout(clickTimeoutRef.current);
+            clickTimeoutRef.current = null;
+        }
+
+        if (href) {
+            router.push(href);
+        }
+    };
+
     if (viewMode === "grid") {
         const cardContent = (
             <>
                 {/* Image de fond (Prend tout le bloc) */}
-                <Image
-                    src={project.image}
-                    alt={project.title}
-                    fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                />
-                
-                {/* Favorite badge */}
-                {project.isFavorite && (
-                    <div className="absolute top-3 left-3 z-20 bg-black/60 backdrop-blur-sm p-1.5 rounded-full text-[#D90097]">
-                        <Heart size={14} className="fill-[#D90097]" />
+                {project.image ? (
+                    <Image
+                        src={project.image}
+                        alt={project.title}
+                        fill
+                        className="object-cover transition-transform duration-700 group-hover:scale-105"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    />
+                ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-neutral-900 via-[#181818] to-neutral-950 flex items-center justify-center transition-all duration-700 group-hover:scale-105">
+                        <div className="relative flex items-center justify-center w-24 h-24 rounded-full bg-neutral-800/10 border border-neutral-800/30 group-hover:border-[#D90097]/20 group-hover:bg-[#D90097]/5 transition-all duration-500">
+                            <FolderOpen
+                                size={40}
+                                className="text-neutral-500 group-hover:text-[#D90097] transition-all duration-500"
+                            />
+                        </div>
                     </div>
                 )}
 
-                {/* Actions (Restaurer / Supprimer) - Placées en haut à droite en vue supprimée */}
-                {isDeletedView && (
-                    <div className="absolute top-3 right-3 flex gap-2 z-20">
-                        <button
-                            className="p-2 bg-neutral-900/80 hover:bg-[#D90097] text-neutral-400 hover:text-white rounded-lg transition-colors border border-neutral-800"
-                            title="Restaurer"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                e.preventDefault();
-                                onRestore?.(project.id, project.title);
-                            }}
-                        >
-                            <RotateCcw size={14} />
-                        </button>
-                        <button
-                            className="p-2 bg-neutral-900/80 hover:bg-red-500 text-neutral-400 hover:text-white rounded-lg transition-colors border border-neutral-800"
-                            title="Supprimer définitivement"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                e.preventDefault();
-                                onPermanentDelete?.(project.title);
-                            }}
-                        >
-                            <Trash2 size={14} />
-                        </button>
+                {/* Favorite badge */}
+                {project.isFavorite && (
+                    <div className="absolute top-3 left-3 z-20 bg-black/60 backdrop-blur-sm p-1.5 rounded-full text-[#D90097]">
+                        <Heart
+                            size={14}
+                            className=" text-red-500 fill-red-500"
+                        />
                     </div>
                 )}
+
 
                 {/* Dégradé sombre puissant en bas pour une visibilité parfaite du texte */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -130,7 +216,11 @@ export const ProjectCard = ({
                                 </span>
                                 <div className="w-6 h-6 rounded-full border border-neutral-800 overflow-hidden relative z-10">
                                     <Image
-                                        src={getOwnerAvatar(project.owner || "") || ALL_AVATARS[0]}
+                                        src={
+                                            getOwnerAvatar(
+                                                project.owner || "",
+                                            ) || ALL_AVATARS[0]
+                                        }
                                         alt={project.owner || "Owner"}
                                         fill
                                         className="object-cover"
@@ -141,16 +231,24 @@ export const ProjectCard = ({
                         ) : project.collabs > 0 ? (
                             <div className="flex items-center justify-between pt-3 border-t border-white/10">
                                 <span className="text-[11px] font-medium text-neutral-400">
-                                    {project.collabs} Collaborator{project.collabs > 1 ? "s" : ""}
+                                    {project.collabs} Collaborator
+                                    {project.collabs > 1 ? "s" : ""}
                                 </span>
                                 <div className="flex -space-x-1.5">
-                                    {[...Array(Math.min(project.collabs, 3))].map((_, i) => (
+                                    {[
+                                        ...Array(Math.min(project.collabs, 3)),
+                                    ].map((_, i) => (
                                         <div
                                             key={i}
                                             className="w-6 h-6 rounded-full border border-neutral-800 overflow-hidden relative z-10"
                                         >
                                             <Image
-                                                src={ALL_AVATARS[(index + i) % ALL_AVATARS.length]}
+                                                src={
+                                                    ALL_AVATARS[
+                                                        (index + i) %
+                                                            ALL_AVATARS.length
+                                                    ]
+                                                }
                                                 alt="Collab"
                                                 fill
                                                 className="object-cover"
@@ -172,18 +270,30 @@ export const ProjectCard = ({
             </>
         );
 
-        const gridClassName = "group relative aspect-square rounded-2xl overflow-hidden border border-neutral-800/80 hover:border-neutral-500 transition-colors animate-in fade-in";
+        const gridClassName = isSelected
+            ? "group relative aspect-square rounded-2xl overflow-hidden border border-[#D90097] bg-[#D90097]/5 shadow-[0_0_15px_rgba(217,0,151,0.15)] transition-all duration-300 animate-in fade-in"
+            : "group relative aspect-square rounded-2xl overflow-hidden border border-neutral-800/80 hover:border-neutral-500 transition-colors animate-in fade-in";
 
         if (href) {
             return (
-                <Link href={href} onContextMenu={onContextMenu} className={`${gridClassName} cursor-pointer`}>
+                <Link
+                    href={href}
+                    onClick={handleClick}
+                    onDoubleClick={handleDoubleClick}
+                    onContextMenu={onContextMenu}
+                    className={`${gridClassName} cursor-pointer project-card`}
+                >
                     {cardContent}
                 </Link>
             );
         }
 
         return (
-            <div onContextMenu={onContextMenu} className={`${gridClassName} cursor-default`}>
+            <div
+                onContextMenu={onContextMenu}
+                onClick={handleClick}
+                className={`${gridClassName} cursor-default project-card`}
+            >
                 {cardContent}
             </div>
         );
@@ -191,23 +301,36 @@ export const ProjectCard = ({
 
     // --- VUE LISTE ---
     const listContent = (
-        <div className="grid grid-cols-12 gap-4 items-center p-2 rounded-xl hover:bg-[#151515] transition-colors group">
+        <div className={`grid grid-cols-12 gap-4 items-center p-2 rounded-xl transition-all duration-200 group ${
+            isSelected
+                ? "bg-[#D90097]/10 border border-[#D90097]/30 shadow-[0_0_10px_rgba(217,0,151,0.1)]"
+                : "hover:bg-[#151515]"
+        }`}>
             {/* Name + Image */}
-            <div className={`${isSharedView ? "col-span-3" : "col-span-4"} flex items-center gap-4 pl-1`}>
+            <div
+                className={`${isSharedView ? "col-span-3" : "col-span-4"} flex items-center gap-4 pl-1`}
+            >
                 <div className="relative w-14 h-14 flex-shrink-0 mt-1 mb-1">
                     {/* Stack effects pour signifier un "Projet" (dossier) */}
                     <div className="absolute -top-2 inset-x-2 h-full bg-neutral-800/40 rounded-xl border border-neutral-800/50 transition-transform group-hover:-translate-y-0.5"></div>
                     <div className="absolute -top-1 inset-x-1 h-full bg-neutral-800/60 rounded-xl border border-neutral-700/50 transition-transform group-hover:-translate-y-0.5"></div>
 
                     {/* Image principale */}
-                    <div className="relative w-full h-full rounded-xl overflow-hidden shadow-lg border border-neutral-700 z-10">
-                        <Image
-                            src={project.image}
-                            alt={project.title}
-                            fill
-                            className="object-cover transition-transform group-hover:scale-105"
-                            sizes="56px"
-                        />
+                    <div className="relative w-full h-full rounded-xl overflow-hidden shadow-lg border border-neutral-700 z-10 bg-gradient-to-br from-neutral-900 to-neutral-950 flex items-center justify-center">
+                        {project.image ? (
+                            <Image
+                                src={project.image}
+                                alt={project.title}
+                                fill
+                                className="object-cover transition-transform group-hover:scale-105"
+                                sizes="56px"
+                            />
+                        ) : (
+                            <FolderOpen
+                                size={20}
+                                className="text-neutral-500 group-hover:text-[#D90097] transition-colors duration-300"
+                            />
+                        )}
                     </div>
                 </div>
                 <div className="flex flex-col">
@@ -216,13 +339,15 @@ export const ProjectCard = ({
                         {project.songsCount > 1 ? "songs" : "song"}
                     </span>
                     <div className="flex items-center gap-1.5 min-w-0">
-                        <span className={`font-bold text-sm text-white line-clamp-1 ${href ? "group-hover:text-[#D90097] transition-colors" : ""}`}>
+                        <span
+                            className={`font-bold text-sm text-white line-clamp-1 ${href ? "group-hover:text-[#D90097] transition-colors" : ""}`}
+                        >
                             {project.title}
                         </span>
                         {project.isFavorite && (
                             <Heart
                                 size={12}
-                                className="text-[#D90097] fill-[#D90097] flex-shrink-0"
+                                className=" text-red-500 fill-red-500 flex-shrink-0"
                             />
                         )}
                     </div>
@@ -241,20 +366,27 @@ export const ProjectCard = ({
                     <div className="col-span-3 flex items-center">
                         {project.collabs > 0 ? (
                             <div className="flex -space-x-1.5">
-                                {[...Array(Math.min(project.collabs, 3))].map((_, i) => (
-                                    <div
-                                        key={i}
-                                        className="w-6 h-6 rounded-full border border-[#151515] overflow-hidden relative z-10"
-                                    >
-                                        <Image
-                                            src={ALL_AVATARS[(index + i) % ALL_AVATARS.length]}
-                                            alt="Collab"
-                                            fill
-                                            className="object-cover"
-                                            sizes="24px"
-                                        />
-                                    </div>
-                                ))}
+                                {[...Array(Math.min(project.collabs, 3))].map(
+                                    (_, i) => (
+                                        <div
+                                            key={i}
+                                            className="w-6 h-6 rounded-full border border-[#151515] overflow-hidden relative z-10"
+                                        >
+                                            <Image
+                                                src={
+                                                    ALL_AVATARS[
+                                                        (index + i) %
+                                                            ALL_AVATARS.length
+                                                    ]
+                                                }
+                                                alt="Collab"
+                                                fill
+                                                className="object-cover"
+                                                sizes="24px"
+                                            />
+                                        </div>
+                                    ),
+                                )}
                                 {project.collabs > 3 && (
                                     <div className="w-6 h-6 rounded-full border border-[#151515] bg-neutral-800 flex items-center justify-center relative z-10 text-[9px] font-bold text-neutral-300">
                                         +{project.collabs - 3}
@@ -318,20 +450,27 @@ export const ProjectCard = ({
                     <div className="col-span-2 flex items-center">
                         {project.collabs > 0 ? (
                             <div className="flex -space-x-1.5">
-                                {[...Array(Math.min(project.collabs, 3))].map((_, i) => (
-                                    <div
-                                        key={i}
-                                        className="w-6 h-6 rounded-full border border-[#151515] overflow-hidden relative z-10"
-                                    >
-                                        <Image
-                                            src={ALL_AVATARS[(index + i) % ALL_AVATARS.length]}
-                                            alt="Collab"
-                                            fill
-                                            className="object-cover"
-                                            sizes="24px"
-                                        />
-                                    </div>
-                                ))}
+                                {[...Array(Math.min(project.collabs, 3))].map(
+                                    (_, i) => (
+                                        <div
+                                            key={i}
+                                            className="w-6 h-6 rounded-full border border-[#151515] overflow-hidden relative z-10"
+                                        >
+                                            <Image
+                                                src={
+                                                    ALL_AVATARS[
+                                                        (index + i) %
+                                                            ALL_AVATARS.length
+                                                    ]
+                                                }
+                                                alt="Collab"
+                                                fill
+                                                className="object-cover"
+                                                sizes="24px"
+                                            />
+                                        </div>
+                                    ),
+                                )}
                                 {project.collabs > 3 && (
                                     <div className="w-6 h-6 rounded-full border border-[#151515] bg-neutral-800 flex items-center justify-center relative z-10 text-[9px] font-bold text-neutral-300">
                                         +{project.collabs - 3}
@@ -364,20 +503,27 @@ export const ProjectCard = ({
                     <div className="col-span-2 flex items-center">
                         {project.collabs > 0 ? (
                             <div className="flex -space-x-1.5">
-                                {[...Array(Math.min(project.collabs, 3))].map((_, i) => (
-                                    <div
-                                        key={i}
-                                        className="w-6 h-6 rounded-full border border-[#151515] overflow-hidden relative z-10"
-                                    >
-                                        <Image
-                                            src={ALL_AVATARS[(index + i) % ALL_AVATARS.length]}
-                                            alt="Collab"
-                                            fill
-                                            className="object-cover"
-                                            sizes="24px"
-                                        />
-                                    </div>
-                                ))}
+                                {[...Array(Math.min(project.collabs, 3))].map(
+                                    (_, i) => (
+                                        <div
+                                            key={i}
+                                            className="w-6 h-6 rounded-full border border-[#151515] overflow-hidden relative z-10"
+                                        >
+                                            <Image
+                                                src={
+                                                    ALL_AVATARS[
+                                                        (index + i) %
+                                                            ALL_AVATARS.length
+                                                    ]
+                                                }
+                                                alt="Collab"
+                                                fill
+                                                className="object-cover"
+                                                sizes="24px"
+                                            />
+                                        </div>
+                                    ),
+                                )}
                                 {project.collabs > 3 && (
                                     <div className="w-6 h-6 rounded-full border border-[#151515] bg-neutral-800 flex items-center justify-center relative z-10 text-[9px] font-bold text-neutral-300">
                                         +{project.collabs - 3}
@@ -394,17 +540,25 @@ export const ProjectCard = ({
     );
 
     return (
-        <div className="flex flex-col">
+        <div 
+            className="flex flex-col project-card"
+            onClick={handleClick}
+            onDoubleClick={handleDoubleClick}
+        >
             {href ? (
                 <Link
                     href={href}
+                    onClick={(e) => e.preventDefault()}
                     onContextMenu={onContextMenu}
                     className="cursor-pointer"
                 >
                     {listContent}
                 </Link>
             ) : (
-                <div onContextMenu={onContextMenu} className="cursor-context-menu">
+                <div
+                    onContextMenu={onContextMenu}
+                    className="cursor-context-menu"
+                >
                     {listContent}
                 </div>
             )}

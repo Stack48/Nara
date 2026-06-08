@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useProjects, Project, renameProject } from "@/lib/projectStore";
-import { ContextMenu } from "./ContextMenu";
+import { MenuContext } from "@/context/MenuContext";
 import { RenameModal } from "../modals/RenameModal";
 import { useLibrarySortAndFilter } from "@/hooks/useLibrarySortAndFilter";
 import { LibraryHeader } from "./LibraryHeader";
 import { ProjectCard } from "./projectCard";
+import { useSelection } from "@/context/SelectionContext";
 
 export const Projects = () => {
     // États pour le menu contextuel et renommage
@@ -19,6 +20,8 @@ export const Projects = () => {
         projectId: string;
         initialTitle: string;
     } | null>(null);
+
+    const { selectedIds, handleSelect } = useSelection();
 
     const allProjects = useProjects();
     const projectsList = allProjects.filter(
@@ -70,19 +73,26 @@ export const Projects = () => {
             />
 
             {/* CONDITION D'AFFICHAGE SELON LE VIEWMODE */}
-            {sortedProjectList.length === 0 ? (
+            {sortedProjectList.length === 0 && searchQuery ? (
                 <div className="flex flex-col items-center justify-center py-20 text-neutral-500 border border-neutral-800/80 rounded-2xl bg-[#151515] border-dashed">
-                    <p>No projects found.</p>
+                    <p>No projects found matching "{searchQuery}".</p>
                 </div>
             ) : viewMode === "grid" ? (
                 /* --- VUE GRILLE --- */
-                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+                    <ProjectCard
+                        viewMode="grid"
+                        context="library"
+                        isCreatePlaceholder={true}
+                    />
                     {sortedProjectList.map((project) => (
                         <ProjectCard
                             key={project.id}
                             project={project}
                             viewMode="grid"
                             context="library"
+                            isSelected={selectedIds.includes(project.id)}
+                            onSelect={(e) => handleSelect(project.id, "project", project, e, sortedProjectList)}
                             onContextMenu={(e) => handleContextMenu(e, project)}
                         />
                     ))}
@@ -101,6 +111,11 @@ export const Projects = () => {
 
                     {/* Lignes du tableau */}
                     <div className="flex flex-col">
+                        <ProjectCard
+                            viewMode="list"
+                            context="library"
+                            isCreatePlaceholder={true}
+                        />
                         {sortedProjectList.map((project, index) => (
                             <ProjectCard
                                 key={project.id}
@@ -109,6 +124,8 @@ export const Projects = () => {
                                 context="library"
                                 index={index}
                                 isLast={index === sortedProjectList.length - 1}
+                                isSelected={selectedIds.includes(project.id)}
+                                onSelect={(e) => handleSelect(project.id, "project", project, e, sortedProjectList)}
                                 onContextMenu={(e) => handleContextMenu(e, project)}
                             />
                         ))}
@@ -117,7 +134,7 @@ export const Projects = () => {
             )}
 
             {contextMenu && (
-                <ContextMenu
+                <MenuContext
                     x={contextMenu.x}
                     y={contextMenu.y}
                     itemType="project"

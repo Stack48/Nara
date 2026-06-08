@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { ContextMenu } from "@/components/library/ContextMenu";
+import { MenuContext } from "@/context/MenuContext";
 import { useSongs, Song } from "@/lib/songStore";
 import {
     Pencil,
@@ -488,7 +488,7 @@ export const Dashboard = () => {
                 </div>
             </div>
             {contextMenu && (
-                <ContextMenu
+                <MenuContext
                     x={contextMenu.x}
                     y={contextMenu.y}
                     itemType="song"

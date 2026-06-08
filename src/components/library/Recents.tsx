@@ -8,8 +8,9 @@ import { useSongs, Song, renameSong } from "@/lib/songStore";
 import { useProjects, Project, renameProject } from "@/lib/projectStore";
 import { ProjectCard } from "./projectCard";
 import { SongCard } from "./songCard";
-import { ContextMenu } from "./ContextMenu";
+import { MenuContext } from "@/context/MenuContext";
 import { RenameModal } from "../modals/RenameModal";
+import { useSelection } from "@/context/SelectionContext";
 
 import {
     useLibrarySortAndFilter,
@@ -41,6 +42,8 @@ export const Recents = () => {
         projectId: string;
         initialTitle: string;
     } | null>(null);
+
+    const { selectedIds, handleSelect } = useSelection();
 
     const allSongs = useSongs();
     const activeSongs = allSongs.filter((song) => !song.isDeleted);
@@ -112,6 +115,7 @@ export const Recents = () => {
     );
 
     const totalRecentsCount = filteredSongs.length + filteredProjects.length;
+    const combinedViewItems = [...filteredProjects, ...filteredSongs];
 
     return (
         <div className="w-full font-arimo text-white pb-10">
@@ -163,13 +167,15 @@ export const Recents = () => {
                                         Recent Projects
                                     </h2>
                                     {viewMode === "grid" ? (
-                                        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
                                             {filteredProjects.map((project) => (
                                                 <ProjectCard
                                                     key={project.id}
                                                     project={project}
                                                     viewMode="grid"
                                                     context="recent"
+                                                    isSelected={selectedIds.includes(project.id)}
+                                                    onSelect={(e) => handleSelect(project.id, "project", project, e, combinedViewItems)}
                                                     onContextMenu={(e) =>
                                                         handleProjectContextMenu(
                                                             e,
@@ -194,6 +200,8 @@ export const Recents = () => {
                                                             filteredProjects.length -
                                                                 1
                                                         }
+                                                        isSelected={selectedIds.includes(project.id)}
+                                                        onSelect={(e) => handleSelect(project.id, "project", project, e, combinedViewItems)}
                                                         onContextMenu={(e) =>
                                                             handleProjectContextMenu(
                                                                 e,
@@ -224,6 +232,8 @@ export const Recents = () => {
                                                     viewMode="grid"
                                                     context="recent"
                                                     index={index}
+                                                    isSelected={selectedIds.includes(song.id)}
+                                                    onSelect={(e) => handleSelect(song.id, "song", song, e, combinedViewItems)}
                                                     onContextMenu={(e) =>
                                                         handleSongContextMenu(
                                                             e,
@@ -248,6 +258,8 @@ export const Recents = () => {
                                                             filteredSongs.length -
                                                                 1
                                                         }
+                                                        isSelected={selectedIds.includes(song.id)}
+                                                        onSelect={(e) => handleSelect(song.id, "song", song, e, combinedViewItems)}
                                                         onContextMenu={(e) =>
                                                             handleSongContextMenu(
                                                                 e,
@@ -266,7 +278,7 @@ export const Recents = () => {
             )}
 
             {songContextMenu && (
-                <ContextMenu
+                <MenuContext
                     x={songContextMenu.x}
                     y={songContextMenu.y}
                     itemType="song"
@@ -282,7 +294,7 @@ export const Recents = () => {
             )}
 
             {projectContextMenu && (
-                <ContextMenu
+                <MenuContext
                     x={projectContextMenu.x}
                     y={projectContextMenu.y}
                     itemType="project"

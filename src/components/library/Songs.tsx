@@ -3,11 +3,12 @@
 import { useState, useRef, useEffect } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import { useSongs, Song, renameSong } from "@/lib/songStore";
-import { ContextMenu } from "./ContextMenu";
+import { MenuContext } from "@/context/MenuContext";
 import { RenameModal } from "../modals/RenameModal";
 import { useLibrarySortAndFilter } from "@/hooks/useLibrarySortAndFilter";
 import { LibraryHeader } from "./LibraryHeader";
 import { SongCard } from "./songCard";
+import { useSelection } from "@/context/SelectionContext";
 
 export const Songs = () => {
     // État pour le filtrage par origine (standalone ou projet)
@@ -46,6 +47,8 @@ export const Songs = () => {
         if (filterOrigin === "all") return true;
         return song.origin === filterOrigin;
     });
+
+    const { selectedIds, handleSelect } = useSelection();
 
     const {
         viewMode,
@@ -148,9 +151,18 @@ export const Songs = () => {
             </LibraryHeader>
 
             {/* CONDITION D'AFFICHAGE SELON LE VIEWMODE */}
-            {viewMode === "grid" ? (
+            {sortedSongsList.length === 0 && searchQuery ? (
+                <div className="flex flex-col items-center justify-center py-20 text-neutral-500 border border-neutral-800/80 rounded-2xl bg-[#151515] border-dashed">
+                    <p>No songs found matching "{searchQuery}".</p>
+                </div>
+            ) : viewMode === "grid" ? (
                 /* --- VUE GRILLE --- */
                 <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <SongCard
+                        viewMode="grid"
+                        context="library"
+                        isCreatePlaceholder={true}
+                    />
                     {sortedSongsList.map((song, index) => (
                         <SongCard
                             key={song.id}
@@ -158,6 +170,8 @@ export const Songs = () => {
                             viewMode="grid"
                             context="library"
                             index={index}
+                            isSelected={selectedIds.includes(song.id)}
+                            onSelect={(e) => handleSelect(song.id, "song", song, e, sortedSongsList)}
                             onContextMenu={(e) => handleContextMenu(e, song)}
                         />
                     ))}
@@ -176,6 +190,11 @@ export const Songs = () => {
 
                     {/* Lignes du tableau */}
                     <div className="flex flex-col">
+                        <SongCard
+                            viewMode="list"
+                            context="library"
+                            isCreatePlaceholder={true}
+                        />
                         {sortedSongsList.map((song, index) => (
                             <SongCard
                                 key={song.id}
@@ -184,6 +203,8 @@ export const Songs = () => {
                                 context="library"
                                 index={index}
                                 isLast={index === sortedSongsList.length - 1}
+                                isSelected={selectedIds.includes(song.id)}
+                                onSelect={(e) => handleSelect(song.id, "song", song, e, sortedSongsList)}
                                 onContextMenu={(e) =>
                                     handleContextMenu(e, song)
                                 }
@@ -195,7 +216,7 @@ export const Songs = () => {
 
             {/* Custom overlays for actions */}
             {contextMenu && (
-                <ContextMenu
+                <MenuContext
                     x={contextMenu.x}
                     y={contextMenu.y}
                     itemType="song"
