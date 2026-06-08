@@ -7,13 +7,27 @@ const { runWithAmplifyServerContext } = createServerRunner({
     config: amplifyConfig,
 });
 
-const protectedRoutes = ["/dashboard", "/projects", "/studio"];
-const authRoutes = ["/connexion", "/inscription"];
+const authRoutes = ["/login", "/signin"];
 
 export async function middleware(request: NextRequest) {
-    const { pathname } = request.nextUrl;
+    const pathname = request.nextUrl.pathname.replace(/\/$/, "");
 
-    const isProtected = protectedRoutes.some((route) => pathname.startsWith(route));
+    const isProtected =
+        pathname === "/dashboard" ||
+        pathname.startsWith("/dashboard/") ||
+        pathname === "/projects" ||
+        pathname.startsWith("/projects/") ||
+        pathname === "/deleted" ||
+        pathname.startsWith("/deleted/") ||
+        pathname === "/favorites" ||
+        pathname.startsWith("/favorites/") ||
+        pathname === "/songs" ||
+        pathname.startsWith("/songs/") ||
+        pathname === "/recents" ||
+        pathname.startsWith("/recents/") ||
+        pathname === "/shared" ||
+        pathname.startsWith("/shared/");
+
     const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
 
     if (!isProtected && !isAuthRoute) return NextResponse.next();
@@ -33,7 +47,7 @@ export async function middleware(request: NextRequest) {
     });
 
     if (isProtected && !isAuthenticated) {
-        return NextResponse.redirect(new URL("/connexion", request.url));
+        return NextResponse.redirect(new URL("/login", request.url));
     }
 
     if (isAuthRoute && isAuthenticated) {

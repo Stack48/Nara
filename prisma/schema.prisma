@@ -148,7 +148,6 @@ model File {
   mimeType     String
   size         Int
   s3Key        String   @unique
-  s3Bucket     String
   projectId    String
   uploadedBy   String
   createdAt    DateTime @default(now())

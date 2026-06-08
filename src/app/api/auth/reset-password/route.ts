@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createPasswordResetToken, validateResetToken, consumeResetToken } from "@/server/auth/password-reset.service";
+import { createPasswordResetToken, validateResetToken, consumeResetToken } from "@/server/auth/passwordResetService";
 import { confirmForgotPassword } from "@/hooks/useAuth";
 
 // POST — demande de reset (génère le token)

@@ -304,7 +304,7 @@ export default function InscriptionPage() {
 
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
                   <p className="text-[12px] text-gray-400">
-                    Déjà un compte ? <Link href="/connexion" className="text-[#D90097] font-semibold hover:underline decoration-[#D90097]/50 underline-offset-4">Se connecter</Link>
+                    Déjà un compte ? <Link href="/login" className="text-[#D90097] font-semibold hover:underline decoration-[#D90097]/50 underline-offset-4">Se connecter</Link>
                   </p>
                   <button
                     type="submit"
