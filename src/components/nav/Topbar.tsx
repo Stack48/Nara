@@ -6,9 +6,7 @@ export const Topbar = () => {
     return (
         <header className="flex items-center justify-between h-14 px-6 border-b border-neutral-800/60 shrink-0 bg-black z-40">
             {/* titre (rendre dynamique plus tard avec usePathname) */}
-            <h1 className="font-arimo text-base font-bold text-white tracking-wide">
-                Home
-            </h1>
+            <h1 className=" tracking-wide"></h1>
 
             {/* icônes de droite */}
             <div className="flex items-center gap-3 text-neutral-400">
@@ -39,4 +37,3 @@ export const Topbar = () => {
         </header>
     );
 };
-

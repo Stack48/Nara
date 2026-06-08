@@ -40,6 +40,8 @@ export interface Project {
     isDeleted: boolean;
     isShared?: boolean;
     owner?: string;
+    description?: string;
+    collaboratorsList?: string[];
 }
 
 const STATIC_PROJECTS = [
@@ -164,6 +166,9 @@ interface StoredProjects {
         isDeleted: boolean;
         isShared?: boolean;
         owner?: string;
+        description?: string;
+        image?: string;
+        collaboratorsList?: string[];
     };
 }
 
@@ -205,6 +210,9 @@ export const getProjectsFromStorage = (): StoredProjects => {
             isDeleted: (proj as any).isDeleted || false,
             isShared: (proj as any).isShared || false,
             owner: (proj as any).owner || "",
+            description: "",
+            image: "",
+            collaboratorsList: ["Ray Allen", "Tim Duncan", "Udonis Haslem", "Tracy McGrady", "Kobe Bryant", "Allen Iverson"].slice(0, proj.collabs),
         };
     });
 
@@ -216,11 +224,15 @@ export const getProjectsFromStorage = (): StoredProjects => {
             // while preserving user interaction fields (isFavorite, isDeleted)
             Object.keys(initialProjects).forEach((id) => {
                 if (parsed[id]) {
+                    const finalCollabsList = (parsed[id].collaboratorsList !== undefined && parsed[id].collaboratorsList.length > 0)
+                        ? parsed[id].collaboratorsList
+                        : ["Ray Allen", "Tim Duncan", "Udonis Haslem", "Tracy McGrady", "Kobe Bryant", "Allen Iverson"].slice(0, initialProjects[id].collabs);
+
                     parsed[id] = {
                         ...parsed[id],
                         title: initialProjects[id].title,
                         type: initialProjects[id].type,
-                        collabs: initialProjects[id].collabs,
+                        collabs: finalCollabsList.length,
                         state: initialProjects[id].state,
                         lastModified: initialProjects[id].lastModified,
                         created: initialProjects[id].created,
@@ -229,6 +241,9 @@ export const getProjectsFromStorage = (): StoredProjects => {
                         imageKey: initialProjects[id].imageKey,
                         isShared: initialProjects[id].isShared,
                         owner: initialProjects[id].owner,
+                        description: parsed[id].description !== undefined ? parsed[id].description : "",
+                        image: parsed[id].image !== undefined ? parsed[id].image : "",
+                        collaboratorsList: finalCollabsList,
                     };
                 } else {
                     parsed[id] = initialProjects[id];
@@ -302,6 +317,32 @@ export const renameProject = (projectId: string, newTitle: string) => {
     }
 };
 
+export const updateProjectDetails = (
+    projectId: string,
+    details: {
+        title?: string;
+        image?: string;
+        description?: string;
+        state?: string;
+        collaboratorsList?: string[];
+    },
+) => {
+    if (typeof window === "undefined") return;
+    const current = getProjectsFromStorage();
+    if (current[projectId]) {
+        current[projectId] = {
+            ...current[projectId],
+            ...details,
+        };
+        if (details.title) {
+            current[projectId].title = details.title;
+        }
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(current));
+        window.dispatchEvent(new CustomEvent(EVENT_NAME));
+        window.dispatchEvent(new CustomEvent("song-project-updated"));
+    }
+};
+
 export const createProject = (
     title: string,
     type: "Album" | "EP" | "Single",
@@ -344,23 +385,29 @@ export const useProjects = (): Project[] => {
             const stored = getProjectsFromStorage();
             const list: Project[] = Object.values(stored).map((proj) => {
                 const songsCount = getSongsCountForProject(proj.id);
+                const mappingCollabs = proj.collaboratorsList && proj.collaboratorsList.length > 0
+                    ? proj.collaboratorsList
+                    : ["Ray Allen", "Tim Duncan", "Udonis Haslem", "Tracy McGrady", "Kobe Bryant", "Allen Iverson"].slice(0, proj.collabs);
+
                 return {
                     id: proj.id,
                     title: proj.title,
                     type: proj.type,
                     songsCount,
-                    collabs: proj.collabs,
+                    collabs: mappingCollabs.length,
                     state: proj.state,
                     lastModified: proj.lastModified,
                     created: proj.created,
                     lastModifiedDate: new Date(proj.lastModifiedDate),
                     createdDate: new Date(proj.createdDate),
                     imageKey: proj.imageKey,
-                    image: proj.imageKey ? (PROJECT_IMAGES[proj.imageKey] || null) : null,
+                    image: proj.image ? proj.image : (proj.imageKey ? (PROJECT_IMAGES[proj.imageKey] || null) : null),
                     isFavorite: !!proj.isFavorite,
                     isDeleted: !!proj.isDeleted,
                     isShared: !!proj.isShared,
                     owner: proj.owner || "",
+                    description: proj.description || "",
+                    collaboratorsList: mappingCollabs,
                 };
             });
             setProjects(list);

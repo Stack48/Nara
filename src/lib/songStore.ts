@@ -36,6 +36,8 @@ export interface Song {
     isShared?: boolean;
     owner?: string;
     position?: number;
+    description?: string;
+    collaboratorsList?: string[];
 }
 
 const STATIC_SONGS_LIST = [
@@ -443,6 +445,10 @@ export interface Mappings {
         isFavorite: boolean;
         isDeleted: boolean;
         title: string;
+        description?: string;
+        collaboratorsList?: string[];
+        state?: string;
+        image?: string;
     };
 }
 
@@ -474,6 +480,29 @@ export const getSongProjectMappings = (): Mappings => {
                     map.title = originalSong ? originalSong.title : key;
                     upgraded = true;
                 }
+                if (typeof map.description === "undefined") {
+                    map.description = "";
+                    upgraded = true;
+                }
+                if (typeof map.collaboratorsList === "undefined" || (Array.isArray(map.collaboratorsList) && map.collaboratorsList.length === 0)) {
+                    const originalSong = STATIC_SONGS_LIST.find(
+                        (s) => s.id === key,
+                    );
+                    const collabsCount = originalSong ? originalSong.collabs : 0;
+                    map.collaboratorsList = ["Ray Allen", "Tim Duncan", "Udonis Haslem", "Tracy McGrady", "Kobe Bryant", "Allen Iverson"].slice(0, collabsCount);
+                    upgraded = true;
+                }
+                if (typeof map.state === "undefined") {
+                    const originalSong = STATIC_SONGS_LIST.find(
+                        (s) => s.id === key,
+                    );
+                    map.state = originalSong ? originalSong.state : "En écriture";
+                    upgraded = true;
+                }
+                if (typeof map.image === "undefined") {
+                    map.image = "";
+                    upgraded = true;
+                }
             });
             if (parsed["test"] && !localStorage.getItem("test_song_migrated_june5")) {
                 parsed["test"].projectId = "This_Is_America";
@@ -495,6 +524,10 @@ export const getSongProjectMappings = (): Mappings => {
                             song.id === "So_Into_You" ||
                             song.id === "Right_in_the_Middle",
                         title: song.title,
+                        description: "",
+                        collaboratorsList: ["Ray Allen", "Tim Duncan", "Udonis Haslem", "Tracy McGrady", "Kobe Bryant", "Allen Iverson"].slice(0, song.collabs),
+                        state: song.state,
+                        image: "",
                     };
                     upgraded = true;
                 }
@@ -519,6 +552,10 @@ export const getSongProjectMappings = (): Mappings => {
             isDeleted:
                 song.id === "So_Into_You" || song.id === "Right_in_the_Middle",
             title: song.title,
+            description: "",
+            collaboratorsList: ["Ray Allen", "Tim Duncan", "Udonis Haslem", "Tracy McGrady", "Kobe Bryant", "Allen Iverson"].slice(0, song.collabs),
+            state: song.state,
+            image: "",
         };
     });
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(initialMappings));
@@ -592,6 +629,36 @@ export const renameSong = (songId: string, newTitle: string) => {
     const currentMappings = getSongProjectMappings();
     if (currentMappings[songId]) {
         currentMappings[songId].title = newTitle;
+        localStorage.setItem(
+            LOCAL_STORAGE_KEY,
+            JSON.stringify(currentMappings),
+        );
+        window.dispatchEvent(new CustomEvent(EVENT_NAME));
+    }
+};
+
+// Update Song Details helper
+export const updateSongDetails = (
+    songId: string,
+    details: {
+        title?: string;
+        image?: string;
+        description?: string;
+        state?: string;
+        collaboratorsList?: string[];
+    },
+) => {
+    if (typeof window === "undefined") return;
+
+    const currentMappings = getSongProjectMappings();
+    if (currentMappings[songId]) {
+        currentMappings[songId] = {
+            ...currentMappings[songId],
+            ...details,
+        };
+        if (details.title) {
+            currentMappings[songId].title = details.title;
+        }
         localStorage.setItem(
             LOCAL_STORAGE_KEY,
             JSON.stringify(currentMappings),
@@ -708,19 +775,27 @@ export const useSongs = (): Song[] => {
                     isFavorite: false,
                     isDeleted: false,
                     title: song.title,
+                    description: "",
+                    collaboratorsList: [],
+                    state: song.state,
+                    image: "",
                 };
+
+                const mappingCollabs = songMapping.collaboratorsList && songMapping.collaboratorsList.length > 0
+                    ? songMapping.collaboratorsList
+                    : ["Ray Allen", "Tim Duncan", "Udonis Haslem", "Tracy McGrady", "Kobe Bryant", "Allen Iverson"].slice(0, song.collabs);
 
                 return {
                     id: song.id,
                     title: songMapping.title || song.title,
                     time: song.time,
-                    collabs: song.collabs,
-                    state: song.state,
+                    collabs: mappingCollabs.length,
+                    state: songMapping.state || song.state,
                     lastModified: song.lastModified,
                     created: song.created,
                     lastModifiedDate: song.lastModifiedDate,
                     createdDate: song.createdDate,
-                    image: song.image,
+                    image: songMapping.image ? songMapping.image : song.image,
                     audioSrc: song.audioSrc,
                     projectId: songMapping.projectId,
                     projectName: getStoredProjectTitle(
@@ -732,6 +807,8 @@ export const useSongs = (): Song[] => {
                     isDeleted: !!songMapping.isDeleted,
                     isShared: !!song.isShared,
                     owner: song.owner || "",
+                    description: songMapping.description || "",
+                    collaboratorsList: mappingCollabs,
                 };
             });
             setSongs(updated);

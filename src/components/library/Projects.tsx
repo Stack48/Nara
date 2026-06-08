@@ -116,14 +116,13 @@ export const Projects = () => {
                         <button
                             type="button"
                             onClick={() => handleHeaderSort("alphabetical")}
-                            className="col-span-4 pl-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                            className="col-span-6 pl-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
                         >
                             <span>Name</span>
                             {sortBy === "alphabetical" && (
                                 sortOrder === "asc" ? <ChevronUp size={12} /> : <ChevronDown size={12} />
                             )}
                         </button>
-                        <div className="col-span-2">State</div>
                         <button
                             type="button"
                             onClick={() => handleHeaderSort("modified")}

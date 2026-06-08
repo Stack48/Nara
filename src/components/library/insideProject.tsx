@@ -3,11 +3,10 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronUp, ChevronDown, FolderOpen, Edit3 } from "lucide-react";
 import { useSongs, Song, renameSong, getSongOrder, saveSongOrder } from "@/lib/songStore";
-import { getProjectTitle } from "@/lib/projectStore";
+import { getProjectTitle, useProjects } from "@/lib/projectStore";
 import { MenuContext } from "@/context/MenuContext";
-import { RenameModal } from "../modals/RenameModal";
 import { useLibrarySortAndFilter } from "@/hooks/useLibrarySortAndFilter";
 import { LibraryHeader } from "./LibraryHeader";
 import { SongCard } from "./songCard";
@@ -26,10 +25,6 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
         x: number;
         y: number;
         song: Song;
-    } | null>(null);
-    const [renameModal, setRenameModal] = useState<{
-        songId: string;
-        initialTitle: string;
     } | null>(null);
 
     const { selectedIds, handleSelect } = useSelection();
@@ -224,23 +219,98 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
     const breadcrumbLabel = isShared ? "Shared with me" : "My Projects";
     const breadcrumbLink = isShared ? "/shared" : "/projects";
 
-    const titleNode = (
-        <div className="flex items-center gap-2 font-syne">
-            <Link
-                href={breadcrumbLink}
-                className="text-neutral-500 hover:text-white transition-colors"
-            >
-                {breadcrumbLabel}
-            </Link>
-            <span className="text-neutral-600 text-lg">&gt;</span>
-            <span className="text-white">{displayTitle}</span>
-        </div>
-    );
+    const projects = useProjects();
+    const currentProject = projects.find((p) => p.id === projectId);
 
     return (
         <div className="w-full font-arimo text-white pb-10">
+            {/* Breadcrumbs */}
+            <div className="flex items-center gap-2 font-syne mb-6 text-sm">
+                <Link
+                    href={breadcrumbLink}
+                    className="text-neutral-500 hover:text-white transition-colors"
+                >
+                    {breadcrumbLabel}
+                </Link>
+                <span className="text-neutral-600">&gt;</span>
+                <span className="text-neutral-300">{displayTitle}</span>
+            </div>
+
+            {/* Project Details Banner */}
+            <div className="bg-gradient-to-r from-[#121212] to-[#181818] border border-neutral-800/80 rounded-3xl p-6 mb-8 flex flex-col md:flex-row gap-6 items-start md:items-center relative overflow-hidden group shadow-lg">
+                {/* Background Glow */}
+                <div className="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-[#D90097]/5 blur-3xl group-hover:bg-[#D90097]/8 transition-all duration-750 pointer-events-none" />
+
+                {/* Project Image */}
+                <div className="relative w-32 h-32 md:w-36 md:h-36 rounded-2xl overflow-hidden border border-neutral-800 shadow-2xl shrink-0 bg-neutral-900 flex items-center justify-center">
+                    {currentProject?.image ? (
+                        <img
+                            src={typeof currentProject.image === "object" ? currentProject.image.src : currentProject.image}
+                            alt={displayTitle}
+                            className="w-full h-full object-cover"
+                        />
+                    ) : (
+                        <FolderOpen size={40} className="text-neutral-600" />
+                    )}
+                </div>
+
+                {/* Project Info */}
+                <div className="flex-1 flex flex-col justify-between w-full">
+                    <div className="flex items-center gap-2 mb-2.5">
+                        <span className="bg-neutral-850 text-neutral-300 text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider border border-neutral-805">
+                            {currentProject?.type || "Project"}
+                        </span>
+                    </div>
+
+                    <h1 className="font-syne font-extrabold text-3xl md:text-4xl text-white mb-2 leading-tight">
+                        {displayTitle}
+                    </h1>
+
+                    {/* Project Description */}
+                    <p className="text-sm text-neutral-400 max-w-2xl leading-relaxed mb-4">
+                        {currentProject?.description || (
+                            <span className="text-neutral-600 italic">No description yet. Edit this project to add one.</span>
+                        )}
+                    </p>
+
+                    {/* Footer Meta Row */}
+                    <div className="flex flex-wrap items-center justify-between gap-4 text-xs text-neutral-500 font-semibold border-t border-neutral-900 pt-3.5">
+                        <div className="flex items-center gap-4">
+                            <div>
+                                Songs: <span className="text-neutral-300">{sortedProjectList.length}</span>
+                            </div>
+                            {currentProject?.collaboratorsList && currentProject.collaboratorsList.length > 0 && (
+                                <div className="flex items-center gap-2 border-l border-neutral-800 pl-4">
+                                    <span>Collaborators ({currentProject.collaboratorsList.length}):</span>
+                                    <span className="text-neutral-300">
+                                        {currentProject.collaboratorsList.join(", ")}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                window.dispatchEvent(
+                                    new CustomEvent("open-edit-modal", {
+                                        detail: {
+                                            type: "project",
+                                            itemId: projectId,
+                                        },
+                                    })
+                                );
+                            }}
+                            className="text-xs font-bold text-[#D90097] hover:text-white transition-colors cursor-pointer border border-[#D90097]/25 hover:border-white px-3.5 py-1.5 rounded-xl bg-neutral-900/50 hover:bg-neutral-800/40 flex items-center gap-1.5"
+                        >
+                            <Edit3 size={12} />
+                            <span>Edit Details</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <LibraryHeader
-                title={titleNode}
+                title=""
                 itemCount={sortedProjectList.length}
                 itemLabelSingular="song"
                 itemLabelPlural="songs"
@@ -379,33 +449,6 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
                     itemType="song"
                     song={contextMenu.song}
                     onClose={() => setContextMenu(null)}
-                    onRenameClick={() =>
-                        setRenameModal({
-                            songId: contextMenu.song.id,
-                            initialTitle: contextMenu.song.title,
-                        })
-                    }
-                />
-            )}
-
-            {renameModal && (
-                <RenameModal
-                    isOpen={true}
-                    onClose={() => setRenameModal(null)}
-                    title="Rename song"
-                    label="Song Title"
-                    placeholder="Enter song title"
-                    initialValue={renameModal.initialTitle}
-                    onSave={(newValue) => {
-                        renameSong(renameModal.songId, newValue);
-                        window.dispatchEvent(
-                            new CustomEvent("show-nara-toast", {
-                                detail: {
-                                    message: `Song renamed to "${newValue}"`,
-                                },
-                            }),
-                        );
-                    }}
                 />
             )}
         </div>

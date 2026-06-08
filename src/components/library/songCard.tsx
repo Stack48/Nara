@@ -348,9 +348,6 @@ export const SongCard = ({
                         <div className="flex items-center gap-1.5">
                             {isInsideProjectView ? (
                                 <>
-                                    <span className="text-[10px] text-neutral-500 hidden sm:block">
-                                        Collaborators ({song.collabs})
-                                    </span>
                                     <div className="flex -space-x-2">
                                         {[
                                             ...Array(Math.min(song.collabs, 3)),
@@ -378,9 +375,6 @@ export const SongCard = ({
                             ) : song.owner &&
                               !(isSharedView || song.isShared) ? (
                                 <div className="flex items-center gap-1.5">
-                                    <span className="text-[10px] text-neutral-400 hidden sm:block">
-                                        Owner: {song.owner}
-                                    </span>
                                     <div className="w-6 h-6 rounded-full overflow-hidden relative z-10">
                                         <Image
                                             src={
@@ -775,9 +769,6 @@ export const SongCard = ({
                                         sizes="24px"
                                     />
                                 </div>
-                                <span className="text-xs text-neutral-400 truncate max-w-[100px] hidden md:block">
-                                    {song.owner}
-                                </span>
                             </div>
                         ) : song.collabs > 0 ? (
                             <div className="flex -space-x-1.5">

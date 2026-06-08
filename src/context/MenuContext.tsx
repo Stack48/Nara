@@ -207,8 +207,17 @@ export const MenuContext = ({
     const handleShare = () => {
         onClose();
         window.dispatchEvent(
-            new CustomEvent("show-nara-toast", {
-                detail: { message: "Mock sharing link generated!" },
+            new CustomEvent("open-share-modal", {
+                detail: {
+                    items: [
+                        {
+                            id,
+                            title,
+                            type: itemType,
+                            originalItem: song || project,
+                        },
+                    ],
+                },
             }),
         );
     };
@@ -319,7 +328,14 @@ export const MenuContext = ({
                     <button
                         onClick={() => {
                             onClose();
-                            if (onRenameClick) onRenameClick();
+                            window.dispatchEvent(
+                                new CustomEvent("open-edit-modal", {
+                                    detail: {
+                                        type: "song",
+                                        itemId: id,
+                                    },
+                                }),
+                            );
                         }}
                         className="w-full text-left px-3.5 py-2 text-xs font-semibold text-neutral-300 hover:text-white hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
                     >
@@ -357,63 +373,29 @@ export const MenuContext = ({
 
                 {/* 5. Move to... */}
                 {context === "default" && (
-                    <div
-                        className="relative"
-                        onMouseEnter={() => setSubmenuOpen(true)}
-                        onMouseLeave={() => setSubmenuOpen(false)}
+                    <button
+                        onClick={() => {
+                            onClose();
+                            window.dispatchEvent(
+                                new CustomEvent("open-moveto-modal", {
+                                    detail: {
+                                        items: [
+                                            {
+                                                id,
+                                                title,
+                                                type: "song",
+                                                originalItem: song,
+                                            },
+                                        ],
+                                    },
+                                }),
+                            );
+                        }}
+                        className="w-full text-left px-3.5 py-2 text-xs font-semibold text-neutral-300 hover:text-white hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
                     >
-                        <button className="w-full text-left px-3.5 py-2 text-xs font-semibold text-neutral-300 hover:text-white hover:bg-white/5 flex items-center justify-between transition-colors cursor-pointer">
-                            <div className="flex items-center gap-2.5">
-                                <FolderSymlink
-                                    size={14}
-                                    className="text-neutral-500"
-                                />
-                                <span>Move to...</span>
-                            </div>
-                            <ChevronRight size={12} className="text-neutral-500" />
-                        </button>
-
-                        {submenuOpen && (
-                            <div className="absolute top-0 left-full ml-1 w-52 bg-[#151515]/95 border border-neutral-800 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] py-2 backdrop-blur-md animate-in fade-in slide-in-from-left-1 duration-100 max-h-60 overflow-y-auto">
-                                <div className="px-3.5 py-1 text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-1">
-                                    Select project
-                                </div>
-                                {activeProjects.map((proj) => (
-                                    <button
-                                        key={proj.id}
-                                        onClick={() =>
-                                            handleMoveToProject(proj.id, proj.title)
-                                        }
-                                        className="w-full text-left px-3.5 py-1.5 text-xs font-medium text-neutral-300 hover:text-white hover:bg-white/5 flex items-center justify-between transition-colors cursor-pointer"
-                                    >
-                                        <span className="truncate">
-                                            {proj.title}
-                                        </span>
-                                        {currentProjectId === proj.id && (
-                                            <Check
-                                                size={12}
-                                                className="text-[#D90097] shrink-0 ml-1"
-                                            />
-                                        )}
-                                    </button>
-                                ))}
-                                {currentProjectId && (
-                                    <>
-                                        <hr className="border-neutral-800 my-1 mx-2" />
-                                        <button
-                                            onClick={() =>
-                                                handleMoveToProject("", "")
-                                            }
-                                            className="w-full text-left px-3.5 py-1.5 text-xs font-semibold text-red-400 hover:text-red-300 hover:bg-red-500/5 flex items-center gap-2 transition-colors cursor-pointer"
-                                        >
-                                            <X size={12} />
-                                            <span>Remove from project</span>
-                                        </button>
-                                    </>
-                                )}
-                            </div>
-                        )}
-                    </div>
+                        <FolderSymlink size={14} className="text-neutral-500" />
+                        <span>Move to...</span>
+                    </button>
                 )}
 
                 {/* Divider */}
@@ -481,7 +463,14 @@ export const MenuContext = ({
                     <button
                         onClick={() => {
                             onClose();
-                            if (onRenameClick) onRenameClick();
+                            window.dispatchEvent(
+                                new CustomEvent("open-edit-modal", {
+                                    detail: {
+                                        type: "project",
+                                        itemId: id,
+                                    },
+                                }),
+                            );
                         }}
                         className="w-full text-left px-3.5 py-2 text-xs font-semibold text-neutral-300 hover:text-white hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
                     >

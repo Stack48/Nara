@@ -217,10 +217,7 @@ export const ProjectCard = ({
                                 </span>
                             </div>
                         ) : isSharedView || project.isShared ? (
-                            <div className="pt-3 border-t border-white/10 flex items-center justify-between">
-                                <span className="text-[11px] font-medium text-[#D90097]">
-                                    Shared by {project.owner}
-                                </span>
+                            <div className="pt-3 border-t border-white/10 flex items-center justify-end">
                                 <div className="w-6 h-6 rounded-full border border-neutral-800 overflow-hidden relative z-10">
                                     <Image
                                         src={
@@ -241,29 +238,6 @@ export const ProjectCard = ({
                                     {project.collabs} Collaborator
                                     {project.collabs > 1 ? "s" : ""}
                                 </span>
-                                <div className="flex -space-x-1.5">
-                                    {[
-                                        ...Array(Math.min(project.collabs, 3)),
-                                    ].map((_, i) => (
-                                        <div
-                                            key={i}
-                                            className="w-6 h-6 rounded-full border border-neutral-800 overflow-hidden relative z-10"
-                                        >
-                                            <Image
-                                                src={
-                                                    ALL_AVATARS[
-                                                        (index + i) %
-                                                            ALL_AVATARS.length
-                                                    ]
-                                                }
-                                                alt="Collab"
-                                                fill
-                                                className="object-cover"
-                                                sizes="24px"
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
                             </div>
                         ) : (
                             <div className="pt-3 border-t border-white/10">
@@ -315,7 +289,13 @@ export const ProjectCard = ({
         }`}>
             {/* Name + Image */}
             <div
-                className={`${isSharedView ? "col-span-3" : "col-span-4"} flex items-center gap-4 pl-1`}
+                className={`${
+                    isSharedView
+                        ? "col-span-3"
+                        : (context === "recent" || context === "favorite" || isDeletedView)
+                        ? "col-span-4"
+                        : "col-span-6"
+                } flex items-center gap-4 pl-1`}
             >
                 <div className="relative w-14 h-14 flex-shrink-0 mt-1 mb-1">
                     {/* Stack effects pour signifier un "Projet" (dossier) */}
@@ -433,14 +413,25 @@ export const ProjectCard = ({
                 </>
             ) : isSharedView ? (
                 <>
-                    {/* Owner */}
-                    <div className="col-span-2 text-xs text-[#D90097] font-semibold truncate">
-                        {project.owner}
+                    {/* Owner Avatar */}
+                    <div className="col-span-2 flex items-center">
+                        <div className="w-6 h-6 rounded-full border border-[#151515] overflow-hidden relative z-10">
+                            <Image
+                                src={
+                                    getOwnerAvatar(project.owner || "") ||
+                                    ALL_AVATARS[0]
+                                }
+                                alt={project.owner || "Owner"}
+                                fill
+                                className="object-cover"
+                                sizes="24px"
+                            />
+                        </div>
                     </div>
 
-                    {/* State */}
-                    <div className="col-span-1 text-xs font-bold text-white truncate">
-                        {project.state}
+                    {/* State placeholder (projects have no state) */}
+                    <div className="col-span-1 text-xs text-neutral-600 font-medium">
+                        -
                     </div>
 
                     {/* Last modified */}
@@ -491,10 +482,12 @@ export const ProjectCard = ({
                 </>
             ) : (
                 <>
-                    {/* State */}
-                    <div className="col-span-2 text-xs font-bold text-white truncate">
-                        {project.state}
-                    </div>
+                    {/* State placeholder if in recent or favorite contexts to align with combined headers */}
+                    {(context === "recent" || context === "favorite") && (
+                        <div className="col-span-2 text-xs text-neutral-600 font-medium">
+                            -
+                        </div>
+                    )}
 
                     {/* Last modified */}
                     <div className="col-span-2 text-xs text-white truncate">

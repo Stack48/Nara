@@ -215,7 +215,17 @@ export const SelectionBanner = () => {
                                 {/* Edit Button (Single Select) */}
                                 {singleItem && !isSharedView && (
                                     <button
-                                        onClick={() => setIsRenameOpen(true)}
+                                        onClick={() => {
+                                            window.dispatchEvent(
+                                                new CustomEvent("open-edit-modal", {
+                                                    detail: {
+                                                        type: singleItem.type,
+                                                        itemId: singleItem.id,
+                                                    },
+                                                }),
+                                            );
+                                            clearSelection();
+                                        }}
                                         className="p-2 rounded-xl text-neutral-300 hover:text-white hover:bg-neutral-800/80 transition-colors"
                                         onMouseEnter={() => handleMouseEnter("Edit")}
                                         onMouseLeave={handleMouseLeave}
@@ -252,60 +262,37 @@ export const SelectionBanner = () => {
 
                                 {/* Move to project (Only if songs are in selection) */}
                                 {hasSongs && !isSharedView && (
-                                    <div className="relative" ref={moveToRef}>
-                                        <button
-                                            onClick={() => setIsMoveToOpen(!isMoveToOpen)}
-                                            className={`p-2 rounded-xl hover:bg-neutral-800/80 transition-colors ${
-                                                isMoveToOpen ? "text-[#D90097] bg-neutral-800/80" : "text-neutral-300 hover:text-white"
-                                            }`}
-                                            onMouseEnter={() => handleMouseEnter("Move to...")}
-                                            onMouseLeave={handleMouseLeave}
-                                        >
-                                            <FolderSymlink size={16} />
-                                        </button>
-
-                                        {/* Popup drop-down */}
-                                        {isMoveToOpen && (
-                                            <div className="absolute bottom-full right-0 mb-2 w-52 bg-[#151515] border border-neutral-800 rounded-xl shadow-2xl py-2 z-[100] max-h-48 overflow-y-auto animate-in fade-in slide-in-from-bottom-2 duration-150">
-                                                <div className="px-3 py-1 text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-1">
-                                                    Move songs to...
-                                                </div>
-                                                {activeProjects.map((proj) => (
-                                                    <button
-                                                        key={proj.id}
-                                                        onClick={() => {
-                                                            moveSelectedSongsToProject(proj.id, proj.title);
-                                                            setIsMoveToOpen(false);
-                                                        }}
-                                                        className="w-full text-left px-3 py-1.5 text-xs font-semibold text-neutral-300 hover:text-white hover:bg-white/5 flex items-center justify-between transition-colors cursor-pointer"
-                                                    >
-                                                        <span className="truncate">{proj.title}</span>
-                                                        {singleItem &&
-                                                            singleItem.type === "song" &&
-                                                            singleItem.originalItem.projectId === proj.id && (
-                                                                <Check size={12} className="text-[#D90097]" />
-                                                            )}
-                                                    </button>
-                                                ))}
-                                                <hr className="border-neutral-800 my-1 mx-2" />
-                                                <button
-                                                    onClick={() => {
-                                                        moveSelectedSongsToProject("", "");
-                                                        setIsMoveToOpen(false);
-                                                    }}
-                                                    className="w-full text-left px-3 py-1.5 text-xs font-bold text-red-400 hover:text-red-300 hover:bg-red-500/5 flex items-center gap-1.5 transition-colors cursor-pointer"
-                                                >
-                                                    <X size={12} />
-                                                    <span>Remove from project</span>
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            window.dispatchEvent(
+                                                new CustomEvent("open-moveto-modal", {
+                                                    detail: {
+                                                        items: selectedItems,
+                                                    },
+                                                }),
+                                            );
+                                            clearSelection();
+                                        }}
+                                        className="p-2 rounded-xl text-neutral-300 hover:text-white hover:bg-neutral-800/80 transition-colors"
+                                        onMouseEnter={() => handleMouseEnter("Move to...")}
+                                        onMouseLeave={handleMouseLeave}
+                                    >
+                                        <FolderSymlink size={16} />
+                                    </button>
                                 )}
 
                                 {/* Share Button */}
                                 <button
-                                    onClick={shareSelected}
+                                    onClick={() => {
+                                        window.dispatchEvent(
+                                            new CustomEvent("open-share-modal", {
+                                                detail: {
+                                                    items: selectedItems,
+                                                },
+                                            }),
+                                        );
+                                        clearSelection();
+                                    }}
                                     className="p-2 rounded-xl text-neutral-300 hover:text-white hover:bg-neutral-800/80 transition-colors"
                                     onMouseEnter={() => handleMouseEnter("Share")}
                                     onMouseLeave={handleMouseLeave}
@@ -363,17 +350,6 @@ export const SelectionBanner = () => {
             </div>
 
             {/* Rename Modal Container */}
-            {isRenameOpen && singleItem && (
-                <RenameModal
-                    isOpen={true}
-                    onClose={() => setIsRenameOpen(false)}
-                    title={singleItem.type === "song" ? "Rename song" : "Rename project folder"}
-                    label={singleItem.type === "song" ? "Song Title" : "Project Name"}
-                    placeholder={singleItem.type === "song" ? "Enter song title" : "Enter project name"}
-                    initialValue={singleItem.title}
-                    onSave={handleRenameSave}
-                />
-            )}
         </div>
     );
 };
