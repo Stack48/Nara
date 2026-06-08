@@ -5,6 +5,7 @@ import { useSongs, setSongDeleted, Song } from "@/lib/songStore";
 import { useProjects, setProjectDeleted, Project } from "@/lib/projectStore";
 import { useSelection } from "@/context/SelectionContext";
 import { MenuContext } from "@/context/MenuContext";
+import { ChevronUp, ChevronDown } from "lucide-react";
 
 import { LibraryHeader } from "./LibraryHeader";
 import {
@@ -79,6 +80,15 @@ export const Deleted = () => {
                 detail: { message: `"${title}" permanently deleted.` },
             }),
         );
+    };
+
+    const handleHeaderSort = (field: typeof sortBy) => {
+        if (sortBy === field) {
+            setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+        } else {
+            setSortBy(field);
+            setSortOrder(field === "alphabetical" ? "asc" : "desc");
+        }
     };
 
     const handleSongContextMenu = (e: React.MouseEvent, song: Song) => {
@@ -168,8 +178,26 @@ export const Deleted = () => {
                     {/* Unique En-tête du tableau en haut en mode Liste */}
                     {viewMode === "list" && (
                         <div className="grid grid-cols-12 gap-4 pb-4 mb-6 text-xs font-medium text-neutral-500 border-b border-neutral-800">
-                            <div className="col-span-4 pl-2">Name</div>
-                            <div className="col-span-3">Deleted time</div>
+                            <button
+                                type="button"
+                                onClick={() => handleHeaderSort("alphabetical")}
+                                className="col-span-4 pl-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                            >
+                                <span>Name</span>
+                                {sortBy === "alphabetical" && (
+                                    sortOrder === "asc" ? <ChevronUp size={12} /> : <ChevronDown size={12} />
+                                )}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleHeaderSort("modified")}
+                                className="col-span-3 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                            >
+                                <span>Deleted time</span>
+                                {sortBy === "modified" && (
+                                    sortOrder === "asc" ? <ChevronUp size={12} /> : <ChevronDown size={12} />
+                                )}
+                            </button>
                             <div className="col-span-3">Collaborators</div>
                             <div className="col-span-2 text-right pr-2">Actions</div>
                         </div>

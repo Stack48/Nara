@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { ChevronUp, ChevronDown } from "lucide-react";
 import { useSongs, Song, renameSong, getSongOrder, saveSongOrder } from "@/lib/songStore";
 import { getProjectTitle } from "@/lib/projectStore";
 import { MenuContext } from "@/context/MenuContext";
@@ -202,6 +203,15 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
         }
     };
 
+    const handleHeaderSort = (field: typeof sortBy) => {
+        if (sortBy === field) {
+            setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+        } else {
+            setSortBy(field);
+            setSortOrder(field === "alphabetical" ? "asc" : "desc");
+        }
+    };
+
     const handleContextMenu = (e: React.MouseEvent, song: Song) => {
         e.preventDefault();
         setContextMenu({
@@ -291,10 +301,37 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
                 <div className="w-full">
                     {/* En-tête du tableau */}
                     <div className="grid grid-cols-12 gap-4 pb-4 mb-2 text-xs font-medium text-neutral-500 border-b border-neutral-800">
-                        <div className="col-span-5 pl-2">Name</div>
+                        <button
+                            type="button"
+                            onClick={() => handleHeaderSort("alphabetical")}
+                            className="col-span-5 pl-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                        >
+                            <span>Name</span>
+                            {sortBy === "alphabetical" && (
+                                sortOrder === "asc" ? <ChevronUp size={12} /> : <ChevronDown size={12} />
+                            )}
+                        </button>
                         <div className="col-span-2">State</div>
-                        <div className="col-span-2">Last modified</div>
-                        <div className="col-span-3">Created</div>
+                        <button
+                            type="button"
+                            onClick={() => handleHeaderSort("modified")}
+                            className="col-span-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                        >
+                            <span>Last modified</span>
+                            {sortBy === "modified" && (
+                                sortOrder === "asc" ? <ChevronUp size={12} /> : <ChevronDown size={12} />
+                            )}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handleHeaderSort("created")}
+                            className="col-span-3 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                        >
+                            <span>Created</span>
+                            {sortBy === "created" && (
+                                sortOrder === "asc" ? <ChevronUp size={12} /> : <ChevronDown size={12} />
+                            )}
+                        </button>
                     </div>
 
                     {/* Lignes du tableau */}

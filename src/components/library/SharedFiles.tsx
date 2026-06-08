@@ -6,6 +6,7 @@ import { useProjects, Project } from "@/lib/projectStore";
 import { MenuContext } from "@/context/MenuContext";
 import { LibraryHeader } from "./LibraryHeader";
 import { useSelection } from "@/context/SelectionContext";
+import { ChevronUp, ChevronDown } from "lucide-react";
 import {
     SortByOption,
     SortOrderOption,
@@ -53,6 +54,15 @@ export const SharedFiles = () => {
     const sharedProjectsList = allProjects.filter(
         (proj) => proj.isShared && !proj.isDeleted,
     );
+
+    const handleHeaderSort = (field: typeof sortBy) => {
+        if (sortBy === field) {
+            setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+        } else {
+            setSortBy(field);
+            setSortOrder(field === "alphabetical" ? "asc" : "desc");
+        }
+    };
 
     const handleContextMenu = (
         e: React.MouseEvent,
@@ -142,11 +152,47 @@ export const SharedFiles = () => {
                     {/* Unique En-tête du tableau en haut en mode Liste */}
                     {viewMode === "list" && (
                         <div className="grid grid-cols-12 gap-4 pb-4 mb-6 text-xs font-medium text-neutral-500 border-b border-neutral-800">
-                            <div className="col-span-3 pl-2">Name</div>
-                            <div className="col-span-2">Owner</div>
+                            <button
+                                type="button"
+                                onClick={() => handleHeaderSort("alphabetical")}
+                                className="col-span-3 pl-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                            >
+                                <span>Name</span>
+                                {sortBy === "alphabetical" && (
+                                    sortOrder === "asc" ? <ChevronUp size={12} /> : <ChevronDown size={12} />
+                                )}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleHeaderSort("owner")}
+                                className="col-span-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                            >
+                                <span>Owner</span>
+                                {sortBy === "owner" && (
+                                    sortOrder === "asc" ? <ChevronUp size={12} /> : <ChevronDown size={12} />
+                                )}
+                            </button>
                             <div className="col-span-1">State</div>
-                            <div className="col-span-2">Last modified</div>
-                            <div className="col-span-2">Created</div>
+                            <button
+                                type="button"
+                                onClick={() => handleHeaderSort("modified")}
+                                className="col-span-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                            >
+                                <span>Last modified</span>
+                                {sortBy === "modified" && (
+                                    sortOrder === "asc" ? <ChevronUp size={12} /> : <ChevronDown size={12} />
+                                )}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleHeaderSort("created")}
+                                className="col-span-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                            >
+                                <span>Created</span>
+                                {sortBy === "created" && (
+                                    sortOrder === "asc" ? <ChevronUp size={12} /> : <ChevronDown size={12} />
+                                )}
+                            </button>
                             <div className="col-span-2">Collaborators</div>
                         </div>
                     )}
