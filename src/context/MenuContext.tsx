@@ -444,7 +444,7 @@ export const MenuContext = ({
                         className="w-full text-left px-3.5 py-2 text-xs font-bold text-red-500 hover:text-red-400 hover:bg-red-500/[3%] flex items-center gap-2.5 transition-colors cursor-pointer"
                     >
                         <Trash2 size={14} className="text-red-500" />
-                        <span>Suppress</span>
+                        <span>Move to trash</span>
                     </button>
                 ) : (
                     <button
@@ -545,7 +545,7 @@ export const MenuContext = ({
                         className="w-full text-left px-3.5 py-2 text-xs font-bold text-red-500 hover:text-red-400 hover:bg-red-500/[3%] flex items-center gap-2.5 transition-colors cursor-pointer"
                     >
                         <Trash2 size={14} className="text-red-500" />
-                        <span>Suppress</span>
+                        <span>Move to trash</span>
                     </button>
                 ) : (
                     <button
