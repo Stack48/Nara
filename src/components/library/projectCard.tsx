@@ -217,20 +217,26 @@ export const ProjectCard = ({
                                 </span>
                             </div>
                         ) : isSharedView || project.isShared ? (
-                            <div className="pt-3 border-t border-white/10 flex items-center justify-end">
-                                <div className="w-6 h-6 rounded-full border border-neutral-800 overflow-hidden relative z-10">
-                                    <Image
-                                        src={
-                                            getOwnerAvatar(
-                                                project.owner || "",
-                                            ) || ALL_AVATARS[0]
-                                        }
-                                        alt={project.owner || "Owner"}
-                                        fill
-                                        className="object-cover"
-                                        sizes="24px"
-                                    />
-                                </div>
+                            <div className="pt-3 border-t border-white/10 flex items-center justify-start">
+                                {project.owner ? (
+                                    <span className="text-[11px] text-[#D90097] font-semibold block text-left">
+                                        Shared by {project.owner}
+                                    </span>
+                                ) : (
+                                    <div className="w-6 h-6 rounded-full border border-neutral-800 overflow-hidden relative z-10">
+                                        <Image
+                                            src={
+                                                getOwnerAvatar(
+                                                    project.owner || "",
+                                                ) || ALL_AVATARS[0]
+                                            }
+                                            alt={project.owner || "Owner"}
+                                            fill
+                                            className="object-cover"
+                                            sizes="24px"
+                                        />
+                                    </div>
+                                )}
                             </div>
                         ) : project.collabs > 0 ? (
                             <div className="flex items-center justify-between pt-3 border-t border-white/10">
@@ -413,20 +419,26 @@ export const ProjectCard = ({
                 </>
             ) : isSharedView ? (
                 <>
-                    {/* Owner Avatar */}
+                    {/* Owner Avatar / Shared by info */}
                     <div className="col-span-2 flex items-center">
-                        <div className="w-6 h-6 rounded-full border border-[#151515] overflow-hidden relative z-10">
-                            <Image
-                                src={
-                                    getOwnerAvatar(project.owner || "") ||
-                                    ALL_AVATARS[0]
-                                }
-                                alt={project.owner || "Owner"}
-                                fill
-                                className="object-cover"
-                                sizes="24px"
-                            />
-                        </div>
+                        {project.owner ? (
+                            <span className="text-xs text-[#D90097] font-semibold truncate text-left">
+                                Shared by {project.owner}
+                            </span>
+                        ) : (
+                            <div className="w-6 h-6 rounded-full border border-[#151515] overflow-hidden relative z-10">
+                                <Image
+                                    src={
+                                        getOwnerAvatar(project.owner || "") ||
+                                        ALL_AVATARS[0]
+                                    }
+                                    alt={project.owner || "Owner"}
+                                    fill
+                                    className="object-cover"
+                                    sizes="24px"
+                                />
+                            </div>
+                        )}
                     </div>
 
                     {/* State placeholder (projects have no state) */}

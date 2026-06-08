@@ -44,6 +44,7 @@ export const Songs = () => {
     // Pre-filtrer par "origin" et supprimer les deleted
     const preFilteredSongs = allSongs.filter((song) => {
         if (song.isDeleted) return false;
+        if (song.id === "Ensalada") return false;
         if (filterOrigin === "all") return true;
         return song.origin === filterOrigin;
     });
