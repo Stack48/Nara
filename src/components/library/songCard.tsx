@@ -470,7 +470,7 @@ export const SongCard = ({
             <div
                 className={`${
                     isInsideProjectView
-                        ? "col-span-5"
+                        ? "col-span-4"
                         : isSharedView
                           ? "col-span-3"
                           : "col-span-4"
@@ -700,8 +700,44 @@ export const SongCard = ({
                     </div>
 
                     {/* Created */}
-                    <div className="col-span-3 text-xs text-neutral-400">
+                    <div className="col-span-2 text-xs text-neutral-400">
                         {song.created}
+                    </div>
+
+                    {/* Collaborators */}
+                    <div className="col-span-2 flex items-center">
+                        {song.collabs > 0 ? (
+                            <div className="flex -space-x-1.5">
+                                {[...Array(Math.min(song.collabs, 3))].map(
+                                    (_, i) => (
+                                        <div
+                                            key={i}
+                                            className="w-6 h-6 rounded-full border border-[#151515] overflow-hidden relative z-10"
+                                        >
+                                            <Image
+                                                src={
+                                                    ALL_AVATARS[
+                                                        (index + i) %
+                                                            ALL_AVATARS.length
+                                                    ]
+                                                }
+                                                alt="Collab"
+                                                fill
+                                                className="object-cover"
+                                                sizes="24px"
+                                            />
+                                        </div>
+                                    ),
+                                )}
+                                {song.collabs > 3 && (
+                                    <div className="w-6 h-6 rounded-full border border-[#151515] bg-neutral-800 flex items-center justify-center relative z-10 text-[9px] font-bold text-neutral-300">
+                                        +{song.collabs - 3}
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <span className="text-xs text-neutral-600">-</span>
+                        )}
                     </div>
                 </>
             ) : (

@@ -304,7 +304,7 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
                         <button
                             type="button"
                             onClick={() => handleHeaderSort("alphabetical")}
-                            className="col-span-5 pl-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                            className="col-span-4 pl-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
                         >
                             <span>Name</span>
                             {sortBy === "alphabetical" && (
@@ -325,13 +325,14 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
                         <button
                             type="button"
                             onClick={() => handleHeaderSort("created")}
-                            className="col-span-3 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                            className="col-span-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
                         >
                             <span>Created</span>
                             {sortBy === "created" && (
                                 sortOrder === "asc" ? <ChevronUp size={12} /> : <ChevronDown size={12} />
                             )}
                         </button>
+                        <div className="col-span-2">Collaborators</div>
                     </div>
 
                     {/* Lignes du tableau */}
