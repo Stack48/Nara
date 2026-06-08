@@ -1730,10 +1730,10 @@ function createSectionDragImage(sectionElement: HTMLElement): HTMLElement {
 	);
 	const previewBackground: string =
 		themeStyles.getPropertyValue("--nara-surface-raised").trim() ||
-		"#17171C";
+		"#202027";
 	const previewBorder: string =
 		themeStyles.getPropertyValue("--nara-border-strong").trim() ||
-		"#3A3A42";
+		"#4A4A52";
 	const previewText: string =
 		themeStyles.getPropertyValue("--nara-text-primary").trim() || "#F3F4F6";
 	const clonedEditors: NodeListOf<HTMLElement> =
@@ -1752,9 +1752,9 @@ function createSectionDragImage(sectionElement: HTMLElement): HTMLElement {
 	dragImage.style.borderRadius = "10px";
 	dragImage.style.background = previewBackground;
 	dragImage.style.color = previewText;
-	dragImage.style.boxShadow = "0 16px 34px rgba(17, 17, 19, 0.18)";
+	dragImage.style.boxShadow = "0 16px 34px rgba(0, 0, 0, 0.45)";
 	dragImage.style.padding = "10px 12px";
-	dragImage.style.opacity = "0.92";
+	dragImage.style.opacity = "1";
 
 	(themeRoot ?? window.document.body).appendChild(dragImage);
 
@@ -1762,6 +1762,9 @@ function createSectionDragImage(sectionElement: HTMLElement): HTMLElement {
 }
 
 function removeDragImageAfterSnapshot(dragImage: HTMLElement): void {
+	window.setTimeout((): void => {
+		dragImage.style.top = "-10000px";
+	}, 0);
 	window.setTimeout((): void => {
 		dragImage.remove();
 	}, 180);
@@ -1776,10 +1779,10 @@ function createLineDragImage(lineElement: HTMLElement): HTMLElement {
 	);
 	const previewBackground: string =
 		themeStyles.getPropertyValue("--nara-surface-raised").trim() ||
-		"#17171C";
+		"#202027";
 	const previewBorder: string =
 		themeStyles.getPropertyValue("--nara-border-strong").trim() ||
-		"#3A3A42";
+		"#4A4A52";
 	const previewText: string =
 		themeStyles.getPropertyValue("--nara-text-primary").trim() || "#F3F4F6";
 	const clonedEditor: HTMLElement | null =
@@ -1798,9 +1801,9 @@ function createLineDragImage(lineElement: HTMLElement): HTMLElement {
 	dragImage.style.borderRadius = "8px";
 	dragImage.style.background = previewBackground;
 	dragImage.style.color = previewText;
-	dragImage.style.boxShadow = "0 14px 30px rgba(17, 17, 19, 0.16)";
+	dragImage.style.boxShadow = "0 14px 30px rgba(0, 0, 0, 0.4)";
 	dragImage.style.padding = "6px 8px";
-	dragImage.style.opacity = "0.94";
+	dragImage.style.opacity = "1";
 
 	(themeRoot ?? window.document.body).appendChild(dragImage);
 
@@ -2255,7 +2258,7 @@ function SectionKindPicker({
 	const pickerRef = useRef<HTMLDivElement | null>(null);
 
 	useEffect((): (() => void) | undefined => {
-		if (!isOpen || typeof document === "undefined") {
+		if (!isOpen || typeof window === "undefined") {
 			return undefined;
 		}
 
@@ -2277,12 +2280,12 @@ function SectionKindPicker({
 			}
 		}
 
-		document.addEventListener("pointerdown", handlePointerDown);
-		document.addEventListener("keydown", handleKeyDown);
+		window.document.addEventListener("pointerdown", handlePointerDown);
+		window.document.addEventListener("keydown", handleKeyDown);
 
 		return (): void => {
-			document.removeEventListener("pointerdown", handlePointerDown);
-			document.removeEventListener("keydown", handleKeyDown);
+			window.document.removeEventListener("pointerdown", handlePointerDown);
+			window.document.removeEventListener("keydown", handleKeyDown);
 		};
 	}, [isOpen, onClose]);
 
@@ -2458,12 +2461,12 @@ export default function LyricsEditorWorkspace({
 			}
 		}
 
-		document.addEventListener("pointerdown", handlePointerDown);
-		document.addEventListener("keydown", handleKeyDown);
+		window.document.addEventListener("pointerdown", handlePointerDown);
+		window.document.addEventListener("keydown", handleKeyDown);
 
 		return (): void => {
-			document.removeEventListener("pointerdown", handlePointerDown);
-			document.removeEventListener("keydown", handleKeyDown);
+			window.document.removeEventListener("pointerdown", handlePointerDown);
+			window.document.removeEventListener("keydown", handleKeyDown);
 		};
 	}, [openOptionsMenuSectionId, openAddMenuSectionId]);
 	const presenceChannelRef = useRef<BroadcastChannel | null>(null);
@@ -3617,6 +3620,24 @@ export default function LyricsEditorWorkspace({
 							? "h-auto w-auto px-4 py-2"
 							: "ml-[59px] h-auto w-auto border-l-2 border-[#38383C] px-4 py-2"
 				}
+				onMouseDown={(event: React.MouseEvent<HTMLDivElement>): void => {
+					const target = event.target as HTMLElement;
+					if (
+						target.closest("button") ||
+						target.closest("[data-line-editor='true']") ||
+						target.closest("[contenteditable='true']") ||
+						target.closest(".section-menu-container") ||
+						target.closest(".section-handles-container")
+					) {
+						return;
+					}
+
+					const lastLine = lines.at(-1);
+					if (lastLine) {
+						event.preventDefault();
+						focusLineEditor(lastLine.id, "end");
+					}
+				}}
 			>
 				{lines.map((line: TipTapLyricLine): ReactElement => {
 					const sectionOptions = getSectionOptions(section.id);
@@ -4043,12 +4064,49 @@ export default function LyricsEditorWorkspace({
 		return "none";
 	};
 
+	const handleWorkspaceClick = (event: React.MouseEvent<HTMLElement>): void => {
+		const target = event.target as HTMLElement;
+		if (
+			target.closest("button") ||
+			target.closest("[data-line-editor='true']") ||
+			target.closest("[contenteditable='true']") ||
+			target.closest("textarea") ||
+			target.closest(".section-menu-container") ||
+			target.closest(".section-handles-container") ||
+			target.closest("[aria-label='zone de texte']") ||
+			target.closest("[aria-label='zone de texte alternative']")
+		) {
+			return;
+		}
+
+		if (format.focusMode) {
+			const textarea = window.document.querySelector<HTMLTextAreaElement>("textarea");
+			if (textarea) {
+				event.preventDefault();
+				textarea.focus();
+				textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+			}
+			return;
+		}
+
+		const lastSection = document.sections.at(-1);
+		if (!lastSection) return;
+		const lastLine = getVisibleSectionLines(lastSection).at(-1);
+		if (!lastLine) return;
+
+		event.preventDefault();
+		focusLineEditor(lastLine.id, "end");
+	};
+
 	return (
-		<div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[#17171C]">
+		<div className="nara-app flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[#17171C]">
 			<div
 				className={`grid min-h-0 flex-1 grid-cols-1 overflow-hidden ${workspaceGridTemplateClass}`}
 			>
-				<main className="min-h-0 overflow-y-auto bg-[#17171C]">
+				<main
+					className="min-h-0 overflow-y-auto bg-[#17171C]"
+					onMouseDown={handleWorkspaceClick}
+				>
 					<div
 						className={`flex min-h-full flex-col ${
 							format.focusMode
@@ -4311,7 +4369,7 @@ export default function LyricsEditorWorkspace({
 															</div>
 														)}
 
-														{/* Absolutely positioned hover handles aligned with the first lyric line */}
+														{/* Absolutely positioned hover handles aligned next to the section title */}
 														<div
 															className={`absolute left-0 flex h-6 flex-row items-center gap-1 transition-opacity duration-150 ${
 																section.kind !==
@@ -4319,7 +4377,7 @@ export default function LyricsEditorWorkspace({
 																section
 																	.alternatives
 																	.length > 0
-																	? "top-[26px]"
+																	? "top-0"
 																	: "top-2"
 															} ${
 																openAddMenuSectionId ===
@@ -4332,6 +4390,7 @@ export default function LyricsEditorWorkspace({
 														>
 															<button
 																type="button"
+																aria-label="Ajouter section"
 																aria-expanded={
 																	openAddMenuSectionId ===
 																	section.id

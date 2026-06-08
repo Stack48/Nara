@@ -3284,14 +3284,12 @@ export default function LyricsEditorWorkspace({
 					};
 
 					// Insérer les lignes suivantes après
-					const newLines: LyricLine[] = pastedLines
-						.slice(1)
-						.map(
-							(text: string): LyricLine => ({
-								...createBlankLine(section.id),
-								text,
-							}),
-						);
+					const newLines: LyricLine[] = pastedLines.slice(1).map(
+						(text: string): LyricLine => ({
+							...createBlankLine(section.id),
+							text,
+						}),
+					);
 					if (newLines.length > 0) {
 						lastInsertedId = newLines[newLines.length - 1].id;
 						nextLines.splice(lineIndex + 1, 0, ...newLines);
@@ -3387,12 +3385,12 @@ export default function LyricsEditorWorkspace({
 	return (
 		<div
 			data-lyrics-workspace="true"
-			className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[#17171C]"
+			className="flex h-full min-h-0 flex-1 flex-col overflow-hidden"
 		>
 			<div
 				className={`grid min-h-0 flex-1 grid-cols-1 overflow-hidden ${workspaceGridTemplateClass}`}
 			>
-				<main className="min-h-0 overflow-y-auto bg-[#17171C]">
+				<main className="min-h-0 overflow-y-auto">
 					<div className="flex min-h-full flex-col px-6 py-3 lg:px-8">
 						<div className="mb-8 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
 							<div className="flex items-center gap-3">

@@ -22,7 +22,9 @@ import {
 	useState,
 	type ChangeEvent,
 	type DragEvent,
+	type FormEvent,
 	type KeyboardEvent,
+	type MouseEvent,
 	type PointerEvent,
 	type ReactElement,
 } from "react";
@@ -32,6 +34,11 @@ export type TrackMarker = {
 	id: string;
 	label: string;
 	timeLabel: string;
+	positionPercent: number;
+};
+
+export type TrackMarkerCreatePayload = {
+	label: string;
 	positionPercent: number;
 };
 
@@ -52,6 +59,7 @@ export type TrackPlayerProps = {
 	musicAssets?: MusicAssetTrack[];
 	onCurrentTimeChange?: (seconds: number) => void;
 	onDurationChange?: (seconds: number) => void;
+	onMarkerCreate?: (payload: TrackMarkerCreatePayload) => void;
 	onMarkerPositionChange?: (markerId: string, positionPercent: number) => void;
 	onPlaybackEnd?: () => void;
 	onTrackChange?: (track: MusicAssetTrack) => void;
@@ -59,6 +67,14 @@ export type TrackPlayerProps = {
 	onVolumeChange?: (volumePercent: number) => void;
 	title?: string;
 	volumePercent?: number;
+};
+
+type TimelineContextMenuState = {
+	label: string;
+	positionPercent: number;
+	timeLabel: string;
+	x: number;
+	y: number;
 };
 
 const defaultTrackMarkers: TrackMarker[] = [
@@ -154,6 +170,7 @@ export function TrackPlayer({
 	musicAssets = [],
 	onCurrentTimeChange,
 	onDurationChange,
+	onMarkerCreate,
 	onMarkerPositionChange,
 	onPlaybackEnd,
 	onTrackChange,
@@ -164,6 +181,7 @@ export function TrackPlayer({
 }: TrackPlayerProps): ReactElement {
 	const audioRef = useRef<HTMLAudioElement | null>(null);
 	const fileInputRef = useRef<HTMLInputElement | null>(null);
+	const markerNameInputRef = useRef<HTMLInputElement | null>(null);
 	const timelineRef = useRef<HTMLDivElement | null>(null);
 	const volumeSliderRef = useRef<HTMLDivElement | null>(null);
 	const currentTimeRef = useRef<number>(currentTimeSeconds);
@@ -174,6 +192,8 @@ export function TrackPlayer({
 	const [isPickerOpen, setIsPickerOpen] = useState<boolean>(false);
 	const [isSeeking, setIsSeeking] = useState<boolean>(false);
 	const [isAdjustingVolume, setIsAdjustingVolume] = useState<boolean>(false);
+	const [timelineContextMenu, setTimelineContextMenu] =
+		useState<TimelineContextMenuState | null>(null);
 	const [selectedTrack, setSelectedTrack] = useState<MusicAssetTrack | null>(
 		null,
 	);
@@ -203,6 +223,17 @@ export function TrackPlayer({
 	useEffect((): void => {
 		currentTimeRef.current = clampedCurrentTimeSeconds;
 	}, [clampedCurrentTimeSeconds]);
+
+	useEffect((): void => {
+		if (!timelineContextMenu) {
+			return;
+		}
+
+		window.requestAnimationFrame((): void => {
+			markerNameInputRef.current?.focus();
+			markerNameInputRef.current?.select();
+		});
+	}, [timelineContextMenu]);
 
 	useEffect((): (() => void) => {
 		return (): void => {
@@ -303,6 +334,26 @@ export function TrackPlayer({
 			((clientX - timelineRect.left) / timelineRect.width) * 100;
 
 		return Math.max(0, Math.min(100, rawPercent));
+	}
+
+	function getTimelineContextMenuPosition(clientX: number, clientY: number): {
+		x: number;
+		y: number;
+	} {
+		const menuWidth = 220;
+		const menuHeight = 132;
+		const viewportPadding = 12;
+
+		return {
+			x: Math.min(
+				window.innerWidth - menuWidth - viewportPadding,
+				Math.max(viewportPadding, clientX),
+			),
+			y: Math.min(
+				window.innerHeight - menuHeight - viewportPadding,
+				Math.max(viewportPadding, clientY),
+			),
+		};
 	}
 
 	function seekToPointer(clientX: number): void {
@@ -422,6 +473,10 @@ export function TrackPlayer({
 		event: PointerEvent<HTMLButtonElement>,
 		markerId: string,
 	): void {
+		if (event.button !== 0) {
+			return;
+		}
+
 		event.preventDefault();
 		event.currentTarget.setPointerCapture(event.pointerId);
 		setDraggingMarkerId(markerId);
@@ -448,6 +503,10 @@ export function TrackPlayer({
 	}
 
 	function handleSeekPointerDown(event: PointerEvent<HTMLDivElement>): void {
+		if (event.button !== 0) {
+			return;
+		}
+
 		event.preventDefault();
 		event.currentTarget.setPointerCapture(event.pointerId);
 		setIsSeeking(true);
@@ -558,6 +617,44 @@ export function TrackPlayer({
 		}
 	}
 
+	function handleTimelineContextMenu(event: MouseEvent<HTMLDivElement>): void {
+		if (!onMarkerCreate) {
+			return;
+		}
+
+		event.preventDefault();
+		const nextPositionPercent = getPointerPositionPercent(event.clientX);
+		const nextSeconds = (safeDurationSeconds * nextPositionPercent) / 100;
+		const nextMenuPosition = getTimelineContextMenuPosition(
+			event.clientX,
+			event.clientY,
+		);
+
+		setTimelineContextMenu({
+			label: `Repere ${markers.length + 1}`,
+			positionPercent: nextPositionPercent,
+			timeLabel: formatTrackTimeLabel(nextSeconds),
+			x: nextMenuPosition.x,
+			y: nextMenuPosition.y,
+		});
+	}
+
+	function handleTimelineMarkerSubmit(
+		event: FormEvent<HTMLFormElement>,
+	): void {
+		event.preventDefault();
+
+		if (!timelineContextMenu) {
+			return;
+		}
+
+		onMarkerCreate?.({
+			label: timelineContextMenu.label,
+			positionPercent: timelineContextMenu.positionPercent,
+		});
+		setTimelineContextMenu(null);
+	}
+
 	function handleAudioLoadedMetadata(): void {
 		const audioElement: HTMLAudioElement | null = audioRef.current;
 
@@ -587,7 +684,7 @@ export function TrackPlayer({
 		<section
 			aria-label="Lecteur de piste"
 			data-track-player="true"
-			className="shrink-0 border-t border-[var(--nara-track-border)] bg-[var(--nara-track-bg)] px-4 text-[var(--nara-track-text)] sm:px-7"
+			className="shrink-0 border-t border-[var(--nara-track-border)] bg-[var(--nara-track-bg)] px-4 text-[var(--nara-track-text)] sm:px-6"
 		>
 			<input
 				ref={fileInputRef}
@@ -606,7 +703,7 @@ export function TrackPlayer({
 					onEnded={handleAudioEnded}
 				/>
 			)}
-			<div className="grid h-[104px] grid-cols-1 items-center gap-4 overflow-hidden lg:grid-cols-[auto_minmax(0,1fr)_auto]">
+			<div className="grid h-[104px] grid-cols-1 items-center gap-5 overflow-hidden lg:grid-cols-[auto_minmax(0,1fr)_auto]">
 				<div className="flex min-w-0 items-center gap-3">
 					<button
 						type="button"
@@ -665,13 +762,13 @@ export function TrackPlayer({
 								aria-label={isPlaying ? "Mettre en pause" : "Lire la piste"}
 								aria-pressed={isPlaying}
 								onClick={onTogglePlay}
-								className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[var(--nara-track-play-bg)] text-[var(--nara-track-play-text)] transition-colors hover:opacity-90"
+								className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[var(--nara-track-play-bg)] text-[var(--nara-track-play-text)] transition-colors hover:opacity-90"
 							>
 								{isPlaying ? (
-									<Pause size={16} fill="currentColor" strokeWidth={2} />
+									<Pause size={17} fill="currentColor" strokeWidth={2} />
 								) : (
 									<Play
-										size={16}
+										size={17}
 										fill="currentColor"
 										strokeWidth={2}
 										className="ml-0.5"
@@ -708,7 +805,7 @@ export function TrackPlayer({
 										onPointerMove={handleMarkerPointerMove}
 										onPointerUp={handleMarkerPointerEnd}
 										onPointerCancel={handleMarkerPointerEnd}
-										className={`absolute z-10 h-[42px] w-[72px] -translate-x-1/2 cursor-ew-resize bg-transparent text-center outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-[var(--nara-track-text)] ${
+										className={`absolute z-20 h-[42px] w-[72px] -translate-x-1/2 cursor-ew-resize bg-transparent text-center outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-[var(--nara-track-text)] ${
 											isTopLane ? "top-[6px]" : "bottom-[6px]"
 										}`}
 										style={{ left: `${marker.positionPercent}%` }}
@@ -748,6 +845,16 @@ export function TrackPlayer({
 						)}
 
 						<div
+							aria-hidden="true"
+							className="absolute left-0 right-0 top-1/2 z-0 h-[5px] -translate-y-1/2 rounded-full bg-[var(--nara-track-progress-bg)]"
+						>
+							<div
+								className="h-full rounded-full bg-[#DA069A]"
+								style={{ width: `${clampedProgress}%` }}
+							/>
+						</div>
+
+						<div
 							role="slider"
 							aria-label="Position de lecture"
 							aria-valuemin={0}
@@ -760,21 +867,17 @@ export function TrackPlayer({
 							onPointerUp={handleSeekPointerEnd}
 							onPointerCancel={handleSeekPointerEnd}
 							onKeyDown={handleSeekKeyDown}
-							className="absolute left-0 right-0 top-1/2 h-[5px] -translate-y-1/2 cursor-pointer touch-none overflow-hidden rounded-full bg-[var(--nara-track-progress-bg)] outline-none focus-visible:ring-1 focus-visible:ring-[var(--nara-track-text)]"
-						>
-							<div
-								className="h-full rounded-full bg-[#DA069A]"
-								style={{ width: `${clampedProgress}%` }}
-							/>
-						</div>
+							onContextMenu={handleTimelineContextMenu}
+							className="absolute left-0 right-0 top-1/2 z-10 h-8 -translate-y-1/2 cursor-pointer touch-none rounded-full bg-transparent outline-none focus-visible:ring-1 focus-visible:ring-[var(--nara-track-text)]"
+						/>
 					</div>
 				</div>
 
 				<div className="flex min-w-0 items-center justify-between gap-5 lg:justify-end">
-					<span className="shrink-0 text-[10px] font-medium tabular-nums text-[var(--nara-track-text)]">
+					<span className="shrink-0 text-[10px] font-semibold tabular-nums text-[var(--nara-track-text)]">
 						{currentTimeLabel}/{totalTimeLabel}
 					</span>
-					<div className="flex w-[104px] shrink-0 items-center gap-2">
+					<div className="flex w-[120px] shrink-0 items-center gap-2">
 						<button
 							type="button"
 							aria-label={clampedVolume > 0 ? "Couper le son" : "Remettre le son"}
@@ -802,18 +905,85 @@ export function TrackPlayer({
 							onPointerUp={handleVolumePointerEnd}
 							onPointerCancel={handleVolumePointerEnd}
 							onKeyDown={handleVolumeKeyDown}
-							className="h-[12px] flex-1 cursor-pointer touch-none rounded-full outline-none focus-visible:ring-1 focus-visible:ring-[var(--nara-track-text)]"
+							className="h-[18px] flex-1 cursor-pointer touch-none rounded-full outline-none focus-visible:ring-1 focus-visible:ring-[var(--nara-track-text)]"
 						>
-							<div className="mt-[4.5px] h-[3px] rounded-full bg-[var(--nara-track-volume-bg)]">
-							<div
-								className="h-full rounded-full bg-[var(--nara-track-volume-fill)]"
-								style={{ width: `${clampedVolume}%` }}
-							/>
+							<div className="mt-[7px] h-[3px] rounded-full bg-[var(--nara-track-volume-bg)]">
+								<div
+									className="h-full rounded-full bg-[var(--nara-track-volume-fill)]"
+									style={{ width: `${clampedVolume}%` }}
+								/>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
+			{timelineContextMenu && (
+				<div
+					className="fixed inset-0 z-30"
+					onPointerDown={(): void => setTimelineContextMenu(null)}
+				>
+					<form
+						role="menu"
+						aria-label="Ajouter un repere de piste"
+						onSubmit={handleTimelineMarkerSubmit}
+						onPointerDown={(event): void => event.stopPropagation()}
+						onKeyDown={(event): void => {
+							if (event.key === "Escape") {
+								event.preventDefault();
+								setTimelineContextMenu(null);
+							}
+						}}
+						className="fixed w-[220px] rounded-[8px] border border-[var(--nara-track-border)] bg-[var(--nara-track-bg)] p-2.5 text-[var(--nara-track-text)] shadow-[0_8px_24px_rgba(0,0,0,0.24)]"
+						style={{
+							left: timelineContextMenu.x,
+							top: timelineContextMenu.y,
+						}}
+					>
+						<div className="mb-2 flex items-center justify-between gap-3">
+							<p className="text-[12px] font-semibold">Ajouter un repere</p>
+							<span className="text-[10px] font-semibold tabular-nums text-[var(--nara-track-muted)]">
+								{timelineContextMenu.timeLabel}
+							</span>
+						</div>
+						<label className="mb-1 block text-[10px] font-semibold text-[var(--nara-track-muted)]">
+							Nom
+						</label>
+						<input
+							ref={markerNameInputRef}
+							value={timelineContextMenu.label}
+							onChange={(event: ChangeEvent<HTMLInputElement>): void => {
+								setTimelineContextMenu(
+									(currentMenu: TimelineContextMenuState | null):
+										| TimelineContextMenuState
+										| null =>
+										currentMenu
+											? {
+													...currentMenu,
+													label: event.target.value,
+												}
+											: null,
+								);
+							}}
+							className="h-8 w-full rounded-[6px] border border-[var(--nara-track-border)] bg-[var(--nara-surface)] px-2 text-[12px] font-medium outline-none focus:border-[#DA069A]"
+						/>
+						<div className="mt-2 flex items-center justify-end gap-1.5">
+							<button
+								type="button"
+								onClick={(): void => setTimelineContextMenu(null)}
+								className="h-7 rounded-[6px] px-2 text-[11px] font-semibold text-[var(--nara-track-muted)] transition-colors hover:bg-[var(--nara-track-control-hover-bg)] hover:text-[var(--nara-track-control-hover-text)]"
+							>
+								Annuler
+							</button>
+							<button
+								type="submit"
+								className="h-7 rounded-[6px] bg-[#DA069A] px-2.5 text-[11px] font-bold text-white transition-colors hover:bg-[#C80087]"
+							>
+								Ajouter
+							</button>
+						</div>
+					</form>
+				</div>
+			)}
 			{isPickerOpen && (
 				<div
 					role="dialog"

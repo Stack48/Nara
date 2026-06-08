@@ -203,17 +203,18 @@ function createFocusSectionDragImage(
 ): HTMLElement {
 	const dragImage = window.document.createElement("div");
 	dragImage.style.position = "fixed";
-	dragImage.style.top = "-10000px";
+	dragImage.style.top = "0";
 	dragImage.style.left = "0";
+	dragImage.style.zIndex = "-1000";
 	dragImage.style.width = "480px";
 	dragImage.style.pointerEvents = "none";
-	dragImage.style.border = "1px solid #3A3A42";
+	dragImage.style.border = "1px solid #4A4A52";
 	dragImage.style.borderRadius = "8px";
-	dragImage.style.background = "#1C1C24";
+	dragImage.style.background = "#202027";
 	dragImage.style.color = "#F3F4F6";
-	dragImage.style.boxShadow = "0 16px 34px rgba(17, 17, 19, 0.25)";
+	dragImage.style.boxShadow = "0 16px 34px rgba(0, 0, 0, 0.5)";
 	dragImage.style.padding = "14px 18px";
-	dragImage.style.opacity = "0.9";
+	dragImage.style.opacity = "1";
 	
 	// Add label
 	const labelEl = window.document.createElement("div");
@@ -241,6 +242,9 @@ function createFocusSectionDragImage(
 }
 
 function removeFocusSectionDragImage(dragImage: HTMLElement): void {
+	window.setTimeout(() => {
+		dragImage.style.top = "-10000px";
+	}, 0);
 	window.setTimeout(() => {
 		dragImage.remove();
 	}, 180);
@@ -630,6 +634,12 @@ export default function FocusLyricsDocument({
 	const containerRef = useRef<HTMLDivElement>(null);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 	const [hoveredSectionId, setHoveredSectionId] = useState<string | null>(null);
+	const [hoveredLineIdx, setHoveredLineIdx] = useState<number | null>(null);
+	const [draggedLineIdx, setDraggedLineIdx] = useState<number | null>(null);
+	const [dragOverLineIdx, setDragOverLineIdx] = useState<number | null>(null);
+	const [lineDropPlacement, setLineDropPlacement] = useState<"before" | "after">("before");
+
+	const activeGripLineIdx = draggedLineIdx !== null ? draggedLineIdx : hoveredLineIdx;
 
 	const getSectionTransform = (secId: string): string => {
 		if (!draggedSectionId || !dragOverSectionId || draggedSectionId === secId) {
@@ -820,24 +830,102 @@ export default function FocusLyricsDocument({
 				const rect = textarea.getBoundingClientRect();
 				const relativeY = event.clientY - rect.top - focusTextareaTopPaddingPx + textarea.scrollTop;
 				
-				if (relativeY < 0) {
+				if (relativeY < -30) {
 					setHoveredSectionId(null);
+					setHoveredLineIdx(null);
 					return;
 				}
 				
 				const hoveredLineIndex = Math.floor(relativeY / dynamicLineHeightPx);
+				const lines = text.split("\n");
 				
+				// Calculate section hover using hover bands
 				let activeId: string | null = null;
 				for (let i = focusSectionMarkers.length - 1; i >= 0; i--) {
-					if (focusSectionMarkers[i].lineIndex <= hoveredLineIndex) {
-						activeId = focusSectionMarkers[i].id;
+					const marker = focusSectionMarkers[i];
+					let hoverStartLine = 0;
+					if (i > 0) {
+						let emptyLineCount = 0;
+						let idx = marker.lineIndex - 1;
+						while (idx >= 0 && lines[idx]?.trim().length === 0) {
+							emptyLineCount++;
+							idx--;
+						}
+						hoverStartLine = marker.lineIndex - emptyLineCount;
+					}
+					
+					if (hoveredLineIndex >= hoverStartLine) {
+						activeId = marker.id;
 						break;
 					}
 				}
+				
+				// Fallback for Intro when hovering above line 0 but below -30px
+				if (activeId === null && focusSectionMarkers[0] && relativeY >= -30) {
+					activeId = focusSectionMarkers[0].id;
+				}
+
 				setHoveredSectionId(activeId);
+
+				// Line hover detection (only if not dragging)
+				if (!draggedSectionId && draggedLineIdx === null) {
+					if (hoveredLineIndex >= 0 && hoveredLineIndex < lines.length && lines[hoveredLineIndex].trim().length > 0) {
+						setHoveredLineIdx(hoveredLineIndex);
+					} else {
+						setHoveredLineIdx(null);
+					}
+				} else {
+					setHoveredLineIdx(null);
+				}
 			}}
 			onMouseLeave={() => {
 				setHoveredSectionId(null);
+				setHoveredLineIdx(null);
+			}}
+			onDragOver={(event: DragEvent<HTMLDivElement>): void => {
+				if (draggedLineIdx !== null) {
+					event.preventDefault();
+					
+					const textarea = textareaRef.current;
+					if (!textarea) return;
+					const rect = textarea.getBoundingClientRect();
+					const relativeY = event.clientY - rect.top - focusTextareaTopPaddingPx + textarea.scrollTop;
+					const lineIndex = Math.max(0, Math.floor(relativeY / dynamicLineHeightPx));
+					
+					setDragOverLineIdx(lineIndex);
+					
+					const lineTop = focusTextareaTopPaddingPx + lineIndex * dynamicLineHeightPx;
+					const midPoint = lineTop + dynamicLineHeightPx / 2;
+					const cursorY = event.clientY - rect.top + textarea.scrollTop;
+					
+					setLineDropPlacement(cursorY < midPoint ? "before" : "after");
+				}
+			}}
+			onDrop={(event: DragEvent<HTMLDivElement>): void => {
+				if (draggedLineIdx !== null && dragOverLineIdx !== null) {
+					event.preventDefault();
+					
+					const lines = text.split("\n");
+					const draggedLineContent = lines[draggedLineIdx];
+					
+					const newLines = [...lines];
+					newLines.splice(draggedLineIdx, 1);
+					
+					let insertIdx = dragOverLineIdx;
+					if (draggedLineIdx < dragOverLineIdx) {
+						insertIdx = lineDropPlacement === "before" ? dragOverLineIdx - 1 : dragOverLineIdx;
+					} else {
+						insertIdx = lineDropPlacement === "before" ? dragOverLineIdx : dragOverLineIdx + 1;
+					}
+					
+					newLines.splice(Math.max(0, Math.min(newLines.length, insertIdx)), 0, draggedLineContent);
+					
+					const nextText = newLines.join("\n");
+					onDocumentTextChange(nextText);
+					
+					setDraggedLineIdx(null);
+					setDragOverLineIdx(null);
+				}
 			}}
 		>
 			{/* Focus Mode Overlays */}
@@ -918,6 +1006,15 @@ export default function FocusLyricsDocument({
 						);
 					},
 				)}
+				{draggedLineIdx !== null && dragOverLineIdx !== null && (
+					<div
+						className="absolute right-0 h-[2px] bg-[#D90097] shadow-[0_0_8px_#D90097] transition-[top] duration-75 z-35"
+						style={{
+							left: focusTextareaLeftPaddingPx,
+							top: focusTextareaTopPaddingPx + dragOverLineIdx * dynamicLineHeightPx + (lineDropPlacement === "after" ? dynamicLineHeightPx : 0) - 1,
+						}}
+					/>
+				)}
 			</div>
 
 			<div
@@ -986,6 +1083,31 @@ export default function FocusLyricsDocument({
 						openAddMenuSectionId === marker.id ||
 						openOptionsMenuSectionId === marker.id;
 
+					// Compute emptyLineCount to align handles with the section title label
+					const lines = text.split("\n");
+					let emptyLineCount = 0;
+					let idx = startLine - 1;
+					while (idx >= 0 && lines[idx].trim().length === 0) {
+						emptyLineCount++;
+						idx--;
+					}
+
+					let labelTop = 0;
+					if (startLine === 0) {
+						labelTop = Math.max(0, focusTextareaTopPaddingPx - 26);
+					} else if (emptyLineCount === 1) {
+						labelTop = focusTextareaTopPaddingPx +
+							startLine * dynamicLineHeightPx -
+							dynamicLineHeightPx +
+							(dynamicLineHeightPx - 13) / 2;
+					} else {
+						labelTop = focusTextareaTopPaddingPx +
+							startLine * dynamicLineHeightPx -
+							dynamicSectionLabelOffsetPx;
+					}
+
+					const handlesTop = labelTop - sectionTop - 4;
+
 					return (
 						<div
 							key={marker.id}
@@ -1015,11 +1137,12 @@ export default function FocusLyricsDocument({
 									isVisible ? "opacity-100" : "opacity-0"
 								}`}
 								style={{
-									top: 0,
+									top: `${handlesTop}px`,
 								}}
 							>
 								<button
 									type="button"
+									aria-label="Ajouter section"
 									aria-expanded={openAddMenuSectionId === marker.id}
 									onClick={(): void => onToggleAddMenu(marker.id)}
 									className="inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded-[5px] text-[#38383C] hover:bg-[#202027] hover:text-[#F3F4F6]"
@@ -1049,6 +1172,7 @@ export default function FocusLyricsDocument({
 											computedLineStyle.fontFamily,
 											computedLineStyle.fontSize ? String(computedLineStyle.fontSize) : undefined
 										);
+										const _reflow = dragImg.offsetHeight;
 										event.dataTransfer.setDragImage(dragImg, 24, 24);
 										removeFocusSectionDragImage(dragImg);
 									}}
@@ -1153,6 +1277,62 @@ export default function FocusLyricsDocument({
 				</div>
 			)}
 
+			{activeGripLineIdx !== null && (
+				<button
+					type="button"
+					aria-label="Deplacer la ligne"
+					draggable
+					onDragStart={(event: DragEvent<HTMLButtonElement>): void => {
+						setDraggedLineIdx(activeGripLineIdx);
+						setDragOverLineIdx(null);
+
+						event.dataTransfer.effectAllowed = "move";
+						event.dataTransfer.setData("text/plain", String(activeGripLineIdx));
+
+						// Create custom drag image preview for the line
+						const lines = text.split("\n");
+						const lineText = lines[activeGripLineIdx] || "";
+						
+						const dragImg = window.document.createElement("div");
+						dragImg.style.position = "fixed";
+						dragImg.style.top = "0";
+						dragImg.style.left = "0";
+						dragImg.style.zIndex = "-1000";
+						dragImg.style.pointerEvents = "none";
+						dragImg.style.border = "1px solid #4A4A52";
+						dragImg.style.borderRadius = "6px";
+						dragImg.style.background = "#202027";
+						dragImg.style.color = "#F3F4F6";
+						dragImg.style.boxShadow = "0 10px 24px rgba(0, 0, 0, 0.4)";
+						dragImg.style.padding = "6px 12px";
+						dragImg.style.fontFamily = computedLineStyle.fontFamily ?? "Georgia, serif";
+						dragImg.style.fontSize = computedLineStyle.fontSize ? String(computedLineStyle.fontSize) : "18px";
+						dragImg.innerText = lineText.trim();
+						
+						window.document.body.appendChild(dragImg);
+						const _reflow = dragImg.offsetHeight;
+						event.dataTransfer.setDragImage(dragImg, 15, 10);
+						window.setTimeout(() => {
+							dragImg.style.top = "-10000px";
+						}, 0);
+						window.setTimeout(() => dragImg.remove(), 180);
+					}}
+					onDragEnd={(): void => {
+						setDraggedLineIdx(null);
+						setDragOverLineIdx(null);
+					}}
+					className={`absolute inline-flex h-5 w-5 cursor-grab items-center justify-center rounded-[5px] text-[#38383C] hover:bg-[#202027] hover:text-[#F3F4F6] active:cursor-grabbing z-30 transition-opacity ${
+						draggedLineIdx !== null ? "opacity-0 pointer-events-none" : ""
+					}`}
+					style={{
+						left: `${focusTextareaLeftPaddingPx - 26}px`,
+						top: `${focusTextareaTopPaddingPx + activeGripLineIdx * dynamicLineHeightPx + (dynamicLineHeightPx - 20) / 2}px`,
+					}}
+				>
+					<GripVertical size={18} strokeWidth={1.8} />
+				</button>
+			)}
+
 			<textarea
 				ref={textareaRef}
 				aria-label={`Lyrics ${document.title}`}
@@ -1164,6 +1344,22 @@ export default function FocusLyricsDocument({
 				onDragOver={(event: DragEvent<HTMLTextAreaElement>): void => {
 					if (draggedSectionId) {
 						event.preventDefault();
+					} else if (draggedLineIdx !== null) {
+						event.preventDefault();
+						
+						// Calculate target line index
+						const rect = event.currentTarget.getBoundingClientRect();
+						const relativeY = event.clientY - rect.top - focusTextareaTopPaddingPx + event.currentTarget.scrollTop;
+						const lineIndex = Math.max(0, Math.floor(relativeY / dynamicLineHeightPx));
+						
+						setDragOverLineIdx(lineIndex);
+						
+						// Determine placement (before or after the line)
+						const lineTop = focusTextareaTopPaddingPx + lineIndex * dynamicLineHeightPx;
+						const midPoint = lineTop + dynamicLineHeightPx / 2;
+						const cursorY = event.clientY - rect.top + event.currentTarget.scrollTop;
+						
+						setLineDropPlacement(cursorY < midPoint ? "before" : "after");
 					}
 				}}
 				onDrop={(event: DragEvent<HTMLTextAreaElement>): void => {
@@ -1176,6 +1372,33 @@ export default function FocusLyricsDocument({
 							setDragOverSectionId(null);
 							setDraggedHeight(0);
 						}
+					} else if (draggedLineIdx !== null && dragOverLineIdx !== null) {
+						event.preventDefault();
+						
+						// Perform line reordering in the text state
+						const lines = text.split("\n");
+						const draggedLineContent = lines[draggedLineIdx];
+						
+						// Remove from original index
+						const newLines = [...lines];
+						newLines.splice(draggedLineIdx, 1);
+						
+						// Calculate correct target insert index
+						let insertIdx = dragOverLineIdx;
+						if (draggedLineIdx < dragOverLineIdx) {
+							// If we dragged from above, target index shifted by 1
+							insertIdx = lineDropPlacement === "before" ? dragOverLineIdx - 1 : dragOverLineIdx;
+						} else {
+							insertIdx = lineDropPlacement === "before" ? dragOverLineIdx : dragOverLineIdx + 1;
+						}
+						
+						newLines.splice(Math.max(0, Math.min(newLines.length, insertIdx)), 0, draggedLineContent);
+						
+						const nextText = newLines.join("\n");
+						onDocumentTextChange(nextText);
+						
+						setDraggedLineIdx(null);
+						setDragOverLineIdx(null);
 					}
 				}}
 				onKeyUp={(event): void => {
