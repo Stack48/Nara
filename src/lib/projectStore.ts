@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 
 // Cover images imports
 import lgseo from "@/assets/cover/lgseo.png";
-import america from "@/assets/cover/america.jpg";
 import mrclean from "@/assets/cover/mrclean.jpg";
 import aquemini from "@/assets/cover/aquemini.jpg";
 import infamous from "@/assets/cover/infamous.jpg";
@@ -14,7 +13,6 @@ import whocoppin from "@/assets/cover/whocoppin.jpg";
 
 export const PROJECT_IMAGES: { [key: string]: any } = {
     Let_God_Sort_Em_Out: lgseo,
-    This_Is_America: america,
     Mr_Clean_Modern_Day_Mugging: mrclean,
     Aquemini: aquemini,
     The_Infamous: infamous,
@@ -38,6 +36,7 @@ export interface Project {
     image: any;
     isFavorite: boolean;
     isDeleted: boolean;
+    isPermanentlyDeleted?: boolean;
     isShared?: boolean;
     owner?: string;
     description?: string;
@@ -58,7 +57,7 @@ const STATIC_PROJECTS = [
         imageKey: "Let_God_Sort_Em_Out",
     },
     {
-        id: "This_Is_America",
+        id: "June5",
         title: "June5",
         type: "Single",
         collabs: 0,
@@ -164,6 +163,7 @@ interface StoredProjects {
         imageKey: string;
         isFavorite: boolean;
         isDeleted: boolean;
+        isPermanentlyDeleted?: boolean;
         isShared?: boolean;
         owner?: string;
         description?: string;
@@ -191,7 +191,7 @@ export const getProjectsFromStorage = (): StoredProjects => {
         return {};
     }
     const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-    
+
     // Default initial projects structure from STATIC_PROJECTS
     const initialProjects: StoredProjects = {};
     STATIC_PROJECTS.forEach((proj) => {
@@ -212,21 +212,37 @@ export const getProjectsFromStorage = (): StoredProjects => {
             owner: (proj as any).owner || "",
             description: "",
             image: "",
-            collaboratorsList: ["Ray Allen", "Tim Duncan", "Udonis Haslem", "Tracy McGrady", "Kobe Bryant", "Allen Iverson"].slice(0, proj.collabs),
+            collaboratorsList: [
+                "Ray Allen",
+                "Tim Duncan",
+                "Udonis Haslem",
+                "Tracy McGrady",
+                "Kobe Bryant",
+                "Allen Iverson",
+            ].slice(0, proj.collabs),
         };
     });
 
     if (stored) {
         try {
             const parsed = JSON.parse(stored);
-            
+
             // Sync static project updates (like collabs, created, lastModified, owner, type, state) from STATIC_PROJECTS code
             // while preserving user interaction fields (isFavorite, isDeleted)
             Object.keys(initialProjects).forEach((id) => {
                 if (parsed[id]) {
-                    const finalCollabsList = (parsed[id].collaboratorsList !== undefined && parsed[id].collaboratorsList.length > 0)
-                        ? parsed[id].collaboratorsList
-                        : ["Ray Allen", "Tim Duncan", "Udonis Haslem", "Tracy McGrady", "Kobe Bryant", "Allen Iverson"].slice(0, initialProjects[id].collabs);
+                    const finalCollabsList =
+                        parsed[id].collaboratorsList !== undefined &&
+                        parsed[id].collaboratorsList.length > 0
+                            ? parsed[id].collaboratorsList
+                            : [
+                                  "Ray Allen",
+                                  "Tim Duncan",
+                                  "Udonis Haslem",
+                                  "Tracy McGrady",
+                                  "Kobe Bryant",
+                                  "Allen Iverson",
+                              ].slice(0, initialProjects[id].collabs);
 
                     parsed[id] = {
                         ...parsed[id],
@@ -241,8 +257,14 @@ export const getProjectsFromStorage = (): StoredProjects => {
                         imageKey: initialProjects[id].imageKey,
                         isShared: initialProjects[id].isShared,
                         owner: initialProjects[id].owner,
-                        description: parsed[id].description !== undefined ? parsed[id].description : "",
-                        image: parsed[id].image !== undefined ? parsed[id].image : "",
+                        description:
+                            parsed[id].description !== undefined
+                                ? parsed[id].description
+                                : "",
+                        image:
+                            parsed[id].image !== undefined
+                                ? parsed[id].image
+                                : "",
                         collaboratorsList: finalCollabsList,
                     };
                 } else {
@@ -384,11 +406,21 @@ export const useProjects = (): Project[] => {
     useEffect(() => {
         const updateProjectsList = () => {
             const stored = getProjectsFromStorage();
-            const list: Project[] = Object.values(stored).map((proj) => {
+            const list: Project[] = Object.values(stored)
+                .filter((proj: any) => !proj.isPermanentlyDeleted)
+                .map((proj) => {
                 const songsCount = getSongsCountForProject(proj.id);
-                const mappingCollabs = proj.collaboratorsList && proj.collaboratorsList.length > 0
-                    ? proj.collaboratorsList
-                    : ["Ray Allen", "Tim Duncan", "Udonis Haslem", "Tracy McGrady", "Kobe Bryant", "Allen Iverson"].slice(0, proj.collabs);
+                const mappingCollabs =
+                    proj.collaboratorsList && proj.collaboratorsList.length > 0
+                        ? proj.collaboratorsList
+                        : [
+                              "Ray Allen",
+                              "Tim Duncan",
+                              "Udonis Haslem",
+                              "Tracy McGrady",
+                              "Kobe Bryant",
+                              "Allen Iverson",
+                          ].slice(0, proj.collabs);
 
                 return {
                     id: proj.id,
@@ -402,7 +434,11 @@ export const useProjects = (): Project[] => {
                     lastModifiedDate: new Date(proj.lastModifiedDate),
                     createdDate: new Date(proj.createdDate),
                     imageKey: proj.imageKey,
-                    image: proj.image ? proj.image : (proj.imageKey ? (PROJECT_IMAGES[proj.imageKey] || null) : null),
+                    image: proj.image
+                        ? proj.image
+                        : proj.imageKey
+                          ? PROJECT_IMAGES[proj.imageKey] || null
+                          : null,
                     isFavorite: !!proj.isFavorite,
                     isDeleted: !!proj.isDeleted,
                     isShared: !!proj.isShared,
@@ -429,4 +465,16 @@ export const useProjects = (): Project[] => {
     }, []);
 
     return projects;
+};
+
+export const deleteProjectPermanently = (projectId: string) => {
+    if (typeof window === "undefined") return;
+
+    const current = getProjectsFromStorage();
+    if (current[projectId]) {
+        current[projectId].isPermanentlyDeleted = true;
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(current));
+        window.dispatchEvent(new CustomEvent(EVENT_NAME));
+        window.dispatchEvent(new CustomEvent("song-project-updated"));
+    }
 };

@@ -34,7 +34,7 @@ export interface ProjectCardProps {
     isLast?: boolean;
     onContextMenu?: React.MouseEventHandler;
     onRestore?: (id: string, title: string) => void;
-    onPermanentDelete?: (title: string) => void;
+    onPermanentDelete?: (id: string, title: string) => void;
     isCreatePlaceholder?: boolean;
     isSelected?: boolean;
     onSelect?: (e: React.MouseEvent) => void;
@@ -404,7 +404,7 @@ export const ProjectCard = ({
                             onClick={(e) => {
                                 e.stopPropagation();
                                 e.preventDefault();
-                                onPermanentDelete?.(project.title);
+                                onPermanentDelete?.(project.id, project.title);
                             }}
                         >
                             <Trash2 size={16} />

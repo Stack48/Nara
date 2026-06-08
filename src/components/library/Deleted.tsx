@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSongs, setSongDeleted, Song } from "@/lib/songStore";
-import { useProjects, setProjectDeleted, Project } from "@/lib/projectStore";
+import { useSongs, setSongDeleted, Song, deleteSongPermanently } from "@/lib/songStore";
+import { useProjects, setProjectDeleted, Project, deleteProjectPermanently } from "@/lib/projectStore";
 import { useSelection } from "@/context/SelectionContext";
 import { MenuContext } from "@/context/MenuContext";
 import { ChevronUp, ChevronDown } from "lucide-react";
@@ -74,7 +74,12 @@ export const Deleted = () => {
         );
     };
 
-    const handlePermanentDelete = (title: string) => {
+    const handlePermanentDelete = (id: string, title: string, type: "song" | "project") => {
+        if (type === "song") {
+            deleteSongPermanently(id);
+        } else {
+            deleteProjectPermanently(id);
+        }
         window.dispatchEvent(
             new CustomEvent("show-nara-toast", {
                 detail: { message: `"${title}" permanently deleted.` },
@@ -221,9 +226,9 @@ export const Deleted = () => {
                                                     isSelected={selectedIds.includes(project.id)}
                                                     onSelect={(e) => handleSelect(project.id, "project", project, e, combinedViewItems)}
                                                     onRestore={handleProjectRestore}
-                                                    onPermanentDelete={
-                                                        handlePermanentDelete
-                                                    }
+                                                    onPermanentDelete={(id, title) =>
+                                                         handlePermanentDelete(id, title, "project")
+                                                     }
                                                     onContextMenu={(e) => handleProjectContextMenu(e, project)}
                                                 />
                                             ))}
@@ -249,9 +254,9 @@ export const Deleted = () => {
                                                             onRestore={
                                                                 handleProjectRestore
                                                             }
-                                                            onPermanentDelete={
-                                                                handlePermanentDelete
-                                                            }
+                                                            onPermanentDelete={(id, title) =>
+                                                                 handlePermanentDelete(id, title, "project")
+                                                             }
                                                             onContextMenu={(e) => handleProjectContextMenu(e, project)}
                                                         />
                                                     ),
@@ -282,11 +287,11 @@ export const Deleted = () => {
                                                     onSelect={(e) => handleSelect(song.id, "song", song, e, combinedViewItems)}
                                                     onRestore={handleSongRestore}
                                                     onPermanentDelete={(
-                                                        id,
-                                                        title,
-                                                    ) =>
-                                                        handlePermanentDelete(title)
-                                                    }
+                                                         id,
+                                                         title,
+                                                     ) =>
+                                                         handlePermanentDelete(id, title, "song")
+                                                     }
                                                     onContextMenu={(e) => handleSongContextMenu(e, song)}
                                                 />
                                             ))}
@@ -313,13 +318,15 @@ export const Deleted = () => {
                                                                 handleSongRestore
                                                             }
                                                             onPermanentDelete={(
-                                                                id,
-                                                                title,
-                                                            ) =>
-                                                                handlePermanentDelete(
-                                                                    title,
-                                                                )
-                                                            }
+                                                                 id,
+                                                                 title,
+                                                             ) =>
+                                                                 handlePermanentDelete(
+                                                                     id,
+                                                                     title,
+                                                                     "song",
+                                                                 )
+                                                             }
                                                             onContextMenu={(e) => handleSongContextMenu(e, song)}
                                                         />
                                                     ),
@@ -350,7 +357,7 @@ export const Deleted = () => {
                         }
                     }}
                     onPermanentDelete={(id, title) => {
-                        handlePermanentDelete(title);
+                        handlePermanentDelete(id, title, contextMenu.itemType);
                     }}
                 />
             )}

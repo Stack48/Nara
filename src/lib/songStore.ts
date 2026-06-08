@@ -71,7 +71,7 @@ const STATIC_SONGS_LIST = [
         image: null,
         audioSrc: "/audio/ensalada.mp3",
         defaultOrigin: "project" as const,
-        defaultProjectId: "This_Is_America",
+        defaultProjectId: "June5",
         defaultProjectName: "June5",
     },
     {
@@ -444,6 +444,7 @@ export interface Mappings {
         origin: "standalone" | "project";
         isFavorite: boolean;
         isDeleted: boolean;
+        isPermanentlyDeleted?: boolean;
         title: string;
         description?: string;
         collaboratorsList?: string[];
@@ -484,19 +485,34 @@ export const getSongProjectMappings = (): Mappings => {
                     map.description = "";
                     upgraded = true;
                 }
-                if (typeof map.collaboratorsList === "undefined" || (Array.isArray(map.collaboratorsList) && map.collaboratorsList.length === 0)) {
+                if (
+                    typeof map.collaboratorsList === "undefined" ||
+                    (Array.isArray(map.collaboratorsList) &&
+                        map.collaboratorsList.length === 0)
+                ) {
                     const originalSong = STATIC_SONGS_LIST.find(
                         (s) => s.id === key,
                     );
-                    const collabsCount = originalSong ? originalSong.collabs : 0;
-                    map.collaboratorsList = ["Ray Allen", "Tim Duncan", "Udonis Haslem", "Tracy McGrady", "Kobe Bryant", "Allen Iverson"].slice(0, collabsCount);
+                    const collabsCount = originalSong
+                        ? originalSong.collabs
+                        : 0;
+                    map.collaboratorsList = [
+                        "Ray Allen",
+                        "Tim Duncan",
+                        "Udonis Haslem",
+                        "Tracy McGrady",
+                        "Kobe Bryant",
+                        "Allen Iverson",
+                    ].slice(0, collabsCount);
                     upgraded = true;
                 }
                 if (typeof map.state === "undefined") {
                     const originalSong = STATIC_SONGS_LIST.find(
                         (s) => s.id === key,
                     );
-                    map.state = originalSong ? originalSong.state : "En écriture";
+                    map.state = originalSong
+                        ? originalSong.state
+                        : "En écriture";
                     upgraded = true;
                 }
                 if (typeof map.image === "undefined") {
@@ -504,8 +520,11 @@ export const getSongProjectMappings = (): Mappings => {
                     upgraded = true;
                 }
             });
-            if (parsed["test"] && !localStorage.getItem("test_song_migrated_june5")) {
-                parsed["test"].projectId = "This_Is_America";
+            if (
+                parsed["test"] &&
+                !localStorage.getItem("test_song_migrated_june5")
+            ) {
+                parsed["test"].projectId = "June5";
                 parsed["test"].projectName = "June5";
                 parsed["test"].origin = "project";
                 localStorage.setItem("test_song_migrated_june5", "true");
@@ -525,7 +544,14 @@ export const getSongProjectMappings = (): Mappings => {
                             song.id === "Right_in_the_Middle",
                         title: song.title,
                         description: "",
-                        collaboratorsList: ["Ray Allen", "Tim Duncan", "Udonis Haslem", "Tracy McGrady", "Kobe Bryant", "Allen Iverson"].slice(0, song.collabs),
+                        collaboratorsList: [
+                            "Ray Allen",
+                            "Tim Duncan",
+                            "Udonis Haslem",
+                            "Tracy McGrady",
+                            "Kobe Bryant",
+                            "Allen Iverson",
+                        ].slice(0, song.collabs),
                         state: song.state,
                         image: "",
                     };
@@ -553,7 +579,14 @@ export const getSongProjectMappings = (): Mappings => {
                 song.id === "So_Into_You" || song.id === "Right_in_the_Middle",
             title: song.title,
             description: "",
-            collaboratorsList: ["Ray Allen", "Tim Duncan", "Udonis Haslem", "Tracy McGrady", "Kobe Bryant", "Allen Iverson"].slice(0, song.collabs),
+            collaboratorsList: [
+                "Ray Allen",
+                "Tim Duncan",
+                "Udonis Haslem",
+                "Tracy McGrady",
+                "Kobe Bryant",
+                "Allen Iverson",
+            ].slice(0, song.collabs),
             state: song.state,
             image: "",
         };
@@ -767,7 +800,9 @@ export const useSongs = (): Song[] => {
                 ...createdSongs,
             ];
 
-            const updated = combinedStaticAndCreated.map((song) => {
+            const updated = combinedStaticAndCreated
+                .filter((song) => !mappings[song.id]?.isPermanentlyDeleted)
+                .map((song) => {
                 const songMapping = mappings[song.id] || {
                     projectId: song.defaultProjectId,
                     projectName: song.defaultProjectName,
@@ -781,9 +816,18 @@ export const useSongs = (): Song[] => {
                     image: "",
                 };
 
-                const mappingCollabs = songMapping.collaboratorsList && songMapping.collaboratorsList.length > 0
-                    ? songMapping.collaboratorsList
-                    : ["Ray Allen", "Tim Duncan", "Udonis Haslem", "Tracy McGrady", "Kobe Bryant", "Allen Iverson"].slice(0, song.collabs);
+                const mappingCollabs =
+                    songMapping.collaboratorsList &&
+                    songMapping.collaboratorsList.length > 0
+                        ? songMapping.collaboratorsList
+                        : [
+                              "Ray Allen",
+                              "Tim Duncan",
+                              "Udonis Haslem",
+                              "Tracy McGrady",
+                              "Kobe Bryant",
+                              "Allen Iverson",
+                          ].slice(0, song.collabs);
 
                 return {
                     id: song.id,
@@ -842,7 +886,35 @@ export const getSongOrder = (projectId: string): string[] => {
 
 export const saveSongOrder = (projectId: string, songIds: string[]) => {
     if (typeof window === "undefined" || !projectId) return;
-    localStorage.setItem(`nara_project_song_order_${projectId}`, JSON.stringify(songIds));
+    localStorage.setItem(
+        `nara_project_song_order_${projectId}`,
+        JSON.stringify(songIds),
+    );
     window.dispatchEvent(new CustomEvent(EVENT_NAME));
 };
 
+export const deleteSongPermanently = (songId: string) => {
+    if (typeof window === "undefined") return;
+
+    const currentMappings = getSongProjectMappings();
+    if (currentMappings[songId]) {
+        currentMappings[songId].isPermanentlyDeleted = true;
+        localStorage.setItem(
+            LOCAL_STORAGE_KEY,
+            JSON.stringify(currentMappings),
+        );
+    }
+    
+    // Also remove from created songs if present
+    const createdSongsStored = localStorage.getItem("nara_created_songs");
+    if (createdSongsStored) {
+        try {
+            const createdSongs = JSON.parse(createdSongsStored);
+            const filtered = createdSongs.filter((s: any) => s.id !== songId);
+            localStorage.setItem("nara_created_songs", JSON.stringify(filtered));
+        } catch {}
+    }
+
+    window.dispatchEvent(new CustomEvent(EVENT_NAME));
+    window.dispatchEvent(new CustomEvent("project-store-updated"));
+};
