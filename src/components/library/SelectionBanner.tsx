@@ -36,6 +36,7 @@ export const SelectionBanner = () => {
     const router = useRouter();
     const pathname = usePathname();
     const isDeletedView = pathname === "/deleted";
+    const isSharedView = pathname === "/shared" || pathname.startsWith("/shared/");
 
     const allProjects = useProjects();
     const activeProjects = allProjects.filter((p) => !p.isDeleted);
@@ -65,6 +66,22 @@ export const SelectionBanner = () => {
         window.dispatchEvent(
             new CustomEvent("show-nara-toast", {
                 detail: { message: `${selectedItems.length} item(s) permanently deleted.` },
+            })
+        );
+        clearSelection();
+    };
+
+    const handleRemoveSharedSelected = () => {
+        selectedItems.forEach((item) => {
+            if (item.type === "song") {
+                setSongDeleted(item.id, true);
+            } else {
+                setProjectDeleted(item.id, true);
+            }
+        });
+        window.dispatchEvent(
+            new CustomEvent("show-nara-toast", {
+                detail: { message: `${selectedItems.length} item(s) removed from shared list.` },
             })
         );
         clearSelection();
@@ -196,16 +213,26 @@ export const SelectionBanner = () => {
                                 )}
 
                                 {/* Edit Button (Single Select) */}
-                                {singleItem && (
+                                {singleItem && !isSharedView && (
                                     <button
                                         onClick={() => setIsRenameOpen(true)}
                                         className="p-2 rounded-xl text-neutral-300 hover:text-white hover:bg-neutral-800/80 transition-colors"
-                                        onMouseEnter={() => handleMouseEnter("Rename item")}
+                                        onMouseEnter={() => handleMouseEnter("Edit")}
                                         onMouseLeave={handleMouseLeave}
                                     >
                                         <Edit2 size={16} />
                                     </button>
                                 )}
+
+                                {/* Duplicate Button */}
+                                <button
+                                    onClick={duplicateSelected}
+                                    className="p-2 rounded-xl text-neutral-300 hover:text-white hover:bg-neutral-800/80 transition-colors"
+                                    onMouseEnter={() => handleMouseEnter("Duplicate items")}
+                                    onMouseLeave={handleMouseLeave}
+                                >
+                                    <Copy size={16} />
+                                </button>
 
                                 {/* Favorite Button */}
                                 <button
@@ -223,25 +250,15 @@ export const SelectionBanner = () => {
                                     <Heart size={16} className={allFavorited ? "fill-[#D90097]" : ""} />
                                 </button>
 
-                                {/* Duplicate Button */}
-                                <button
-                                    onClick={duplicateSelected}
-                                    className="p-2 rounded-xl text-neutral-300 hover:text-white hover:bg-neutral-800/80 transition-colors"
-                                    onMouseEnter={() => handleMouseEnter("Duplicate items")}
-                                    onMouseLeave={handleMouseLeave}
-                                >
-                                    <Copy size={16} />
-                                </button>
-
                                 {/* Move to project (Only if songs are in selection) */}
-                                {hasSongs && (
+                                {hasSongs && !isSharedView && (
                                     <div className="relative" ref={moveToRef}>
                                         <button
                                             onClick={() => setIsMoveToOpen(!isMoveToOpen)}
                                             className={`p-2 rounded-xl hover:bg-neutral-800/80 transition-colors ${
                                                 isMoveToOpen ? "text-[#D90097] bg-neutral-800/80" : "text-neutral-300 hover:text-white"
                                             }`}
-                                            onMouseEnter={() => handleMouseEnter("Move selected songs to project")}
+                                            onMouseEnter={() => handleMouseEnter("Move to...")}
                                             onMouseLeave={handleMouseLeave}
                                         >
                                             <FolderSymlink size={16} />
@@ -290,7 +307,7 @@ export const SelectionBanner = () => {
                                 <button
                                     onClick={shareSelected}
                                     className="p-2 rounded-xl text-neutral-300 hover:text-white hover:bg-neutral-800/80 transition-colors"
-                                    onMouseEnter={() => handleMouseEnter("Share selected")}
+                                    onMouseEnter={() => handleMouseEnter("Share")}
                                     onMouseLeave={handleMouseLeave}
                                 >
                                     <Share2 size={16} />
@@ -300,21 +317,32 @@ export const SelectionBanner = () => {
                                 <button
                                     onClick={downloadSelected}
                                     className="p-2 rounded-xl text-neutral-300 hover:text-white hover:bg-neutral-800/80 transition-colors"
-                                    onMouseEnter={() => handleMouseEnter("Download files")}
+                                    onMouseEnter={() => handleMouseEnter("Download")}
                                     onMouseLeave={handleMouseLeave}
                                 >
                                     <Download size={16} />
                                 </button>
 
-                                {/* Trash Button */}
-                                <button
-                                    onClick={deleteSelected}
-                                    className="p-2 rounded-xl text-neutral-400 hover:text-red-500 hover:bg-red-500/10 transition-colors"
-                                    onMouseEnter={() => handleMouseEnter("Suppress / Move to Trash")}
-                                    onMouseLeave={handleMouseLeave}
-                                >
-                                    <Trash2 size={16} />
-                                </button>
+                                {/* Trash / Remove Button */}
+                                {isSharedView ? (
+                                    <button
+                                        onClick={handleRemoveSharedSelected}
+                                        className="p-2 rounded-xl text-neutral-400 hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                                        onMouseEnter={() => handleMouseEnter("Remove from list")}
+                                        onMouseLeave={handleMouseLeave}
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={deleteSelected}
+                                        className="p-2 rounded-xl text-neutral-400 hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                                        onMouseEnter={() => handleMouseEnter("Delete")}
+                                        onMouseLeave={handleMouseLeave}
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                )}
                             </>
                         )}
                     </div>
