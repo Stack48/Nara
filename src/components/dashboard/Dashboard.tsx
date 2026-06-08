@@ -22,6 +22,13 @@ import lgseo from "@/assets/cover/lgseo.png";
 import mcgrady from "@/assets/user/mcgrady.png";
 import vince from "@/assets/cover/vince.png";
 
+const isValidImageSrc = (img: any): boolean => {
+    if (!img) return false;
+    if (typeof img === "string") return img.trim() !== "";
+    if (typeof img === "object") return !!img.src;
+    return false;
+};
+
 export const Dashboard = () => {
     // Données factices basées sur ton design
     const recentComments = [
@@ -430,13 +437,19 @@ export const Dashboard = () => {
                                     }
                                 >
                                     <div className="flex items-center gap-4">
-                                        <Image
-                                            src={song.image}
-                                            alt={song.title}
-                                            width={56}
-                                            height={56}
-                                            className="w-14 h-14 rounded-md object-cover flex-shrink-0"
-                                        />
+                                        {isValidImageSrc(song.image) ? (
+                                            <Image
+                                                src={song.image}
+                                                alt={song.title}
+                                                width={56}
+                                                height={56}
+                                                className="w-14 h-14 rounded-md object-cover flex-shrink-0"
+                                            />
+                                        ) : (
+                                            <div className="w-14 h-14 rounded-md bg-neutral-900 border border-neutral-800 flex items-center justify-center flex-shrink-0 text-neutral-400">
+                                                <Music size={20} />
+                                            </div>
+                                        )}
 
                                         <div className="flex flex-col">
                                             <p className="font-bold text-sm">

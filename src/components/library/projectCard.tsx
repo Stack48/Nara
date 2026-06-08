@@ -9,6 +9,13 @@ import { useRef } from "react";
 
 import { ALL_AVATARS, getOwnerAvatar } from "@/lib/avatars";
 
+const isValidImageSrc = (img: any): boolean => {
+    if (!img) return false;
+    if (typeof img === "string") return img.trim() !== "";
+    if (typeof img === "object") return !!img.src;
+    return false;
+};
+
 const formatDeletedTime = (timeStr: string) => {
     if (!timeStr) return "Deleted recently";
     const lower = timeStr.toLowerCase();
@@ -155,7 +162,7 @@ export const ProjectCard = ({
         const cardContent = (
             <>
                 {/* Image de fond (Prend tout le bloc) */}
-                {project.image ? (
+                {isValidImageSrc(project.image) ? (
                     <Image
                         src={project.image}
                         alt={project.title}
@@ -317,7 +324,7 @@ export const ProjectCard = ({
 
                     {/* Image principale */}
                     <div className="relative w-full h-full rounded-xl overflow-hidden shadow-lg border border-neutral-700 z-10 bg-gradient-to-br from-neutral-900 to-neutral-950 flex items-center justify-center">
-                        {project.image ? (
+                        {isValidImageSrc(project.image) ? (
                             <Image
                                 src={project.image}
                                 alt={project.title}

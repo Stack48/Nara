@@ -9,6 +9,13 @@ import { ALL_AVATARS, getOwnerAvatar } from "@/lib/avatars";
 import { useRouter } from "next/navigation";
 import { useRef } from "react";
 
+const isValidImageSrc = (img: any): boolean => {
+    if (!img) return false;
+    if (typeof img === "string") return img.trim() !== "";
+    if (typeof img === "object") return !!img.src;
+    return false;
+};
+
 const formatDeletedTime = (timeStr: string) => {
     if (!timeStr) return "Deleted recently";
     const lower = timeStr.toLowerCase();
@@ -231,7 +238,7 @@ export const SongCard = ({
 
                 {/* Cover Image Container */}
                 <div className="w-full aspect-square sm:w-32 sm:h-32 rounded-xl overflow-hidden flex-shrink-0 relative cursor-pointer">
-                    {song.image ? (
+                    {isValidImageSrc(song.image) ? (
                         <Image
                             src={song.image}
                             alt={song.title}
@@ -476,7 +483,7 @@ export const SongCard = ({
                 )}
                 <div className="relative w-14 h-14 flex-shrink-0 mt-1 mb-1">
                     <div className="relative w-full h-full rounded-xl overflow-hidden shadow-lg border border-neutral-700 z-10 bg-gradient-to-br from-neutral-900 to-neutral-950 flex items-center justify-center">
-                        {song.image ? (
+                        {isValidImageSrc(song.image) ? (
                             <Image
                                 src={song.image}
                                 alt={song.title}
