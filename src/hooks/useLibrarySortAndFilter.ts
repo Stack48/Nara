@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 
-export type SortByOption = "alphabetical" | "created" | "modified" | "owner";
+export type SortByOption = "alphabetical" | "created" | "modified" | "owner" | "custom";
 export type SortOrderOption = "asc" | "desc";
 export type ViewMode = "grid" | "list";
 
@@ -11,6 +11,7 @@ export interface SortableItem {
     lastModifiedDate?: Date;
     owner?: string;
     author?: string;
+    position?: number;
     [key: string]: any;
 }
 
@@ -40,6 +41,11 @@ export function sortItems<T extends SortableItem>(
             const ownerA = (a.owner || a.author || "").toLowerCase();
             const ownerB = (b.owner || b.author || "").toLowerCase();
             const comparison = ownerA.localeCompare(ownerB);
+            return sortOrder === "asc" ? comparison : -comparison;
+        } else if (sortBy === "custom") {
+            const posA = typeof a.position === "number" ? a.position : 99999;
+            const posB = typeof b.position === "number" ? b.position : 99999;
+            const comparison = posA - posB;
             return sortOrder === "asc" ? comparison : -comparison;
         } else {
             // modified

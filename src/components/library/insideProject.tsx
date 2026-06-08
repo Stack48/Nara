@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { useSongs, Song, renameSong } from "@/lib/songStore";
+import { useSongs, Song, renameSong, getSongOrder, saveSongOrder } from "@/lib/songStore";
 import { getProjectTitle } from "@/lib/projectStore";
 import { MenuContext } from "@/context/MenuContext";
 import { RenameModal } from "../modals/RenameModal";
@@ -34,9 +34,51 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
     const { selectedIds, handleSelect } = useSelection();
 
     const songs = useSongs();
-    const insideProjectList = songs.filter(
-        (song) => song.projectId === projectId,
-    );
+
+    // Custom song ordering state
+    const [songsListWithPositions, setSongsListWithPositions] = useState<Song[]>([]);
+
+    // Drag-and-drop state
+    const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+    const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+    const [dragOverType, setDragOverType] = useState<"insert-before" | "insert-after" | "swap" | null>(null);
+
+    useEffect(() => {
+        const projectSongs = songs.filter(
+            (song) => song.projectId === projectId,
+        );
+        const storedOrder = getSongOrder(projectId);
+
+        // Filter storedOrder to remove any song IDs that are no longer in this project
+        const currentSongIds = new Set(projectSongs.map((s) => s.id));
+        const filteredStoredOrder = storedOrder.filter((id) =>
+            currentSongIds.has(id),
+        );
+
+        // Find songs not in storedOrder
+        const missingSongIds = projectSongs
+            .map((s) => s.id)
+            .filter((id) => !filteredStoredOrder.includes(id));
+
+        let finalOrder = [...filteredStoredOrder];
+        if (missingSongIds.length > 0) {
+            finalOrder = [...finalOrder, ...missingSongIds];
+            saveSongOrder(projectId, finalOrder);
+        } else if (filteredStoredOrder.length !== storedOrder.length) {
+            // Just clean up dead IDs if they were deleted/moved
+            saveSongOrder(projectId, finalOrder);
+        }
+
+        const mapped = projectSongs.map((song) => {
+            const index = finalOrder.indexOf(song.id);
+            return {
+                ...song,
+                position: index !== -1 ? index : 99999,
+            };
+        });
+
+        setSongsListWithPositions(mapped);
+    }, [songs, projectId]);
 
     const {
         viewMode,
@@ -49,12 +91,115 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
         setSearchQuery,
         filteredAndSortedItems: sortedProjectList,
     } = useLibrarySortAndFilter({
-        items: insideProjectList,
+        items: songsListWithPositions,
         searchKeys: ["title"],
-        defaultSortBy: "modified",
-        defaultSortOrder: "desc",
+        defaultSortBy: "custom",
+        defaultSortOrder: "asc",
         defaultViewMode: "grid",
     });
+
+    // Drag and Drop Event Handlers
+    const handleDragStart = (index: number) => {
+        setDraggedIndex(index);
+    };
+
+    const handleDragOver = (e: React.DragEvent, index: number) => {
+        e.preventDefault(); // Required to allow drop!
+        if (draggedIndex === null) return;
+
+        const rect = e.currentTarget.getBoundingClientRect();
+        
+        let type: "insert-before" | "insert-after" | "swap" = "swap";
+
+        if (viewMode === "grid") {
+            const mouseX = e.clientX - rect.left;
+            const percentX = mouseX / rect.width;
+            if (percentX < 0.25) {
+                type = "insert-before";
+            } else if (percentX > 0.75) {
+                type = "insert-after";
+            }
+        } else {
+            const mouseY = e.clientY - rect.top;
+            const percentY = mouseY / rect.height;
+            if (percentY < 0.25) {
+                type = "insert-before";
+            } else if (percentY > 0.75) {
+                type = "insert-after";
+            }
+        }
+
+        if (dragOverIndex !== index || dragOverType !== type) {
+            setDragOverIndex(index);
+            setDragOverType(type);
+        }
+    };
+
+    const handleDragEnter = (index: number) => {
+        setDragOverIndex(index);
+    };
+
+    const handleDragLeave = (index: number) => {
+        if (dragOverIndex === index) {
+            setDragOverIndex(null);
+            setDragOverType(null);
+        }
+    };
+
+    const handleDragEnd = () => {
+        setDraggedIndex(null);
+        setDragOverIndex(null);
+        setDragOverType(null);
+    };
+
+    const handleDrop = (e: React.DragEvent, targetIndex: number) => {
+        e.preventDefault();
+        setDragOverIndex(null);
+        setDragOverType(null);
+        if (draggedIndex === null) return;
+
+        // Get the IDs in the current displayed order
+        const displayedIds = sortedProjectList.map((song) => song.id);
+        const newDisplayedIds = [...displayedIds];
+
+        if (dragOverType === "swap") {
+            // Swap the two songs
+            const temp = newDisplayedIds[draggedIndex];
+            newDisplayedIds[draggedIndex] = newDisplayedIds[targetIndex];
+            newDisplayedIds[targetIndex] = temp;
+        } else if (draggedIndex !== targetIndex) {
+            // Insert song
+            let destIndex = targetIndex;
+            if (dragOverType === "insert-after") {
+                destIndex = targetIndex + 1;
+            }
+
+            const [removed] = newDisplayedIds.splice(draggedIndex, 1);
+            
+            // Adjust destIndex if we removed an item before it
+            if (draggedIndex < destIndex) {
+                destIndex -= 1;
+            }
+            
+            newDisplayedIds.splice(destIndex, 0, removed);
+        } else {
+            // Dragged and dropped on itself without change
+            return;
+        }
+
+        // Normalize order to ascending before saving to localStorage
+        const updatedOrder = sortOrder === "desc" ? [...newDisplayedIds].reverse() : newDisplayedIds;
+
+        // Now save this new order!
+        saveSongOrder(projectId, updatedOrder);
+        setDraggedIndex(null);
+
+        // Force sort to "custom" if it wasn't already, so the user sees their changes!
+        if (sortBy !== "custom") {
+            setSortBy("custom");
+            setSortOrder("asc");
+        }
+    };
 
     const handleContextMenu = (e: React.MouseEvent, song: Song) => {
         e.preventDefault();
@@ -96,6 +241,12 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
                 setSortOrder={setSortOrder}
                 viewMode={viewMode}
                 setViewMode={setViewMode}
+                sortOptions={[
+                    { id: "custom", label: "ID" },
+                    { id: "alphabetical", label: "Alphabetical" },
+                    { id: "created", label: "Date created" },
+                    { id: "modified", label: "Last modified" },
+                ]}
             />
 
             {/* CONDITION D'AFFICHAGE SELON LE VIEWMODE */}
@@ -119,10 +270,18 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
                             song={song}
                             viewMode="grid"
                             context="insideProject"
-                            index={index}
+                            index={song.position}
                             isSelected={selectedIds.includes(song.id)}
                             onSelect={(e) => handleSelect(song.id, "song", song, e, sortedProjectList)}
                             onContextMenu={(e) => handleContextMenu(e, song)}
+                            onDragStart={() => handleDragStart(index)}
+                            onDragOver={(e) => handleDragOver(e, index)}
+                            onDragEnd={handleDragEnd}
+                            onDragEnter={() => handleDragEnter(index)}
+                            onDragLeave={() => handleDragLeave(index)}
+                            onDrop={(e) => handleDrop(e, index)}
+                            isDragOver={dragOverIndex === index}
+                            dragOverType={dragOverIndex === index ? dragOverType : null}
                         />
                     ))}
                 </div>
@@ -152,13 +311,21 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
                                 song={song}
                                 viewMode="list"
                                 context="insideProject"
-                                index={index}
+                                index={song.position}
                                 isLast={index === sortedProjectList.length - 1}
                                 isSelected={selectedIds.includes(song.id)}
                                 onSelect={(e) => handleSelect(song.id, "song", song, e, sortedProjectList)}
                                 onContextMenu={(e) =>
                                     handleContextMenu(e, song)
                                 }
+                                onDragStart={() => handleDragStart(index)}
+                                onDragOver={(e) => handleDragOver(e, index)}
+                                onDragEnd={handleDragEnd}
+                                onDragEnter={() => handleDragEnter(index)}
+                                onDragLeave={() => handleDragLeave(index)}
+                                onDrop={(e) => handleDrop(e, index)}
+                                isDragOver={dragOverIndex === index}
+                                dragOverType={dragOverIndex === index ? dragOverType : null}
                             />
                         ))}
                     </div>

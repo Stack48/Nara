@@ -202,8 +202,24 @@ export const LibraryHeader = ({
                                     Order
                                 </div>
                                 {[
-                                    { id: "asc", label: sortBy === "alphabetical" ? "A to Z" : "Oldest first" },
-                                    { id: "desc", label: sortBy === "alphabetical" ? "Z to A" : "Newest first" },
+                                    {
+                                        id: "asc",
+                                        label:
+                                            sortBy === "alphabetical"
+                                                ? "A to Z"
+                                                : sortBy === "custom"
+                                                  ? "Ascending"
+                                                  : "Oldest first",
+                                    },
+                                    {
+                                        id: "desc",
+                                        label:
+                                            sortBy === "alphabetical"
+                                                ? "Z to A"
+                                                : sortBy === "custom"
+                                                  ? "Descending"
+                                                  : "Newest first",
+                                    },
                                 ].map((option) => (
                                     <button
                                         key={option.id}

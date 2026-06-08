@@ -39,6 +39,14 @@ export interface SongCardProps {
     projectName?: string;
     isSelected?: boolean;
     onSelect?: (e: React.MouseEvent) => void;
+    onDragStart?: React.DragEventHandler;
+    onDragOver?: React.DragEventHandler;
+    onDragEnd?: React.DragEventHandler;
+    onDragEnter?: React.DragEventHandler;
+    onDragLeave?: React.DragEventHandler;
+    onDrop?: React.DragEventHandler;
+    isDragOver?: boolean;
+    dragOverType?: "insert-before" | "insert-after" | "swap" | null;
 }
 
 export const SongCard = ({
@@ -55,6 +63,14 @@ export const SongCard = ({
     projectName = "",
     isSelected = false,
     onSelect,
+    onDragStart,
+    onDragOver,
+    onDragEnd,
+    onDragEnter,
+    onDragLeave,
+    onDrop,
+    isDragOver = false,
+    dragOverType = null,
 }: SongCardProps) => {
     const router = useRouter();
     const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -188,16 +204,31 @@ export const SongCard = ({
                 className={`border transition-all duration-300 rounded-2xl p-3 flex flex-col sm:flex-row gap-4 group ${
                     isSelected
                         ? "bg-[#D90097]/5 border-[#D90097] shadow-[0_0_15px_rgba(217,0,151,0.15)]"
-                        : "bg-[#151515] border-neutral-800/80 hover:border-neutral-600 hover:bg-[#1a1a1a]"
+                        : isDragOver && dragOverType === "swap"
+                          ? "bg-[#D90097]/10 border-[#D90097] shadow-[0_0_15px_rgba(217,0,151,0.2)] scale-[1.02]"
+                          : "bg-[#151515] border-neutral-800/80 hover:border-neutral-600 hover:bg-[#1a1a1a]"
                 } ${
                     isDeletedView
                         ? "cursor-context-menu"
                         : "cursor-grab active:cursor-grabbing song-card"
                 } animate-in fade-in relative`}
                 draggable={!isDeletedView}
-                onDragStart={handleDragStart}
+                onDragStart={onDragStart || handleDragStart}
+                onDragOver={onDragOver}
+                onDragEnd={onDragEnd}
+                onDragEnter={onDragEnter}
+                onDragLeave={onDragLeave}
+                onDrop={onDrop}
                 onContextMenu={onContextMenu}
             >
+                {/* Visual Drag Insertion Indicators for Grid View */}
+                {isDragOver && dragOverType === "insert-before" && (
+                    <div className="absolute top-0 bottom-0 left-[-10px] w-[3px] bg-[#D90097] shadow-[0_0_10px_rgba(217,0,151,0.8)] z-30 animate-pulse rounded-full" />
+                )}
+                {isDragOver && dragOverType === "insert-after" && (
+                    <div className="absolute top-0 bottom-0 right-[-10px] w-[3px] bg-[#D90097] shadow-[0_0_10px_rgba(217,0,151,0.8)] z-30 animate-pulse rounded-full" />
+                )}
+
                 {/* Cover Image Container */}
                 <div className="w-full aspect-square sm:w-32 sm:h-32 rounded-xl overflow-hidden flex-shrink-0 relative cursor-pointer">
                     {song.image ? (
@@ -264,13 +295,18 @@ export const SongCard = ({
                         className="flex-1 flex flex-col justify-center"
                     >
                         <h3
-                            className={`font-bold text-white line-clamp-2 leading-snug pr-2 ${
+                            className={`font-bold text-white line-clamp-2 leading-snug pr-2 flex items-center gap-2 ${
                                 isInsideProjectView
                                     ? "text-base mt-1"
                                     : `text-[17px] sm:text-[18px] ${!isDeletedView ? "sm:pr-16" : ""}`
                             }`}
                         >
-                            {song.title}
+                            {isInsideProjectView && (
+                                <span className="text-xs font-bold text-neutral-500 bg-neutral-900 border border-neutral-800 px-1.5 py-0.5 rounded font-mono shrink-0">
+                                    {index + 1}
+                                </span>
+                            )}
+                            <span>{song.title}</span>
                         </h3>
 
                         {song.projectName && !isInsideProjectView && (
@@ -415,11 +451,14 @@ export const SongCard = ({
 
     // --- VUE LISTE (TABLEAU) ---
     const listContent = (
-        <div className={`grid grid-cols-12 gap-4 items-center p-2 rounded-xl transition-all duration-200 group ${
+        <div className={`grid grid-cols-12 gap-4 items-center p-2 rounded-xl transition-all duration-200 group relative ${
             isSelected
                 ? "bg-[#D90097]/10 border border-[#D90097]/30 shadow-[0_0_10px_rgba(217,0,151,0.1)]"
-                : "hover:bg-[#151515]"
+                : isDragOver && dragOverType === "swap"
+                  ? "bg-[#D90097]/15 border border-[#D90097]/50 shadow-[0_0_12px_rgba(217,0,151,0.2)] scale-[1.01]"
+                  : "hover:bg-[#151515]"
         }`}>
+
             {/* Name + Image */}
             <div
                 className={`${
@@ -430,6 +469,11 @@ export const SongCard = ({
                           : "col-span-4"
                 } flex items-center gap-4 pl-1`}
             >
+                {isInsideProjectView && (
+                    <span className="text-xs font-bold text-neutral-500 min-w-[16px] text-center font-mono shrink-0">
+                        {index + 1}
+                    </span>
+                )}
                 <div className="relative w-14 h-14 flex-shrink-0 mt-1 mb-1">
                     <div className="relative w-full h-full rounded-xl overflow-hidden shadow-lg border border-neutral-700 z-10 bg-gradient-to-br from-neutral-900 to-neutral-950 flex items-center justify-center">
                         {song.image ? (
@@ -732,13 +776,25 @@ export const SongCard = ({
 
     return (
         <div
-            className={`flex flex-col song-card ${isDeletedView ? "" : "cursor-grab active:cursor-grabbing"}`}
+            className={`flex flex-col song-card relative ${isDeletedView ? "" : "cursor-grab active:cursor-grabbing"}`}
             onClick={handleClick}
             onDoubleClick={handleDoubleClick}
             draggable={!isDeletedView}
-            onDragStart={handleDragStart}
+            onDragStart={onDragStart || handleDragStart}
+            onDragOver={onDragOver}
+            onDragEnd={onDragEnd}
+            onDragEnter={onDragEnter}
+            onDragLeave={onDragLeave}
+            onDrop={onDrop}
             onContextMenu={onContextMenu}
         >
+            {/* Visual Drag Insertion Indicators for List View */}
+            {isDragOver && dragOverType === "insert-before" && (
+                <div className="absolute top-[-5px] left-0 right-0 h-[3px] bg-[#D90097] shadow-[0_0_10px_rgba(217,0,151,0.8)] z-30 animate-pulse rounded-full" />
+            )}
+            {isDragOver && dragOverType === "insert-after" && (
+                <div className="absolute bottom-[-5px] left-0 right-0 h-[3px] bg-[#D90097] shadow-[0_0_10px_rgba(217,0,151,0.8)] z-30 animate-pulse rounded-full" />
+            )}
             {listContent}
         </div>
     );

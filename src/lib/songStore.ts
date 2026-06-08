@@ -754,3 +754,17 @@ export const useSongs = (): Song[] => {
 
     return songs;
 };
+
+// Persistence functions for project song order
+export const getSongOrder = (projectId: string): string[] => {
+    if (typeof window === "undefined" || !projectId) return [];
+    const stored = localStorage.getItem(`nara_project_song_order_${projectId}`);
+    return stored ? JSON.parse(stored) : [];
+};
+
+export const saveSongOrder = (projectId: string, songIds: string[]) => {
+    if (typeof window === "undefined" || !projectId) return;
+    localStorage.setItem(`nara_project_song_order_${projectId}`, JSON.stringify(songIds));
+    window.dispatchEvent(new CustomEvent(EVENT_NAME));
+};
+
