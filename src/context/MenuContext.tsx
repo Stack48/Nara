@@ -110,11 +110,13 @@ export const MenuContext = ({
             onClose();
         };
 
-        document.addEventListener("mousedown", handleClickOutside);
+        window.addEventListener("mousedown", handleClickOutside, true);
+        window.addEventListener("contextmenu", handleClickOutside, true);
         window.addEventListener("scroll", handleScroll, true);
 
         return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
+            window.removeEventListener("mousedown", handleClickOutside, true);
+            window.removeEventListener("contextmenu", handleClickOutside, true);
             window.removeEventListener("scroll", handleScroll, true);
         };
     }, [onClose]);

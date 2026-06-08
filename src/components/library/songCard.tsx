@@ -84,23 +84,10 @@ export const SongCard = ({
     const { togglePlay, isPlaying } = useAudioClick(song?.audioSrc || "", 30);
 
     if (isCreatePlaceholder) {
-        const handleClick = () => {
-            window.dispatchEvent(
-                new CustomEvent("open-create-modal", {
-                    detail: {
-                        type: "song",
-                        projectId: projectId,
-                        projectName: projectName,
-                    },
-                }),
-            );
-        };
-
         if (viewMode === "grid") {
             return (
-                <button
-                    type="button"
-                    onClick={handleClick}
+                <Link
+                    href="/songs/new"
                     className="bg-[#151515]/30 border border-dashed border-neutral-800 hover:border-[#D90097]/60 hover:bg-[#121212]/50 transition-all duration-300 rounded-2xl p-3 flex flex-col sm:flex-row gap-4 group cursor-pointer animate-in fade-in relative items-center text-left"
                 >
                     {/* Cover Image Container Placeholder */}
@@ -119,15 +106,14 @@ export const SongCard = ({
                             Create a standalone track or add to project
                         </p>
                     </div>
-                </button>
+                </Link>
             );
         }
 
         // List View
         return (
-            <button
-                type="button"
-                onClick={handleClick}
+            <Link
+                href="/songs/new"
                 className="w-full grid grid-cols-12 gap-4 items-center p-3 rounded-xl border border-dashed border-neutral-800/80 hover:border-[#D90097]/60 hover:bg-[#121212]/50 transition-all duration-300 group cursor-pointer text-left mb-2"
             >
                 <div className="col-span-12 flex items-center gap-4 pl-1">
@@ -141,7 +127,7 @@ export const SongCard = ({
                         New Song
                     </span>
                 </div>
-            </button>
+            </Link>
         );
     }
 

@@ -324,6 +324,7 @@ export const updateProjectDetails = (
         image?: string;
         description?: string;
         state?: string;
+        type?: string;
         collaboratorsList?: string[];
     },
 ) => {

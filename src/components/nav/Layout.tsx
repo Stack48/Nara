@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { Sidebar } from "../nav/Sidebar";
 import { Topbar } from "../nav/Topbar";
-import { CreateModal } from "../modals/CreateModal";
 import { EditDetailsModal } from "../modals/EditDetailsModal";
 import { MoveToModal } from "../modals/MoveToModal";
 import { ShareModal } from "../modals/ShareModal";
@@ -17,17 +16,12 @@ interface LayoutProps {
 export const Layout = ({ children }: LayoutProps) => {
     // sidebar state
     const [collapsed, setCollapsed] = useState(false);
-    
-    // Create Modal state
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [createModalType, setCreateModalType] = useState<"song" | "project">("song");
-    const [createModalProjectId, setCreateModalProjectId] = useState<string>("");
-    const [createModalProjectName, setCreateModalProjectName] = useState<string>("");
 
-    // Edit Modal state
+    // Edit Modal state (handles project creation too)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editModalType, setEditModalType] = useState<"song" | "project">("song");
     const [editModalItemId, setEditModalItemId] = useState<string>("");
+    const [editModalIsCreate, setEditModalIsCreate] = useState<boolean>(false);
 
     // Move To Modal state
     const [isMoveToModalOpen, setIsMoveToModalOpen] = useState(false);
@@ -39,11 +33,13 @@ export const Layout = ({ children }: LayoutProps) => {
 
     useEffect(() => {
         const handleOpenCreateModal = (e: any) => {
-            const { type, projectId, projectName } = e.detail || {};
-            if (type) setCreateModalType(type);
-            setCreateModalProjectId(projectId || "");
-            setCreateModalProjectName(projectName || "");
-            setIsCreateModalOpen(true);
+            const { type } = e.detail || {};
+            if (type === "project") {
+                setEditModalType("project");
+                setEditModalItemId("");
+                setEditModalIsCreate(true);
+                setIsEditModalOpen(true);
+            }
         };
 
         const handleOpenEditModal = (e: any) => {
@@ -51,6 +47,7 @@ export const Layout = ({ children }: LayoutProps) => {
             if (type && itemId) {
                 setEditModalType(type);
                 setEditModalItemId(itemId);
+                setEditModalIsCreate(false);
                 setIsEditModalOpen(true);
             }
         };
@@ -91,12 +88,6 @@ export const Layout = ({ children }: LayoutProps) => {
                 <Sidebar
                     collapsed={collapsed}
                     toggleSidebar={() => setCollapsed(!collapsed)}
-                    openCreateModal={() => {
-                        setCreateModalType("song");
-                        setCreateModalProjectId("");
-                        setCreateModalProjectName("");
-                        setIsCreateModalOpen(true);
-                    }}
                 />
 
                 {/* main content */}
@@ -108,20 +99,12 @@ export const Layout = ({ children }: LayoutProps) => {
                     </main>
                 </div>
 
-                {/* Create Modal */}
-                <CreateModal 
-                    isOpen={isCreateModalOpen} 
-                    onClose={() => setIsCreateModalOpen(false)} 
-                    defaultType={createModalType}
-                    defaultProjectId={createModalProjectId}
-                    defaultProjectName={createModalProjectName}
-                />
-
-                {/* Edit Details Modal */}
+                {/* Edit Details Modal (also handles creation of projects) */}
                 <EditDetailsModal
                     isOpen={isEditModalOpen}
                     type={editModalType}
                     itemId={editModalItemId}
+                    isCreate={editModalIsCreate}
                     onClose={() => setIsEditModalOpen(false)}
                 />
 

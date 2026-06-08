@@ -24,13 +24,11 @@ import avisProfil from "@/assets/user/haslem.png";
 interface SidebarProps {
     collapsed: boolean;
     toggleSidebar: () => void;
-    openCreateModal: () => void;
 }
 
 export const Sidebar = ({
     collapsed,
     toggleSidebar,
-    openCreateModal,
 }: SidebarProps) => {
     const pathname = usePathname();
     const router = useRouter();
@@ -149,8 +147,8 @@ export const Sidebar = ({
                 className={`flex flex-col flex-1 py-5 gap-4 overflow-y-auto overflow-x-hidden ${collapsed ? "px-1" : "px-3"}`}
             >
                 {/* BUTTON CREATE */}
-                <button
-                    onClick={openCreateModal}
+                <Link
+                    href="/songs/new"
                     className={`flex items-center justify-center bg-gradient-to-r from-[#AB0063] from-[0%] to-[#D50093] to-[100%] shadow-lg transition-all hover:scale-[1.02] hover:opacity-90 text-white font-bold rounded-lg h-10 shrink-0 ${
                         collapsed
                             ? "w-10 px-0 mx-auto"
@@ -159,7 +157,7 @@ export const Sidebar = ({
                 >
                     <Plus size={20} className="flex-shrink-0" />
                     <span className={textVisibilityClass}>New Song</span>
-                </button>
+                </Link>
 
                 {/* NAVIGATION PRINCIPALE */}
                 <div className="flex flex-col gap-1 mt-2">

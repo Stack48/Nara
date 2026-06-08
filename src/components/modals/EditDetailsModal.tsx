@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { X, Upload, Plus, Users, Edit3 } from "lucide-react";
 import Image from "next/image";
 import { useSongs, updateSongDetails } from "@/lib/songStore";
-import { useProjects, updateProjectDetails } from "@/lib/projectStore";
+import { useProjects, updateProjectDetails, createProject } from "@/lib/projectStore";
 
 // Cover images imports
 import vince from "@/assets/cover/vince.png";
@@ -60,7 +60,8 @@ const PRESET_COVERS = [
 interface EditDetailsModalProps {
     isOpen: boolean;
     type: "song" | "project";
-    itemId: string;
+    itemId?: string;
+    isCreate?: boolean;
     onClose: () => void;
 }
 
@@ -68,6 +69,7 @@ export const EditDetailsModal = ({
     isOpen,
     type,
     itemId,
+    isCreate = false,
     onClose,
 }: EditDetailsModalProps) => {
     const songs = useSongs();
@@ -81,10 +83,23 @@ export const EditDetailsModal = ({
     const [collaboratorsList, setCollaboratorsList] = useState<string[]>([]);
     const [newCollab, setNewCollab] = useState("");
     const [image, setImage] = useState<any>(null);
+    const [projectType, setProjectType] = useState<"Album" | "EP" | "Single">("Album");
 
     // Resolve current item details
     useEffect(() => {
-        if (!isOpen || !itemId) return;
+        if (!isOpen) return;
+
+        if (isCreate) {
+            setTitle("");
+            setDescription("");
+            setState("");
+            setCollaboratorsList([]);
+            setImage(null);
+            setProjectType("Album");
+            return;
+        }
+
+        if (!itemId) return;
 
         if (type === "song") {
             const song = songs.find((s) => s.id === itemId);
@@ -103,9 +118,10 @@ export const EditDetailsModal = ({
                 setState(project.state || "En cours");
                 setCollaboratorsList(project.collaboratorsList || []);
                 setImage(project.image || null);
+                setProjectType((project.type as any) || "Album");
             }
         }
-    }, [isOpen, itemId, type, songs, projects]);
+    }, [isOpen, itemId, type, isCreate, songs, projects]);
 
     if (!isOpen) return null;
 
@@ -191,21 +207,35 @@ export const EditDetailsModal = ({
             collaboratorsList,
         };
 
-        if (type === "song") {
-            details.state = state;
-            updateSongDetails(itemId, details);
-            window.dispatchEvent(
-                new CustomEvent("show-nara-toast", {
-                    detail: { message: `Song "${details.title}" updated successfully!` },
-                }),
-            );
+        if (isCreate) {
+            if (type === "project") {
+                createProject(title.trim(), projectType);
+                const newProjectId = title.trim().replace(/\s+/g, "_");
+                updateProjectDetails(newProjectId, details);
+                window.dispatchEvent(
+                    new CustomEvent("show-nara-toast", {
+                        detail: { message: `Project "${title.trim()}" created successfully!` },
+                    }),
+                );
+            }
         } else {
-            updateProjectDetails(itemId, details);
-            window.dispatchEvent(
-                new CustomEvent("show-nara-toast", {
-                    detail: { message: `Project "${details.title}" updated successfully!` },
-                }),
-            );
+            if (type === "song") {
+                details.state = state;
+                updateSongDetails(itemId!, details);
+                window.dispatchEvent(
+                    new CustomEvent("show-nara-toast", {
+                        detail: { message: `Song "${details.title}" updated successfully!` },
+                    }),
+                );
+            } else {
+                details.type = projectType;
+                updateProjectDetails(itemId!, details);
+                window.dispatchEvent(
+                    new CustomEvent("show-nara-toast", {
+                        detail: { message: `Project "${details.title}" updated successfully!` },
+                    }),
+                );
+            }
         }
         onClose();
     };
@@ -221,7 +251,7 @@ export const EditDetailsModal = ({
                         </div>
                         <div>
                             <h3 className="font-syne font-bold text-white text-base">
-                                Edit {type === "song" ? "Song" : "Project"} Details
+                                {isCreate ? "Create Project Details" : `Edit ${type === "song" ? "Song" : "Project"} Details`}
                             </h3>
                             <p className="text-xs text-neutral-400 font-medium mt-0.5">
                                 {title || "Untitled"}
@@ -306,6 +336,23 @@ export const EditDetailsModal = ({
                                         <option value="Mixage">Mixage</option>
                                         <option value="Mastering">Mastering</option>
                                         <option value="Terminé">Terminé</option>
+                                    </select>
+                                </div>
+                            )}
+
+                            {type === "project" && (
+                                <div>
+                                    <label className="block text-neutral-500 text-[10px] font-bold uppercase tracking-wider mb-2">
+                                        Project Type
+                                    </label>
+                                    <select
+                                        value={projectType}
+                                        onChange={(e) => setProjectType(e.target.value as any)}
+                                        className="w-full bg-[#151515] border border-neutral-800 focus:border-neutral-700 rounded-xl py-2.5 px-3 text-sm text-white focus:outline-none transition-colors cursor-pointer"
+                                    >
+                                        <option value="Album">Album</option>
+                                        <option value="EP">EP</option>
+                                        <option value="Single">Single</option>
                                     </select>
                                 </div>
                             )}
@@ -455,7 +502,7 @@ export const EditDetailsModal = ({
                         disabled={!title.trim()}
                         className="px-5 py-2 text-xs font-semibold text-white bg-gradient-to-r from-[#AB0063] to-[#D50093] disabled:opacity-50 disabled:pointer-events-none rounded-lg shadow-lg hover:opacity-90 hover:scale-[1.02] transition-all cursor-pointer"
                     >
-                        Save Changes
+                        {isCreate ? "Create Project" : "Save Changes"}
                     </button>
                 </div>
             </div>
