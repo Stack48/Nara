@@ -4544,11 +4544,11 @@ export default function LyricsEditorWorkspaceTiptap({
 		toggles.find((toggle) => toggle.key === "syllables")?.enabled ?? false;
 
 	return (
-		<div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[#17171C]">
+		<div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
 			<div
 				className={`grid min-h-0 flex-1 grid-cols-1 overflow-hidden ${workspaceGridTemplateClass}`}
 			>
-				<main className="min-h-0 overflow-y-auto bg-[#17171C]">
+				<main className="min-h-0 overflow-y-auto">
 					<div
 						className={`flex min-h-full flex-col ${
 							format.focusMode

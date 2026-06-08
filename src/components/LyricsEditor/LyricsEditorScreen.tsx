@@ -53,12 +53,13 @@ export default function LyricsEditorScreen(): ReactElement {
 			(currentFormat: LyricsFormat): LyricsFormat => ({
 				...currentFormat,
 				...patch,
+				focusMode: true,
 			}),
 		);
 	}
 
 	return (
-		<section className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[var(--nara-surface)]">
+		<section className="flex h-full w-full min-h-0 flex-1 flex-col overflow-hidden ">
 			<LyricsHeader format={format} onFormatChange={handleFormatChange} />
 			<LyricsEditorWorkspaceTiptap
 				format={format}
