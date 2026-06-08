@@ -65,11 +65,11 @@ const STATIC_SONGS_LIST = [
         created: "6 months ago",
         lastModifiedDate: new Date(Date.now() - 8 * 60 * 1000),
         createdDate: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000),
-        image: testCover,
+        image: null,
         audioSrc: "/audio/ensalada.mp3",
-        defaultOrigin: "standalone" as const,
-        defaultProjectId: "",
-        defaultProjectName: "",
+        defaultOrigin: "project" as const,
+        defaultProjectId: "This_Is_America",
+        defaultProjectName: "June5",
     },
     {
         id: "Time_killers",
@@ -474,6 +474,14 @@ export const getSongProjectMappings = (): Mappings => {
                     upgraded = true;
                 }
             });
+            if (parsed["test"] && !localStorage.getItem("test_song_migrated_june5")) {
+                parsed["test"].projectId = "This_Is_America";
+                parsed["test"].projectName = "June5";
+                parsed["test"].origin = "project";
+                localStorage.setItem("test_song_migrated_june5", "true");
+                upgraded = true;
+            }
+
             // Upgrade existing mappings in local storage if new static songs are missing
             STATIC_SONGS_LIST.forEach((song) => {
                 if (!parsed[song.id]) {
@@ -617,7 +625,7 @@ export const createSong = (
         created: "Just now",
         lastModifiedDate: new Date().toISOString(),
         createdDate: new Date().toISOString(),
-        imageKey: "vince",
+        image: null,
         audioSrc: "/audio/drafts/mhm.mp3",
         defaultOrigin: projectId
             ? ("project" as const)
@@ -671,7 +679,7 @@ const getCreatedSongsList = (): any[] => {
                 ...song,
                 lastModifiedDate: new Date(song.lastModifiedDate),
                 createdDate: new Date(song.createdDate),
-                image: vince, // default cover
+                image: song.image || null, // default cover
             }));
         } catch {}
     }

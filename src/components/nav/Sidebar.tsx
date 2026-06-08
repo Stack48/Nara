@@ -158,7 +158,7 @@ export const Sidebar = ({
                     }`}
                 >
                     <Plus size={20} className="flex-shrink-0" />
-                    <span className={textVisibilityClass}>Create</span>
+                    <span className={textVisibilityClass}>New Song</span>
                 </button>
 
                 {/* NAVIGATION PRINCIPALE */}
@@ -224,6 +224,25 @@ export const Sidebar = ({
                         {/* Niveau 1 : Liste des projets */}
                         {!collapsed && projectsOpen && (
                             <div className="flex flex-col pl-4 mt-0.5 border-l border-neutral-800/40 ml-5 gap-0.5">
+                                <button
+                                    onClick={() => {
+                                        window.dispatchEvent(
+                                            new CustomEvent(
+                                                "open-create-modal",
+                                                { detail: { type: "project" } },
+                                            ),
+                                        );
+                                    }}
+                                    className="flex items-center w-full h-8 px-2 text-xs text-neutral-400 hover:text-white hover:bg-neutral-900/40 rounded-md transition-all border border-dashed border-neutral-800/80 hover:border-[#D90097]/45 shrink-0 mb-1 group"
+                                >
+                                    <Plus
+                                        size={12}
+                                        className="mr-2 text-neutral-500 group-hover:text-[#D90097] shrink-0 transition-colors"
+                                    />
+                                    <span className="truncate font-semibold">
+                                        New Project
+                                    </span>
+                                </button>
                                 {projects.map((project) => {
                                     const isProjectOpen =
                                         !!openProjectIds[project.id];
@@ -295,7 +314,7 @@ export const Sidebar = ({
                                                     {project.isFavorite && (
                                                         <Heart
                                                             size={10}
-                                                            className="ml-1.5 text-[#D90097] fill-[#D90097] shrink-0"
+                                                            className="ml-1.5 text-red-500 fill-red-500 shrink-0"
                                                         />
                                                     )}
                                                 </div>
@@ -355,7 +374,10 @@ export const Sidebar = ({
                         <Link
                             key={link.href}
                             href={link.href}
-                            className={linkClass(pathname === link.href || pathname.startsWith(`${link.href}/`))}
+                            className={linkClass(
+                                pathname === link.href ||
+                                    pathname.startsWith(`${link.href}/`),
+                            )}
                         >
                             <link.icon size={16} className="flex-shrink-0" />
                             <span className={textVisibilityClass}>

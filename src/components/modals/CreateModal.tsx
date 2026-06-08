@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, UploadCloud, Users, Music, FolderOpen } from "lucide-react";
 import { createSong } from "@/lib/songStore";
 import { createProject } from "@/lib/projectStore";
@@ -8,9 +8,18 @@ import { createProject } from "@/lib/projectStore";
 interface CreateModalProps {
     isOpen: boolean;
     onClose: () => void;
+    defaultType?: "song" | "project";
+    defaultProjectId?: string;
+    defaultProjectName?: string;
 }
 
-export const CreateModal = ({ isOpen, onClose }: CreateModalProps) => {
+export const CreateModal = ({
+    isOpen,
+    onClose,
+    defaultType,
+    defaultProjectId,
+    defaultProjectName,
+}: CreateModalProps) => {
     const [type, setType] = useState<"song" | "project">("song");
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
@@ -18,11 +27,17 @@ export const CreateModal = ({ isOpen, onClose }: CreateModalProps) => {
     const [collaborators, setCollaborators] = useState("");
     const [selectedPresetCover, setSelectedPresetCover] = useState<number | null>(null);
 
+    useEffect(() => {
+        if (isOpen && defaultType) {
+            setType(defaultType);
+        }
+    }, [isOpen, defaultType]);
+
     const handleCreate = () => {
         if (!title.trim()) return;
 
         if (type === "song") {
-            createSong(title.trim());
+            createSong(title.trim(), defaultProjectId || "", defaultProjectName || "");
             window.dispatchEvent(new CustomEvent("show-nara-toast", {
                 detail: { message: `Song "${title.trim()}" created successfully!` }
             }));

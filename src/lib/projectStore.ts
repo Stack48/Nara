@@ -57,7 +57,7 @@ const STATIC_PROJECTS = [
     },
     {
         id: "This_Is_America",
-        title: "This Is America",
+        title: "June5",
         type: "Single",
         collabs: 0,
         state: "Terminé",
@@ -65,7 +65,7 @@ const STATIC_PROJECTS = [
         created: "10 days ago",
         lastModifiedDate: new Date(Date.now() - 10 * 60 * 1000),
         createdDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
-        imageKey: "This_Is_America",
+        imageKey: "",
     },
     {
         id: "Mr_Clean_Modern_Day_Mugging",
@@ -320,7 +320,7 @@ export const createProject = (
         created: "Just now",
         lastModifiedDate: new Date().toISOString(),
         createdDate: new Date().toISOString(),
-        imageKey: "Let_God_Sort_Em_Out", // fallback cover art preset
+        imageKey: "", // fallback cover art preset
         isFavorite: false,
         isDeleted: false,
     };
@@ -356,7 +356,7 @@ export const useProjects = (): Project[] => {
                     lastModifiedDate: new Date(proj.lastModifiedDate),
                     createdDate: new Date(proj.createdDate),
                     imageKey: proj.imageKey,
-                    image: PROJECT_IMAGES[proj.imageKey] || lgseo,
+                    image: proj.imageKey ? (PROJECT_IMAGES[proj.imageKey] || null) : null,
                     isFavorite: !!proj.isFavorite,
                     isDeleted: !!proj.isDeleted,
                     isShared: !!proj.isShared,
