@@ -87,6 +87,7 @@ export const Recents = () => {
         defaultSortBy: "modified",
         defaultSortOrder: "desc",
         defaultViewMode: "grid",
+        storageKey: "recents",
     });
 
     const filteredSongs = sortItems(

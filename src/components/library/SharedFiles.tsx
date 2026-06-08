@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSongs, Song } from "@/lib/songStore";
 import { useProjects, Project } from "@/lib/projectStore";
 import { MenuContext } from "@/context/MenuContext";
@@ -15,11 +15,25 @@ import { ProjectCard } from "./projectCard";
 import { SongCard } from "./songCard";
 
 export const SharedFiles = () => {
-    const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+    const [viewMode, setViewModeState] = useState<"grid" | "list">("grid");
     const [searchQuery, setSearchQuery] = useState("");
     const [sortBy, setSortBy] = useState<SortByOption>("modified");
     const [sortOrder, setSortOrder] = useState<SortOrderOption>("desc");
     const [filterValue, setFilterValue] = useState<string>("all");
+
+    const setViewMode = (mode: "grid" | "list") => {
+        setViewModeState(mode);
+        if (typeof window !== "undefined") {
+            localStorage.setItem("nara_view_mode_shared", mode);
+        }
+    };
+
+    useEffect(() => {
+        const stored = localStorage.getItem("nara_view_mode_shared");
+        if (stored === "grid" || stored === "list") {
+            setViewModeState(stored);
+        }
+    }, []);
     const [contextMenu, setContextMenu] = useState<{
         x: number;
         y: number;

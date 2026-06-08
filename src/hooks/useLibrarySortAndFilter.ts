@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 export type SortByOption = "alphabetical" | "created" | "modified" | "owner" | "custom";
 export type SortOrderOption = "asc" | "desc";
@@ -21,6 +21,7 @@ interface UseLibrarySortAndFilterProps<T extends SortableItem> {
     defaultSortBy?: SortByOption;
     defaultSortOrder?: SortOrderOption;
     defaultViewMode?: ViewMode;
+    storageKey?: string;
 }
 
 export function sortItems<T extends SortableItem>(
@@ -63,11 +64,28 @@ export function useLibrarySortAndFilter<T extends SortableItem>({
     defaultSortBy = "modified",
     defaultSortOrder = "desc",
     defaultViewMode = "grid",
+    storageKey,
 }: UseLibrarySortAndFilterProps<T>) {
-    const [viewMode, setViewMode] = useState<ViewMode>(defaultViewMode);
+    const [viewMode, setViewModeState] = useState<ViewMode>(defaultViewMode);
     const [sortBy, setSortBy] = useState<SortByOption>(defaultSortBy);
     const [sortOrder, setSortOrder] = useState<SortOrderOption>(defaultSortOrder);
     const [searchQuery, setSearchQuery] = useState("");
+
+    const setViewMode = (mode: ViewMode) => {
+        setViewModeState(mode);
+        if (storageKey) {
+            localStorage.setItem(`nara_view_mode_${storageKey}`, mode);
+        }
+    };
+
+    useEffect(() => {
+        if (storageKey) {
+            const stored = localStorage.getItem(`nara_view_mode_${storageKey}`);
+            if (stored === "grid" || stored === "list") {
+                setViewModeState(stored);
+            }
+        }
+    }, [storageKey]);
 
     const filteredAndSortedItems = useMemo(() => {
         // 1. Filtrage (Recherche)

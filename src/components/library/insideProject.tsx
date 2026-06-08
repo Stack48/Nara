@@ -96,6 +96,7 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
         defaultSortBy: "custom",
         defaultSortOrder: "asc",
         defaultViewMode: "grid",
+        storageKey: `inside_project_${projectId}`,
     });
 
     // Drag and Drop Event Handlers

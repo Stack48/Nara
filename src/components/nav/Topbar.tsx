@@ -1,4 +1,6 @@
-import { Sun, Bell, Settings } from "lucide-react";
+import { Sun, Bell } from "lucide-react";
+import Image from "next/image";
+import avisProfil from "@/assets/user/haslem.png";
 
 export const Topbar = () => {
     return (
@@ -24,10 +26,17 @@ export const Topbar = () => {
                     </div>
                 </button>
 
-                <button className="w-9 h-9 flex items-center justify-center rounded-full border border-neutral-800 bg-black hover:text-white hover:bg-neutral-900 transition-colors">
-                    <Settings size={18} />
+                <button className="w-9 h-9 overflow-hidden rounded-full border border-neutral-800 bg-neutral-800 flex-shrink-0 relative hover:opacity-80 transition-opacity">
+                    <Image
+                        src={avisProfil}
+                        alt="Profil Udonis Haslem"
+                        fill
+                        className="object-cover"
+                        sizes="36px"
+                    />
                 </button>
             </div>
         </header>
     );
 };
+

@@ -44,6 +44,7 @@ export const Projects = () => {
         defaultSortBy: "modified",
         defaultSortOrder: "desc",
         defaultViewMode: "grid",
+        storageKey: "projects",
     });
 
     const handleContextMenu = (e: React.MouseEvent, project: Project) => {

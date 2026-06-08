@@ -343,7 +343,7 @@ export const Sidebar = ({
                                                         (track) => (
                                                             <Link
                                                                 key={track.id}
-                                                                href={`/projects/${project.id}/${track.id}`}
+                                                                href={`/songs/${track.id}`}
                                                                 className="flex items-center h-7 px-2 text-[11px] text-neutral-500 hover:text-[#D90097] rounded-md transition-colors whitespace-nowrap overflow-hidden text-ellipsis"
                                                             >
                                                                 <Music
@@ -388,30 +388,6 @@ export const Sidebar = ({
                 </div>
             </div>
 
-            {/* FOOTER SIDEBAR (Profil) */}
-            <div
-                className={`flex items-center h-16 border-t border-neutral-800/60 transition-all duration-300 overflow-hidden shrink-0 ${
-                    collapsed ? "justify-center px-0" : "px-4 gap-3"
-                }`}
-            >
-                <div className="w-10 h-10 overflow-hidden rounded-full bg-neutral-800 flex-shrink-0 relative">
-                    <Image
-                        src={avisProfil}
-                        alt="Profil Udonis Haslem"
-                        fill
-                        className="object-cover"
-                        sizes="40px"
-                    />
-                </div>
-                <div className={`flex flex-col ${textVisibilityClass}`}>
-                    <span className="font-bold text-sm tracking-wide text-white">
-                        Udonis Haslem
-                    </span>
-                    <span className="text-neutral-500 text-xs mt-0.5">
-                        Pro Plan
-                    </span>
-                </div>
-            </div>
 
             {/* Warning Confirmation Modal for Drag & Drop */}
             {confirmModal && (

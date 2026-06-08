@@ -66,6 +66,7 @@ export const Songs = () => {
         defaultSortBy: "modified",
         defaultSortOrder: "desc",
         defaultViewMode: "grid",
+        storageKey: "songs",
     });
 
     const [contextMenu, setContextMenu] = useState<{

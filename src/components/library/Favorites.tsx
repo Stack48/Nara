@@ -91,6 +91,7 @@ export const Favorites = () => {
         defaultSortBy: "modified",
         defaultSortOrder: "desc",
         defaultViewMode: "grid",
+        storageKey: "favorites",
     });
 
     const filteredSongs = sortItems(

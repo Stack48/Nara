@@ -35,6 +35,7 @@ export interface Song {
     isDeleted: boolean;
     isShared?: boolean;
     owner?: string;
+    position?: number;
 }
 
 const STATIC_SONGS_LIST = [
