@@ -15,11 +15,8 @@ import {
     MoreVertical,
     Music,
 } from "lucide-react";
-import allen from "@/assets/user/allen.png";
-import duncan from "@/assets/user/duncan.png";
 import haslem from "@/assets/user/haslem.png";
 import lgseo from "@/assets/cover/lgseo.png";
-import mcgrady from "@/assets/user/mcgrady.png";
 import { useApiSongs } from "@/hooks/useApiSongs";
 
 
@@ -63,32 +60,24 @@ export const Dashboard = () => {
         fetchProjects();
     }, []);
 
-    const recentComments = [
-        {
-            name: "Tracy McGrady",
-            time: "il y a 2 heures",
-            song: "F.I.C.O",
-            text: "Le 1er couplet a une super vibe. Peut être faut-il renforcer la chute sur la dernière ligne ?",
-            unread: true,
-            image: mcgrady,
-        },
-        {
-            name: "Tim Duncan",
-            time: "il y a 2 heures",
-            song: "Ensalada",
-            text: "Les adlibs en fin de refrain fonctionnent bien, à garder !",
-            unread: false,
-            image: duncan,
-        },
-        {
-            name: "Ray Allen",
-            time: "il y a 2 heures",
-            song: "Let God Sort Em Out/Chandeliers",
-            text: "J'aime l'énergie ici. Le bridge manque encore d'impact, on creuse ça ensemble ce soir.",
-            unread: false,
-            image: allen,
-        },
-    ];
+    const [recentComments, setRecentComments] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchComments = async () => {
+            try {
+                const user = await getCurrentUser();
+                const res = await fetch("/api/comments/recent", {
+                    headers: { "x-cognito-id": user.userId },
+                });
+                if (!res.ok) throw new Error("Erreur API");
+                const data = await res.json();
+                setRecentComments(data);
+            } catch (err) {
+                console.error("Erreur chargement comments:", err);
+            }
+        };
+        fetchComments();
+    }, []);
 
     const { songs: allSongs } = useApiSongs();
     const ficoSong = allSongs[0];
@@ -229,26 +218,38 @@ export const Dashboard = () => {
                         <Link href="#" className="text-xs text-neutral-300 hover:text-white transition-colors">Voir tout</Link>
                     </div>
                     <div className="flex flex-col gap-4 overflow-y-auto flex-1 min-h-0 pr-2 custom-scrollbar">
-                        {recentComments.map((comment, index) => (
+                        {recentComments.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center flex-1 text-neutral-600 text-sm gap-2">
+                                <Music size={24} className="text-neutral-700" />
+                                <p>Aucun commentaire pour l&apos;instant</p>
+                            </div>
+                        ) : recentComments.map((comment, index) => (
                             <div key={index} className="bg-black/30 border border-neutral-800/60 rounded-xl p-4">
                                 <div className="flex items-start justify-between mb-2">
                                     <div className="flex items-center gap-3">
-                                        <Image src={comment.image} alt={comment.name} width={32} height={32} className="rounded-full object-cover w-8 h-8" />
+                                        <div className="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center text-xs font-bold text-white">
+                                            {comment.author?.name?.[0] ?? "?"}
+                                        </div>
                                         <div>
-                                            <p className="text-sm font-bold">{comment.name}</p>
-                                            <p className="text-[11px] text-neutral-500">{comment.time}</p>
+                                            <p className="text-sm font-bold">{comment.author?.name ?? "Inconnu"}</p>
+                                            <p className="text-[11px] text-neutral-500">
+                                                {new Date(comment.createdAt).toLocaleDateString("fr-FR")}
+                                            </p>
                                         </div>
                                     </div>
-                                    <div className={`w-3 h-3 rounded-full mt-1 ${comment.unread ? "bg-[#D90097]" : "bg-neutral-700"}`}></div>
+                                    <div className={`w-3 h-3 rounded-full mt-1 ${!comment.isRead ? "bg-[#D90097]" : "bg-neutral-700"}`}></div>
                                 </div>
                                 <div className="mt-3 flex items-center gap-1.5 text-xs text-neutral-400">
                                     <Music size={12} className="text-[#D90097] flex-shrink-0" />
                                     <span className="text-[11px] text-neutral-500">Sur</span>
-                                    <Link href="/lyric-editor" className="font-semibold text-neutral-200 text-[11px] truncate hover:text-[#D90097] hover:underline transition-colors duration-200 cursor-pointer">
-                                        {comment.song}
+                                    <Link
+                                        href={`/projects/${comment.lyrics?.projectId}`}
+                                        className="font-semibold text-neutral-200 text-[11px] truncate hover:text-[#D90097] hover:underline transition-colors duration-200 cursor-pointer"
+                                    >
+                                        {comment.lyrics?.title ?? "Inconnu"}
                                     </Link>
                                 </div>
-                                <p className="text-sm text-neutral-300 leading-relaxed mt-2 pr-8">{comment.text}</p>
+                                <p className="text-sm text-neutral-300 leading-relaxed mt-2 pr-8">{comment.content}</p>
                             </div>
                         ))}
                     </div>
