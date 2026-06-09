@@ -15,13 +15,13 @@ import {
     MoreVertical,
     Music,
 } from "lucide-react";
-import alfredo from "@/assets/cover/alfredo.png";
 import allen from "@/assets/user/allen.png";
 import duncan from "@/assets/user/duncan.png";
 import haslem from "@/assets/user/haslem.png";
 import lgseo from "@/assets/cover/lgseo.png";
 import mcgrady from "@/assets/user/mcgrady.png";
-import vince from "@/assets/cover/vince.png";
+import { useApiSongs } from "@/hooks/useApiSongs";
+
 
 const isValidImageSrc = (img: any): boolean => {
     if (!img) return false;
@@ -90,8 +90,8 @@ export const Dashboard = () => {
         },
     ];
 
-    const allSongs = useSongs();
-    const ficoSong = allSongs.find((s) => s.id === "FICO") || allSongs[0];
+    const { songs: allSongs } = useApiSongs();
+    const ficoSong = allSongs[0];
     const recentSongs = [...allSongs]
         .filter((s) => !s.isDeleted)
         .sort((a, b) => b.lastModifiedDate.getTime() - a.lastModifiedDate.getTime())
@@ -328,8 +328,8 @@ export const Dashboard = () => {
                                         </div>
                                         <div className="flex items-center gap-4">
                                             <span className={`text-[11px] px-3 py-1.5 rounded-md ${project.status === "IN_PROGRESS"
-                                                    ? "bg-[#D90097]/10 text-[#D90097] border border-[#D90097]/30 font-bold"
-                                                    : "bg-neutral-800 text-neutral-300"
+                                                ? "bg-[#D90097]/10 text-[#D90097] border border-[#D90097]/30 font-bold"
+                                                : "bg-neutral-800 text-neutral-300"
                                                 }`}>
                                                 {project.status}
                                             </span>
