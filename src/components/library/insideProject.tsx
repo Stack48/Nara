@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ChevronUp, ChevronDown, FolderOpen, Edit3 } from "lucide-react";
-import { useSongs, Song, renameSong, getSongOrder, saveSongOrder } from "@/lib/songStore";
 import { getProjectTitle, useProjects } from "@/lib/projectStore";
 import { MenuContext } from "@/context/MenuContext";
 import { useLibrarySortAndFilter } from "@/hooks/useLibrarySortAndFilter";
@@ -12,6 +11,8 @@ import { LibraryHeader } from "./LibraryHeader";
 import { SongCard } from "./songCard";
 import { useSelection } from "@/context/SelectionContext";
 import { useApiProjects } from "@/hooks/useApiProjects";
+import { Song, renameSong, getSongOrder, saveSongOrder } from "@/lib/songStore";
+import { useApiProjectSongs } from "@/hooks/useApiProjectSongs";
 
 export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
     const params = useParams();
@@ -30,7 +31,7 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
 
     const { selectedIds, handleSelect } = useSelection();
 
-    const songs = useSongs();
+    const { songs } = useApiProjectSongs(projectId);
 
     // Custom song ordering state
     const [songsListWithPositions, setSongsListWithPositions] = useState<Song[]>([]);
