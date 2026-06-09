@@ -7,6 +7,7 @@ import { MenuContext } from "@/context/MenuContext";
 import { LibraryHeader } from "./LibraryHeader";
 import { useSelection } from "@/context/SelectionContext";
 import { ChevronUp, ChevronDown } from "lucide-react";
+import { useApiProjects } from "@/hooks/useApiProjects";
 import {
     SortByOption,
     SortOrderOption,
@@ -50,7 +51,7 @@ export const SharedFiles = () => {
         (song) => song.isShared && !song.isDeleted,
     );
 
-    const allProjects = useProjects();
+    const { projects: allProjects } = useApiProjects();
     const sharedProjectsList = allProjects.filter(
         (proj) => proj.isShared && !proj.isDeleted,
     );
@@ -240,7 +241,7 @@ export const SharedFiles = () => {
                                                             isLast={
                                                                 index ===
                                                                 filteredSharedProjects.length -
-                                                                    1
+                                                                1
                                                             }
                                                             isSelected={selectedIds.includes(proj.id)}
                                                             onSelect={(e) => handleSelect(proj.id, "project", proj, e, combinedViewItems)}
@@ -302,7 +303,7 @@ export const SharedFiles = () => {
                                                             isLast={
                                                                 index ===
                                                                 filteredShared.length -
-                                                                    1
+                                                                1
                                                             }
                                                             isSelected={selectedIds.includes(file.id)}
                                                             onSelect={(e) => handleSelect(file.id, "song", file, e, combinedViewItems)}

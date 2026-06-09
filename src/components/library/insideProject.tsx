@@ -11,6 +11,7 @@ import { useLibrarySortAndFilter } from "@/hooks/useLibrarySortAndFilter";
 import { LibraryHeader } from "./LibraryHeader";
 import { SongCard } from "./songCard";
 import { useSelection } from "@/context/SelectionContext";
+import { useApiProjects } from "@/hooks/useApiProjects";
 
 export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
     const params = useParams();
@@ -105,7 +106,7 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
         if (draggedIndex === null) return;
 
         const rect = e.currentTarget.getBoundingClientRect();
-        
+
         let type: "insert-before" | "insert-after" | "swap" = "swap";
 
         if (viewMode === "grid") {
@@ -172,12 +173,12 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
             }
 
             const [removed] = newDisplayedIds.splice(draggedIndex, 1);
-            
+
             // Adjust destIndex if we removed an item before it
             if (draggedIndex < destIndex) {
                 destIndex -= 1;
             }
-            
+
             newDisplayedIds.splice(destIndex, 0, removed);
         } else {
             // Dragged and dropped on itself without change
@@ -219,7 +220,7 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
     const breadcrumbLabel = isShared ? "Shared with me" : "My Projects";
     const breadcrumbLink = isShared ? "/shared" : "/projects";
 
-    const projects = useProjects();
+    const { projects } = useApiProjects();
     const currentProject = projects.find((p) => p.id === projectId);
 
     return (

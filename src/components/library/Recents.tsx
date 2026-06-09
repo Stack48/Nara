@@ -11,6 +11,7 @@ import { SongCard } from "./songCard";
 import { MenuContext } from "@/context/MenuContext";
 import { RenameModal } from "../modals/RenameModal";
 import { useSelection } from "@/context/SelectionContext";
+import { useApiProjects } from "@/hooks/useApiProjects";
 
 import {
     useLibrarySortAndFilter,
@@ -48,7 +49,7 @@ export const Recents = () => {
     const allSongs = useSongs();
     const activeSongs = allSongs.filter((song) => !song.isDeleted);
 
-    const allProjects = useProjects();
+    const { projects: allProjects } = useApiProjects();
     const activeProjects = allProjects.filter((project) => !project.isDeleted);
 
     const handleHeaderSort = (field: typeof sortBy) => {
@@ -235,7 +236,7 @@ export const Recents = () => {
                                                         isLast={
                                                             index ===
                                                             filteredProjects.length -
-                                                                1
+                                                            1
                                                         }
                                                         isSelected={selectedIds.includes(project.id)}
                                                         onSelect={(e) => handleSelect(project.id, "project", project, e, combinedViewItems)}
@@ -293,7 +294,7 @@ export const Recents = () => {
                                                         isLast={
                                                             index ===
                                                             filteredSongs.length -
-                                                                1
+                                                            1
                                                         }
                                                         isSelected={selectedIds.includes(song.id)}
                                                         onSelect={(e) => handleSelect(song.id, "song", song, e, combinedViewItems)}
