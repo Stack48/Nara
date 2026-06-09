@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { X, Upload, Plus, Users, Edit3 } from "lucide-react";
+import { X, Upload, Plus, Users, Edit3, FolderOpen } from "lucide-react";
 import Image from "next/image";
 import { useSongs, updateSongDetails } from "@/lib/songStore";
 import { useProjects, updateProjectDetails, createProject } from "@/lib/projectStore";
@@ -284,6 +284,15 @@ export const EditDetailsModal = ({
                                         className="object-cover"
                                         unoptimized={typeof image === "string" && image.startsWith("data:")}
                                     />
+                                ) : type === "project" ? (
+                                    <div className="absolute inset-0 bg-gradient-to-br from-neutral-900 via-[#181818] to-neutral-950 flex items-center justify-center">
+                                        <div className="relative flex items-center justify-center w-16 h-16 rounded-full bg-neutral-800/10 border border-neutral-800/30 group-hover:border-[#D90097]/20 group-hover:bg-[#D90097]/5 transition-all duration-500">
+                                            <FolderOpen
+                                                size={28}
+                                                className="text-neutral-500 group-hover:text-[#D90097] transition-all duration-500"
+                                            />
+                                        </div>
+                                    </div>
                                 ) : (
                                     <div className="text-neutral-600 text-xs">No Cover</div>
                                 )}

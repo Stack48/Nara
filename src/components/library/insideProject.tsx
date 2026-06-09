@@ -96,7 +96,7 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
     });
 
     // Drag and Drop Event Handlers
-    const handleDragStart = (index: number) => {
+    const handleDragStart = (e: React.DragEvent, index: number) => {
         setDraggedIndex(index);
     };
 
@@ -355,7 +355,7 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
                             isSelected={selectedIds.includes(song.id)}
                             onSelect={(e) => handleSelect(song.id, "song", song, e, sortedProjectList)}
                             onContextMenu={(e) => handleContextMenu(e, song)}
-                            onDragStart={() => handleDragStart(index)}
+                            onDragStart={(e) => handleDragStart(e, index)}
                             onDragOver={(e) => handleDragOver(e, index)}
                             onDragEnd={handleDragEnd}
                             onDragEnter={() => handleDragEnter(index)}
@@ -427,7 +427,7 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
                                 onContextMenu={(e) =>
                                     handleContextMenu(e, song)
                                 }
-                                onDragStart={() => handleDragStart(index)}
+                                onDragStart={(e) => handleDragStart(e, index)}
                                 onDragOver={(e) => handleDragOver(e, index)}
                                 onDragEnd={handleDragEnd}
                                 onDragEnter={() => handleDragEnter(index)}

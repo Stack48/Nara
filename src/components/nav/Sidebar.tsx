@@ -39,16 +39,18 @@ export const Sidebar = ({
 
     const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const projectsDragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const hoverProjectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const hoverProjectIdRef = useRef<string | null>(null);
 
     useEffect(() => {
         return () => {
             if (dragTimeoutRef.current) clearTimeout(dragTimeoutRef.current);
             if (projectsDragTimeoutRef.current) clearTimeout(projectsDragTimeoutRef.current);
+            if (hoverProjectTimeoutRef.current) clearTimeout(hoverProjectTimeoutRef.current);
         };
     }, []);
 
     const handleDragOverSidebar = (e: React.DragEvent) => {
-        e.preventDefault();
         if (collapsed && setCollapsed) {
             if (!dragTimeoutRef.current) {
                 dragTimeoutRef.current = setTimeout(() => {
@@ -67,7 +69,6 @@ export const Sidebar = ({
     };
 
     const handleDragOverProjects = (e: React.DragEvent) => {
-        e.preventDefault();
         if (!projectsOpen) {
             if (!projectsDragTimeoutRef.current) {
                 projectsDragTimeoutRef.current = setTimeout(() => {
@@ -84,9 +85,28 @@ export const Sidebar = ({
             projectsDragTimeoutRef.current = null;
         }
     };
+    const [isDraggingSong, setIsDraggingSong] = useState(false);
+
+    useEffect(() => {
+        const handleDragStart = () => setIsDraggingSong(true);
+        const handleDragEnd = () => setIsDraggingSong(false);
+
+        window.addEventListener("nara-song-drag-start", handleDragStart);
+        window.addEventListener("nara-song-drag-end", handleDragEnd);
+        window.addEventListener("dragend", handleDragEnd);
+        window.addEventListener("drop", handleDragEnd);
+
+        return () => {
+            window.removeEventListener("nara-song-drag-start", handleDragStart);
+            window.removeEventListener("nara-song-drag-end", handleDragEnd);
+            window.removeEventListener("dragend", handleDragEnd);
+            window.removeEventListener("drop", handleDragEnd);
+        };
+    }, []);
+
     const allProjects = useProjects();
     const projects = allProjects
-        .filter((p) => !p.isDeleted)
+        .filter((p) => !p.isDeleted && !p.isShared)
         .sort((a, b) => a.title.localeCompare(b.title));
 
     const [dragOverProjectId, setDragOverProjectId] = useState<string | null>(
@@ -162,10 +182,11 @@ export const Sidebar = ({
     }`;
 
     // Helper pour le style des lignes actives/inactives
-    const linkClass = (isActive: boolean) => `
-        flex items-center h-9 rounded-lg transition-colors relative group text-sm select-none
+    const linkClass = (isActive: boolean, skipDimming?: boolean) => `
+        flex items-center h-9 rounded-lg transition-all relative group text-sm select-none
         ${isActive ? "text-[#D90097] bg-[#D90097]/[6%]" : "text-neutral-400 hover:text-white hover:bg-neutral-900/30"}
         ${collapsed ? "justify-center px-0 w-10 mx-auto" : "px-3 gap-3 w-full"}
+        ${isDraggingSong && !skipDimming ? "opacity-35 cursor-no-drop" : ""}
     `;
 
     return (
@@ -250,6 +271,7 @@ export const Sidebar = ({
                             onDragLeave={handleDragLeaveProjects}
                             className={linkClass(
                                 pathname.startsWith("/projects"),
+                                true,
                             )}
                         >
                             <FolderOpen size={16} className="flex-shrink-0" />
@@ -324,13 +346,44 @@ export const Sidebar = ({
                                                     setDragOverProjectId(
                                                         project.id,
                                                     );
+                                                    // Auto-expand project folder on hover delay
+                                                    if (!isProjectOpen) {
+                                                        if (hoverProjectIdRef.current !== project.id) {
+                                                            if (hoverProjectTimeoutRef.current) {
+                                                                clearTimeout(hoverProjectTimeoutRef.current);
+                                                            }
+                                                            hoverProjectIdRef.current = project.id;
+                                                            hoverProjectTimeoutRef.current = setTimeout(() => {
+                                                                setOpenProjectIds((prev) => ({
+                                                                    ...prev,
+                                                                    [project.id]: true,
+                                                                }));
+                                                                hoverProjectTimeoutRef.current = null;
+                                                                hoverProjectIdRef.current = null;
+                                                            }, 800); // 800ms hover delay
+                                                        }
+                                                    }
                                                 }}
                                                 onDragLeave={() => {
                                                     setDragOverProjectId(null);
+                                                    if (hoverProjectIdRef.current === project.id) {
+                                                        if (hoverProjectTimeoutRef.current) {
+                                                            clearTimeout(hoverProjectTimeoutRef.current);
+                                                        }
+                                                        hoverProjectTimeoutRef.current = null;
+                                                        hoverProjectIdRef.current = null;
+                                                    }
                                                 }}
                                                 onDrop={(e) => {
                                                     e.preventDefault();
                                                     setDragOverProjectId(null);
+                                                    if (hoverProjectIdRef.current === project.id) {
+                                                        if (hoverProjectTimeoutRef.current) {
+                                                            clearTimeout(hoverProjectTimeoutRef.current);
+                                                        }
+                                                        hoverProjectTimeoutRef.current = null;
+                                                        hoverProjectIdRef.current = null;
+                                                    }
                                                     try {
                                                         const dragData =
                                                             JSON.parse(
@@ -372,21 +425,21 @@ export const Sidebar = ({
                                                     )}
                                                 </div>
                                                 {projectTracks.length > 0 && (
-                                                    <div
-                                                        className="p-1 hover:bg-neutral-800/50 rounded transition-colors"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            toggleProject(
-                                                                project.id,
-                                                            );
-                                                        }}
-                                                    >
-                                                        <ChevronDown
-                                                            size={12}
-                                                            className={`transition-transform duration-200 text-neutral-600 shrink-0 ${isProjectOpen ? "rotate-180" : ""}`}
-                                                        />
-                                                    </div>
-                                                )}
+                                                     <div
+                                                         className="p-1 hover:bg-neutral-800/50 rounded transition-colors"
+                                                         onClick={(e) => {
+                                                             e.stopPropagation();
+                                                             toggleProject(
+                                                                 project.id,
+                                                             );
+                                                         }}
+                                                     >
+                                                         <ChevronDown
+                                                             size={12}
+                                                             className={`transition-transform duration-200 text-neutral-600 shrink-0 ${isProjectOpen ? "rotate-180" : ""}`}
+                                                         />
+                                                     </div>
+                                                 )}
                                             </button>
 
                                             {/* Niveau 2 : Sons à l'intérieur du projet */}

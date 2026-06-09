@@ -169,6 +169,7 @@ export const ProjectCard = ({
                         fill
                         className="object-cover transition-transform duration-700 group-hover:scale-105"
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        draggable={false}
                     />
                 ) : (
                     <div className="absolute inset-0 bg-gradient-to-br from-neutral-900 via-[#181818] to-neutral-950 flex items-center justify-center transition-all duration-700 group-hover:scale-105">
@@ -269,6 +270,7 @@ export const ProjectCard = ({
                     onDoubleClick={handleDoubleClick}
                     onContextMenu={onContextMenu}
                     className={`${gridClassName} cursor-pointer project-card`}
+                    draggable={false}
                 >
                     {cardContent}
                 </Link>
@@ -280,6 +282,7 @@ export const ProjectCard = ({
                 onContextMenu={onContextMenu}
                 onClick={handleClick}
                 className={`${gridClassName} cursor-default project-card`}
+                draggable={false}
             >
                 {cardContent}
             </div>
@@ -317,6 +320,7 @@ export const ProjectCard = ({
                                 fill
                                 className="object-cover transition-transform group-hover:scale-105"
                                 sizes="56px"
+                                draggable={false}
                             />
                         ) : (
                             <FolderOpen
@@ -532,6 +536,7 @@ export const ProjectCard = ({
                                                 fill
                                                 className="object-cover"
                                                 sizes="24px"
+                                                draggable={false}
                                             />
                                         </div>
                                     ),
@@ -563,6 +568,7 @@ export const ProjectCard = ({
                     onClick={(e) => e.preventDefault()}
                     onContextMenu={onContextMenu}
                     className="cursor-pointer"
+                    draggable={false}
                 >
                     {listContent}
                 </Link>
@@ -570,6 +576,7 @@ export const ProjectCard = ({
                 <div
                     onContextMenu={onContextMenu}
                     className="cursor-context-menu"
+                    draggable={false}
                 >
                     {listContent}
                 </div>

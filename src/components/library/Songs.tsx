@@ -45,6 +45,7 @@ export const Songs = () => {
     const preFilteredSongs = allSongs.filter((song) => {
         if (song.isDeleted) return false;
         if (song.id === "Ensalada") return false;
+        if (song.isShared || song.owner) return false;
         if (filterOrigin === "all") return true;
         return song.origin === filterOrigin;
     });

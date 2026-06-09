@@ -136,10 +136,17 @@ export const SongCard = ({
     const isDeletedView = context === "deleted";
     const isSharedView = context === "shared";
     const isInsideProjectView = context === "insideProject";
+    const isDraggable = 
+        (context === "library" || context === "insideProject" || context === "recent") && 
+        !song.owner && 
+        !song.isShared;
 
     const handleDragStart = (e: React.DragEvent) => {
-        // Disable drag for deleted view
-        if (isDeletedView) return;
+        if (!isDraggable) {
+            e.preventDefault();
+            return;
+        }
+        window.dispatchEvent(new CustomEvent("nara-song-drag-start"));
 
         e.dataTransfer.setData(
             "text/plain",
@@ -263,14 +270,22 @@ export const SongCard = ({
                           ? "bg-[#D90097]/10 border-[#D90097] shadow-[0_0_15px_rgba(217,0,151,0.2)] scale-[1.02]"
                           : "bg-[#151515] border-neutral-800/80 hover:border-neutral-600 hover:bg-[#1a1a1a]"
                 } ${
-                    isDeletedView
-                        ? "cursor-context-menu"
-                        : "cursor-grab active:cursor-grabbing song-card"
-                } animate-in fade-in relative`}
-                draggable={!isDeletedView}
-                onDragStart={onDragStart || handleDragStart}
+                    isDraggable
+                        ? "cursor-grab active:cursor-grabbing"
+                        : isDeletedView
+                          ? "cursor-context-menu"
+                          : "cursor-pointer"
+                } song-card animate-in fade-in relative`}
+                draggable={isDraggable}
+                onDragStart={(e) => {
+                    handleDragStart(e);
+                    if (onDragStart) onDragStart(e);
+                }}
                 onDragOver={onDragOver}
-                onDragEnd={onDragEnd}
+                onDragEnd={(e) => {
+                    window.dispatchEvent(new CustomEvent("nara-song-drag-end"));
+                    if (onDragEnd) onDragEnd(e);
+                }}
                 onDragEnter={onDragEnter}
                 onDragLeave={onDragLeave}
                 onDrop={onDrop}
@@ -858,13 +873,25 @@ export const SongCard = ({
 
     return (
         <div
-            className={`flex flex-col song-card relative ${isDeletedView ? "" : "cursor-grab active:cursor-grabbing"}`}
+            className={`flex flex-col song-card relative ${
+                isDraggable
+                    ? "cursor-grab active:cursor-grabbing"
+                    : isDeletedView
+                      ? "cursor-context-menu"
+                      : "cursor-pointer"
+            }`}
             onClick={handleClick}
             onDoubleClick={handleDoubleClick}
-            draggable={!isDeletedView}
-            onDragStart={onDragStart || handleDragStart}
+            draggable={isDraggable}
+            onDragStart={(e) => {
+                handleDragStart(e);
+                if (onDragStart) onDragStart(e);
+            }}
             onDragOver={onDragOver}
-            onDragEnd={onDragEnd}
+            onDragEnd={(e) => {
+                window.dispatchEvent(new CustomEvent("nara-song-drag-end"));
+                if (onDragEnd) onDragEnd(e);
+            }}
             onDragEnter={onDragEnter}
             onDragLeave={onDragLeave}
             onDrop={onDrop}
