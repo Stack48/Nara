@@ -155,15 +155,16 @@ export const MenuContext = ({
                 ? `/api/songs/${id}/favorite`
                 : `/api/projects/${id}/favorite`;
 
-            await fetch(endpoint, {
+            console.log("🔥 calling:", endpoint, "cognitoId:", user.userId, "id:", id);
+
+            const res = await fetch(endpoint, {
                 method: "PATCH",
                 headers: { "x-cognito-id": user.userId },
             });
 
-            const action = isFavorite ? "Removed from Favorites" : "Added to Favorites";
-            window.dispatchEvent(new CustomEvent("show-nara-toast", {
-                detail: { message: `${action}!` },
-            }));
+            const data = await res.json();
+            console.log("🔥 response:", res.status, data);
+
             window.dispatchEvent(new CustomEvent("nara-data-updated"));
         } catch (err) {
             console.error("Favorite error:", err);

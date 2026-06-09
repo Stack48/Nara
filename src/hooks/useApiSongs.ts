@@ -15,6 +15,8 @@ type ApiLyrics = {
     authorId: string;
     createdAt: string;
     updatedAt: string;
+    isFavorite: boolean;
+    isDeleted: boolean;
     project: { id: string; name: string; status: string };
     author: { id: string; name: string | null };
 };
@@ -32,8 +34,8 @@ const mapApiLyricsToSong = (l: ApiLyrics): Song => {
         createdDate: new Date(l.createdAt),
         time: new Date(l.updatedAt).toLocaleDateString("fr-FR"),
         collabs: 0,
-        isFavorite: false,
-        isDeleted: false,
+        isFavorite: l.isFavorite ?? false,
+        isDeleted: l.isDeleted ?? false,
         isShared: false,
         owner: "",
         origin: "project",
@@ -72,10 +74,13 @@ export const useApiSongs = (): {
             }
         };
         fetchSongs();
+    }, [trigger]);
+
+    useEffect(() => {
         const handleUpdate = () => setTrigger((t) => t + 1);
         window.addEventListener("nara-data-updated", handleUpdate);
         return () => window.removeEventListener("nara-data-updated", handleUpdate);
-    }, [trigger]);
+    }, []);
 
     return { songs, loading, error, refetch: () => setTrigger((t) => t + 1) };
 };

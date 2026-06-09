@@ -11,6 +11,8 @@ type ApiProject = {
     description?: string;
     genre?: string;
     status: string;
+    isFavorite: boolean;
+    isDeleted: boolean;
     ownerId: string;
     createdAt: string;
     updatedAt: string;
@@ -33,8 +35,8 @@ const mapApiProjectToProject = (p: ApiProject): Project => {
         createdDate: new Date(p.createdAt),
         imageKey: "",
         image: null,
-        isFavorite: false,
-        isDeleted: p.status === "ARCHIVED",
+        isFavorite: p.isFavorite ?? false,
+        isDeleted: p.isDeleted ?? false,
         isShared: false,
         owner: p.owner?.name ?? "",
         description: p.description ?? "",
@@ -76,10 +78,13 @@ export const useApiProjects = (): {
             }
         };
         fetchProjects();
+    }, [trigger]);
+
+    useEffect(() => {
         const handleUpdate = () => setTrigger((t) => t + 1);
         window.addEventListener("nara-data-updated", handleUpdate);
         return () => window.removeEventListener("nara-data-updated", handleUpdate);
-    }, [trigger]);
+    }, []);
 
     return { projects, loading, error, refetch: () => setTrigger((t) => t + 1) };
 };

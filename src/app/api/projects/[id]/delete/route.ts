@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCognitoId, unauthorized, requireRole, forbidden } from "@/lib/rbac";
+import { getCognitoId, unauthorized, forbidden } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 
 export async function PATCH(
@@ -11,11 +11,14 @@ export async function PATCH(
         const cognitoId = getCognitoId(request);
         if (!cognitoId) return unauthorized();
 
-        const { authorized } = await requireRole(cognitoId, id, "ADMIN");
-        if (!authorized) return forbidden("Seul un Admin peut supprimer un projet");
+        const user = await prisma.user.findUnique({ where: { cognitoId } });
+        if (!user) return NextResponse.json({ error: "Utilisateur introuvable" }, { status: 404 });
 
         const project = await prisma.project.findUnique({ where: { id } });
         if (!project) return NextResponse.json({ error: "Projet introuvable" }, { status: 404 });
+
+        // Seul le owner peut supprimer
+        if (project.ownerId !== user.id) return forbidden("Seul le propriétaire peut supprimer ce projet");
 
         const updated = await prisma.project.update({
             where: { id },
