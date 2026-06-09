@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
@@ -24,16 +24,66 @@ import avisProfil from "@/assets/user/haslem.png";
 interface SidebarProps {
     collapsed: boolean;
     toggleSidebar: () => void;
+    setCollapsed?: (val: boolean) => void;
 }
 
 export const Sidebar = ({
     collapsed,
     toggleSidebar,
+    setCollapsed,
 }: SidebarProps) => {
     const pathname = usePathname();
     const router = useRouter();
 
     const songs = useSongs();
+
+    const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const projectsDragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (dragTimeoutRef.current) clearTimeout(dragTimeoutRef.current);
+            if (projectsDragTimeoutRef.current) clearTimeout(projectsDragTimeoutRef.current);
+        };
+    }, []);
+
+    const handleDragOverSidebar = (e: React.DragEvent) => {
+        e.preventDefault();
+        if (collapsed && setCollapsed) {
+            if (!dragTimeoutRef.current) {
+                dragTimeoutRef.current = setTimeout(() => {
+                    setCollapsed(false);
+                    dragTimeoutRef.current = null;
+                }, 400);
+            }
+        }
+    };
+
+    const handleDragLeaveSidebar = () => {
+        if (dragTimeoutRef.current) {
+            clearTimeout(dragTimeoutRef.current);
+            dragTimeoutRef.current = null;
+        }
+    };
+
+    const handleDragOverProjects = (e: React.DragEvent) => {
+        e.preventDefault();
+        if (!projectsOpen) {
+            if (!projectsDragTimeoutRef.current) {
+                projectsDragTimeoutRef.current = setTimeout(() => {
+                    setProjectsOpen(true);
+                    projectsDragTimeoutRef.current = null;
+                }, 300);
+            }
+        }
+    };
+
+    const handleDragLeaveProjects = () => {
+        if (projectsDragTimeoutRef.current) {
+            clearTimeout(projectsDragTimeoutRef.current);
+            projectsDragTimeoutRef.current = null;
+        }
+    };
     const allProjects = useProjects();
     const projects = allProjects
         .filter((p) => !p.isDeleted)
@@ -120,6 +170,9 @@ export const Sidebar = ({
 
     return (
         <aside
+            onDragOver={handleDragOverSidebar}
+            onDragLeave={handleDragLeaveSidebar}
+            onDrop={handleDragLeaveSidebar}
             className={`relative flex flex-col h-screen bg-black border-r border-neutral-800/60 transition-all duration-300 z-50 flex-shrink-0 ${
                 collapsed ? "w-16" : "w-60"
             }`}
@@ -193,6 +246,8 @@ export const Sidebar = ({
                     <div className="flex flex-col shrink-0">
                         <button
                             onClick={() => router.push("/projects")}
+                            onDragOver={handleDragOverProjects}
+                            onDragLeave={handleDragLeaveProjects}
                             className={linkClass(
                                 pathname.startsWith("/projects"),
                             )}

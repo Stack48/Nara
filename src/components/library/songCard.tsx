@@ -150,6 +150,68 @@ export const SongCard = ({
                 projectName: song.projectName || "",
             }),
         );
+
+        // Custom drag preview element (vignette + title) positioned to the right of the cursor
+        const dragPreview = document.createElement("div");
+        dragPreview.style.position = "absolute";
+        dragPreview.style.top = "-1000px";
+        dragPreview.style.left = "-1000px";
+        dragPreview.style.display = "flex";
+        dragPreview.style.alignItems = "center";
+        dragPreview.style.gap = "10px";
+        dragPreview.style.padding = "6px 12px 6px 36px"; // 36px left padding to offset the cursor
+        dragPreview.style.background = "#151515";
+        dragPreview.style.border = "1px solid #262626";
+        dragPreview.style.borderRadius = "12px";
+        dragPreview.style.boxShadow = "0 8px 25px rgba(0,0,0,0.6)";
+        dragPreview.style.color = "white";
+        dragPreview.style.fontFamily = "Syne, sans-serif";
+        dragPreview.style.fontWeight = "bold";
+        dragPreview.style.fontSize = "13px";
+        dragPreview.style.pointerEvents = "none";
+        dragPreview.style.zIndex = "9999";
+
+        // Create cover thumbnail (vignette) using cloned DOM image if loaded, or fallback
+        const existingImg = e.currentTarget.querySelector("img");
+        let imgEl: HTMLElement;
+        if (existingImg && existingImg.src) {
+            const clonedImg = existingImg.cloneNode(true) as HTMLImageElement;
+            clonedImg.style.width = "32px";
+            clonedImg.style.height = "32px";
+            clonedImg.style.objectFit = "cover";
+            clonedImg.style.borderRadius = "6px";
+            clonedImg.style.position = "static";
+            clonedImg.removeAttribute("class");
+            imgEl = clonedImg;
+        } else {
+            const fallbackDiv = document.createElement("div");
+            fallbackDiv.style.background = "linear-gradient(135deg, #AB0063, #D50093)";
+            fallbackDiv.style.width = "32px";
+            fallbackDiv.style.height = "32px";
+            fallbackDiv.style.borderRadius = "6px";
+            imgEl = fallbackDiv;
+        }
+        dragPreview.appendChild(imgEl);
+
+        // Create title
+        const titleSpan = document.createElement("span");
+        titleSpan.innerText = song.title;
+        titleSpan.style.whiteSpace = "nowrap";
+        titleSpan.style.overflow = "hidden";
+        titleSpan.style.textOverflow = "ellipsis";
+        titleSpan.style.maxWidth = "160px";
+        dragPreview.appendChild(titleSpan);
+
+        document.body.appendChild(dragPreview);
+
+        // Offset: 10px from the left, 18px from the top of the padding-covered zone
+        e.dataTransfer.setDragImage(dragPreview, 10, 18);
+
+        setTimeout(() => {
+            if (dragPreview.parentNode) {
+                dragPreview.parentNode.removeChild(dragPreview);
+            }
+        }, 0);
     };
 
     const handleClick = (e: React.MouseEvent) => {

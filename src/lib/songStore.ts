@@ -613,6 +613,13 @@ export const setSongProject = (
         title: songId,
     };
 
+    if (existing.projectId === projectId) {
+        return;
+    }
+
+    const previousProjectId = existing.projectId || "";
+    const previousProjectName = existing.projectName || "";
+
     currentMappings[songId] = {
         ...existing,
         projectId,
@@ -622,6 +629,20 @@ export const setSongProject = (
 
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentMappings));
     window.dispatchEvent(new CustomEvent(EVENT_NAME));
+
+    // Dispatch event for undo/revert tracking
+    window.dispatchEvent(
+        new CustomEvent("nara-song-moved", {
+            detail: {
+                songId,
+                songTitle: existing.title || songId,
+                previousProjectId,
+                previousProjectName,
+                targetProjectId: projectId,
+                targetProjectTitle: projectName,
+            },
+        }),
+    );
 };
 
 // Toggle Favorite helper
