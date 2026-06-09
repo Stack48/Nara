@@ -1,60 +1,42 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { requireRole, forbidden, unauthorized } from '@/lib/rbac';
-import { z } from 'zod';
-
-const updateRoleSchema = z.object({
-  role: z.enum(['ADMIN', 'LEAD_PAROLIER', 'PAROLIER', 'LECTURE_SEULE']),
-});
+import { NextRequest, NextResponse } from "next/server";
+import { updateMemberRole, removeMember } from "@/server/members/controller";
+import { unauthorized } from "@/lib/rbac";
 
 function getCognitoId(request: NextRequest): string | null {
-  return request.headers.get('x-cognito-id');
+  return request.headers.get("x-cognito-id");
 }
 
-// PATCH /api/projects/:id/members/:memberId — change le rôle
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string; memberId: string } },
+  { params }: { params: Promise<{ id: string; memberId: string }> }
 ) {
-  const cognitoId = getCognitoId(request);
-  if (!cognitoId) return unauthorized();
+  try {
+    const { id, memberId } = await params;
+    const cognitoId = getCognitoId(request);
+    if (!cognitoId) return unauthorized();
 
-  // Seul un ADMIN peut changer les rôles
-  const { authorized } = await requireRole(cognitoId, params.id, 'ADMIN');
-  if (!authorized) return forbidden('Seul un Admin peut modifier les rôles');
-
-  const body = await request.json();
-  const parsed = updateRoleSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.flatten() },
-      { status: 400 },
-    );
+    const body = await request.json();
+    const result = await updateMemberRole(cognitoId, id, memberId, body);
+    return NextResponse.json(result.data ?? result.error, { status: result.status });
+  } catch (error) {
+    console.error("PATCH member error:", error);
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-
-  const updated = await prisma.projectMember.update({
-    where: { id: params.memberId },
-    data: { role: parsed.data.role },
-  });
-
-  return NextResponse.json(updated);
 }
 
-// DELETE /api/projects/:id/members/:memberId — révoque un membre
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; memberId: string } },
+  { params }: { params: Promise<{ id: string; memberId: string }> }
 ) {
-  const cognitoId = getCognitoId(request);
-  if (!cognitoId) return unauthorized();
+  try {
+    const { id, memberId } = await params;
+    const cognitoId = getCognitoId(request);
+    if (!cognitoId) return unauthorized();
 
-  // Seul un ADMIN peut révoquer
-  const { authorized } = await requireRole(cognitoId, params.id, 'ADMIN');
-  if (!authorized) return forbidden('Seul un Admin peut révoquer un membre');
-
-  await prisma.projectMember.delete({
-    where: { id: params.memberId },
-  });
-
-  return NextResponse.json({ success: true });
+    const result = await removeMember(cognitoId, id, memberId);
+    return NextResponse.json(result.data ?? result.error, { status: result.status });
+  } catch (error) {
+    console.error("DELETE member error:", error);
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+  }
 }

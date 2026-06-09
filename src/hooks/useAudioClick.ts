@@ -75,7 +75,7 @@ export const useAudioClick = (audioSrc: string, startTimeOffset: number = 30) =>
                 .then(() => {
                     setIsPlaying(true);
                 })
-                .catch((err) => console.log("Audio playback prevented:", err));
+                .catch(() => {});
         }
     }, [isPlaying, startTimeOffset]);
 
