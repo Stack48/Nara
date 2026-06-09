@@ -8,6 +8,7 @@ import { unbounded } from "@/lib/fonts";
 import { register, confirmEmail, syncUserToDB } from "@/hooks/useAuth";
 import { getAuthError } from "@/lib/auth-errors";
 import "@/lib/amplify";
+import { getCurrentUser } from "aws-amplify/auth";
 
 // Modal CGU / Politique
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
@@ -94,8 +95,18 @@ export default function InscriptionPage() {
     setError("");
     try {
       await confirmEmail(username, confirmCode);
-      // Sync en DB PostgreSQL
-      const user = await syncUserToDB("", email, name, username);
+    } catch (err: unknown) {
+      const code = (err as any)?.name;
+      if (code !== "ExpiredCodeException" && code !== "NotAuthorizedException") {
+        setError(getAuthError(err));
+        setLoading(false);
+        return;
+      }
+    }
+
+    try {
+      const { userId } = await getCurrentUser();
+      await syncUserToDB(userId, email, name, username);
       router.push("/dashboard");
     } catch (err) {
       setError(getAuthError(err));

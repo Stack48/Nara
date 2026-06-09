@@ -9,6 +9,7 @@ import { LibraryHeader } from "./LibraryHeader";
 import { ProjectCard } from "./projectCard";
 import { useSelection } from "@/context/SelectionContext";
 import { ChevronUp, ChevronDown } from "lucide-react";
+import { useApiProjects } from "@/hooks/useApiProjects";
 
 export const Projects = () => {
     // États pour le menu contextuel et renommage
@@ -24,7 +25,8 @@ export const Projects = () => {
 
     const { selectedIds, handleSelect } = useSelection();
 
-    const allProjects = useProjects();
+    // Après
+    const { projects: allProjects, loading } = useApiProjects();
     const projectsList = allProjects.filter(
         (project) => !project.isDeleted && !project.isShared,
     );
@@ -82,7 +84,11 @@ export const Projects = () => {
                 viewMode={viewMode}
                 setViewMode={setViewMode}
             />
-
+            {loading && (
+                <div className="flex items-center justify-center py-20 text-neutral-500 text-sm">
+                    Chargement...
+                </div>
+            )}
             {/* CONDITION D'AFFICHAGE SELON LE VIEWMODE */}
             {sortedProjectList.length === 0 && searchQuery ? (
                 <div className="flex flex-col items-center justify-center py-20 text-neutral-500 border border-neutral-800/80 rounded-2xl bg-[#151515] border-dashed">

@@ -7,7 +7,7 @@ const { runWithAmplifyServerContext } = createServerRunner({
     config: amplifyConfig,
 });
 
-const protectedRoutes = ["/dashboard", "/projects", "/studio"];
+const protectedRoutes = [/*"/dashboard", "/projects", */"/studio"];
 const authRoutes = ["/connexion", "/inscription"];
 
 export async function middleware(request: NextRequest) {
