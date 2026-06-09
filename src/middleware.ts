@@ -13,7 +13,9 @@ const authRoutes = ["/connexion", "/inscription"];
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
-    const isProtected = protectedRoutes.some((route) => pathname.startsWith(route));
+    const isProtected = protectedRoutes.some((route) =>
+        pathname.startsWith(route),
+    );
     const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
 
     if (!isProtected && !isAuthRoute) return NextResponse.next();

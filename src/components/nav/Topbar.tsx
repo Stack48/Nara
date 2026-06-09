@@ -1,12 +1,12 @@
-import { Sun, Bell, Settings } from "lucide-react";
+import { Sun, Bell } from "lucide-react";
+import Image from "next/image";
+import avisProfil from "@/assets/user/haslem.png";
 
 export const Topbar = () => {
     return (
         <header className="flex items-center justify-between h-14 px-6 border-b border-neutral-800/60 shrink-0 bg-black z-40">
             {/* titre (rendre dynamique plus tard avec usePathname) */}
-            <h1 className="font-arimo text-base font-bold text-white tracking-wide">
-                Home
-            </h1>
+            <h1 className=" tracking-wide"></h1>
 
             {/* icônes de droite */}
             <div className="flex items-center gap-3 text-neutral-400">
@@ -24,8 +24,14 @@ export const Topbar = () => {
                     </div>
                 </button>
 
-                <button className="w-9 h-9 flex items-center justify-center rounded-full border border-neutral-800 bg-black hover:text-white hover:bg-neutral-900 transition-colors">
-                    <Settings size={18} />
+                <button className="w-9 h-9 overflow-hidden rounded-full border border-neutral-800 bg-neutral-800 flex-shrink-0 relative hover:opacity-80 transition-opacity">
+                    <Image
+                        src={avisProfil}
+                        alt="Profil Udonis Haslem"
+                        fill
+                        className="object-cover"
+                        sizes="36px"
+                    />
                 </button>
             </div>
         </header>

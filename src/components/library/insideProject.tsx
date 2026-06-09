@@ -1,216 +1,368 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import Image from "next/image";
-import { Search, ChevronDown, LayoutGrid, List, Music, Check, Play, Pause } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useAudioClick } from "@/hooks/useAudioClick";
-import { useSongs, Song } from "@/lib/songStore";
-import { getProjectTitle } from "@/lib/projectStore";
-import { ContextMenu } from "./ContextMenu";
-import { RenameModal } from "../modals/RenameModal";
-import { Toast } from "./Toast";
+import Link from "next/link";
+import { ChevronUp, ChevronDown, FolderOpen, Edit3 } from "lucide-react";
+import { useSongs, Song, renameSong, getSongOrder, saveSongOrder } from "@/lib/songStore";
+import { getProjectTitle, useProjects } from "@/lib/projectStore";
+import { MenuContext } from "@/context/MenuContext";
+import { useLibrarySortAndFilter } from "@/hooks/useLibrarySortAndFilter";
+import { LibraryHeader } from "./LibraryHeader";
+import { SongCard } from "./songCard";
+import { useSelection } from "@/context/SelectionContext";
 
-import avatar1 from "@/assets/user/allen.png";
-import avatar2 from "@/assets/user/duncan.png";
-import avatar3 from "@/assets/user/haslem.png";
-import avatar4 from "@/assets/user/mcgrady.png";
-
-const ALL_AVATARS = [avatar1, avatar2, avatar3, avatar4];
-
-export const insideProject = () => {
+export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
     const params = useParams();
     const projectId = (params?.id as string) || "Project";
     // Resolve title dynamically from store, fallback to slug
-    const displayTitle = getProjectTitle(projectId) || projectId.replace(/_/g, " ");
+    const displayTitle =
+        getProjectTitle(projectId) || projectId.replace(/_/g, " ");
+    const [filterValue, setFilterValue] = useState<string>("all");
 
-    // État pour gérer la vue actuelle ("grid" ou "list")
-    const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+    // Modal & Context Menu states
+    const [contextMenu, setContextMenu] = useState<{
+        x: number;
+        y: number;
+        song: Song;
+    } | null>(null);
 
-    // État pour le tri
-    const [sortBy, setSortBy] = useState<"alphabetical" | "created" | "modified">("modified");
-    const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-    const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
-
-    // States for context menu and rename modal
-    const [contextMenu, setContextMenu] = useState<{ x: number; y: number; song: Song } | null>(null);
-    const [renameModal, setRenameModal] = useState<{ songId: string; initialTitle: string } | null>(null);
-
-    const sortMenuRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (sortMenuRef.current && !sortMenuRef.current.contains(event.target as Node)) {
-                setIsSortMenuOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
+    const { selectedIds, handleSelect } = useSelection();
 
     const songs = useSongs();
-    const insideProjectList = songs.filter((song) => song.projectId === projectId);
+
+    // Custom song ordering state
+    const [songsListWithPositions, setSongsListWithPositions] = useState<Song[]>([]);
+
+    // Drag-and-drop state
+    const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+    const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+    const [dragOverType, setDragOverType] = useState<"insert-before" | "insert-after" | "swap" | null>(null);
+
+    useEffect(() => {
+        const projectSongs = songs.filter(
+            (song) => song.projectId === projectId,
+        );
+        const storedOrder = getSongOrder(projectId);
+
+        // Filter storedOrder to remove any song IDs that are no longer in this project
+        const currentSongIds = new Set(projectSongs.map((s) => s.id));
+        const filteredStoredOrder = storedOrder.filter((id) =>
+            currentSongIds.has(id),
+        );
+
+        // Find songs not in storedOrder
+        const missingSongIds = projectSongs
+            .map((s) => s.id)
+            .filter((id) => !filteredStoredOrder.includes(id));
+
+        let finalOrder = [...filteredStoredOrder];
+        if (missingSongIds.length > 0) {
+            finalOrder = [...finalOrder, ...missingSongIds];
+            saveSongOrder(projectId, finalOrder);
+        } else if (filteredStoredOrder.length !== storedOrder.length) {
+            // Just clean up dead IDs if they were deleted/moved
+            saveSongOrder(projectId, finalOrder);
+        }
+
+        const mapped = projectSongs.map((song) => {
+            const index = finalOrder.indexOf(song.id);
+            return {
+                ...song,
+                position: index !== -1 ? index : 99999,
+            };
+        });
+
+        setSongsListWithPositions(mapped);
+    }, [songs, projectId]);
+
+    const {
+        viewMode,
+        setViewMode,
+        sortBy,
+        setSortBy,
+        sortOrder,
+        setSortOrder,
+        searchQuery,
+        setSearchQuery,
+        filteredAndSortedItems: sortedProjectList,
+    } = useLibrarySortAndFilter({
+        items: songsListWithPositions,
+        searchKeys: ["title"],
+        defaultSortBy: "custom",
+        defaultSortOrder: "asc",
+        defaultViewMode: "grid",
+        storageKey: `inside_project_${projectId}`,
+    });
+
+    // Drag and Drop Event Handlers
+    const handleDragStart = (e: React.DragEvent, index: number) => {
+        setDraggedIndex(index);
+    };
+
+    const handleDragOver = (e: React.DragEvent, index: number) => {
+        e.preventDefault(); // Required to allow drop!
+        if (draggedIndex === null) return;
+
+        const rect = e.currentTarget.getBoundingClientRect();
+        
+        let type: "insert-before" | "insert-after" | "swap" = "swap";
+
+        if (viewMode === "grid") {
+            const mouseX = e.clientX - rect.left;
+            const percentX = mouseX / rect.width;
+            if (percentX < 0.25) {
+                type = "insert-before";
+            } else if (percentX > 0.75) {
+                type = "insert-after";
+            }
+        } else {
+            const mouseY = e.clientY - rect.top;
+            const percentY = mouseY / rect.height;
+            if (percentY < 0.25) {
+                type = "insert-before";
+            } else if (percentY > 0.75) {
+                type = "insert-after";
+            }
+        }
+
+        if (dragOverIndex !== index || dragOverType !== type) {
+            setDragOverIndex(index);
+            setDragOverType(type);
+        }
+    };
+
+    const handleDragEnter = (index: number) => {
+        setDragOverIndex(index);
+    };
+
+    const handleDragLeave = (index: number) => {
+        if (dragOverIndex === index) {
+            setDragOverIndex(null);
+            setDragOverType(null);
+        }
+    };
+
+    const handleDragEnd = () => {
+        setDraggedIndex(null);
+        setDragOverIndex(null);
+        setDragOverType(null);
+    };
+
+    const handleDrop = (e: React.DragEvent, targetIndex: number) => {
+        e.preventDefault();
+        setDragOverIndex(null);
+        setDragOverType(null);
+        if (draggedIndex === null) return;
+
+        // Get the IDs in the current displayed order
+        const displayedIds = sortedProjectList.map((song) => song.id);
+        const newDisplayedIds = [...displayedIds];
+
+        if (dragOverType === "swap") {
+            // Swap the two songs
+            const temp = newDisplayedIds[draggedIndex];
+            newDisplayedIds[draggedIndex] = newDisplayedIds[targetIndex];
+            newDisplayedIds[targetIndex] = temp;
+        } else if (draggedIndex !== targetIndex) {
+            // Insert song
+            let destIndex = targetIndex;
+            if (dragOverType === "insert-after") {
+                destIndex = targetIndex + 1;
+            }
+
+            const [removed] = newDisplayedIds.splice(draggedIndex, 1);
+            
+            // Adjust destIndex if we removed an item before it
+            if (draggedIndex < destIndex) {
+                destIndex -= 1;
+            }
+            
+            newDisplayedIds.splice(destIndex, 0, removed);
+        } else {
+            // Dragged and dropped on itself without change
+            return;
+        }
+
+        // Normalize order to ascending before saving to localStorage
+        const updatedOrder = sortOrder === "desc" ? [...newDisplayedIds].reverse() : newDisplayedIds;
+
+        // Now save this new order!
+        saveSongOrder(projectId, updatedOrder);
+        setDraggedIndex(null);
+
+        // Force sort to "custom" if it wasn't already, so the user sees their changes!
+        if (sortBy !== "custom") {
+            setSortBy("custom");
+            setSortOrder("asc");
+        }
+    };
+
+    const handleHeaderSort = (field: typeof sortBy) => {
+        if (sortBy === field) {
+            setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+        } else {
+            setSortBy(field);
+            setSortOrder(field === "alphabetical" ? "asc" : "desc");
+        }
+    };
 
     const handleContextMenu = (e: React.MouseEvent, song: Song) => {
         e.preventDefault();
         setContextMenu({
             x: e.clientX,
             y: e.clientY,
-            song
+            song,
         });
     };
 
-    // Tri dynamique de la liste de projets
-    const sortedProjectList = [...insideProjectList].sort((a, b) => {
-        if (sortBy === "alphabetical") {
-            const comparison = a.title.localeCompare(b.title);
-            return sortOrder === "asc" ? comparison : -comparison;
-        } else if (sortBy === "created") {
-            const comparison = a.createdDate.getTime() - b.createdDate.getTime();
-            return sortOrder === "asc" ? comparison : -comparison;
-        } else {
-            // modified
-            const comparison = a.lastModifiedDate.getTime() - b.lastModifiedDate.getTime();
-            return sortOrder === "asc" ? comparison : -comparison;
-        }
-    });
+    const breadcrumbLabel = isShared ? "Shared with me" : "My Projects";
+    const breadcrumbLink = isShared ? "/shared" : "/projects";
 
-    const getSortLabel = () => {
-        switch (sortBy) {
-            case "alphabetical": return "Alphabetical";
-            case "created": return "Date created";
-            case "modified": return "Last modified";
-            default: return "Last modified";
-        }
-    };
+    const projects = useProjects();
+    const currentProject = projects.find((p) => p.id === projectId);
 
     return (
         <div className="w-full font-arimo text-white pb-10">
-            {/* TITRE */}
-            <h1 className="text-xl font-bold font-syne mb-6">{displayTitle}</h1>
-
-            {/* BARRE DE RECHERCHE */}
-            <div className="relative mb-6">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Search size={18} className="text-neutral-400" />
-                </div>
-                <input
-                    type="text"
-                    placeholder="Rechercher"
-                    className="w-full bg-[#151515] border border-neutral-800/80 rounded-xl py-3.5 pl-11 pr-4 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-neutral-600 transition-colors"
-                />
+            {/* Breadcrumbs */}
+            <div className="flex items-center gap-2 font-syne mb-6 text-sm">
+                <Link
+                    href={breadcrumbLink}
+                    className="text-neutral-500 hover:text-white transition-colors"
+                >
+                    {breadcrumbLabel}
+                </Link>
+                <span className="text-neutral-600">&gt;</span>
+                <span className="text-neutral-300">{displayTitle}</span>
             </div>
 
-            {/* FILTRES ET VUES */}
-            {/* ONGLETS ET FILTRES */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-                {/* Compteur de fichiers à gauche */}
-                <div className="text-sm font-semibold text-neutral-400">
-                    {insideProjectList.length} files
-                </div>
+            {/* Project Details Banner */}
+            <div className="bg-gradient-to-r from-[#121212] to-[#181818] border border-neutral-800/80 rounded-3xl p-6 mb-8 flex flex-col md:flex-row gap-6 items-start md:items-center relative overflow-hidden group shadow-lg">
+                {/* Background Glow */}
+                <div className="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-[#D90097]/5 blur-3xl group-hover:bg-[#D90097]/8 transition-all duration-750 pointer-events-none" />
 
-                {/* Filtres de droite */}
-                <div className="flex items-center gap-3 flex-wrap md:flex-nowrap pb-2 md:pb-0">
-                {/* Dropdown Tri (Last modified) */}
-                <div className="relative" ref={sortMenuRef}>
-                    <button
-                        type="button"
-                        onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
-                        className="flex items-center gap-2 bg-[#151515] border border-neutral-800 hover:border-neutral-700 transition-colors px-3 py-1.5 rounded-lg text-xs font-semibold text-white cursor-pointer"
-                    >
-                        <span>{getSortLabel()}</span>
-                        <ChevronDown size={14} className="text-neutral-400" />
-                    </button>
-
-                    {isSortMenuOpen && (
-                        <div className="absolute right-0 mt-2 w-48 bg-[#151515] border border-neutral-800 rounded-2xl shadow-2xl z-50 py-2.5 px-1.5 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
-                            {/* Section Sort by */}
-                            <div className="px-3 py-1 text-[11px] font-bold text-neutral-500 uppercase tracking-wider">
-                                Sort by
-                            </div>
-                            {[
-                                { id: "alphabetical", label: "Alphabetical" },
-                                { id: "created", label: "Date created" },
-                                { id: "modified", label: "Last modified" },
-                            ].map((option) => (
-                                <button
-                                    key={option.id}
-                                    type="button"
-                                    onClick={() => {
-                                        setSortBy(option.id as any);
-                                        setIsSortMenuOpen(false);
-                                    }}
-                                    className="w-full text-left px-3 py-1.5 text-xs font-medium rounded-lg text-neutral-300 hover:text-white hover:bg-white/5 flex items-center gap-2 transition-colors cursor-pointer"
-                                >
-                                    <div className="w-4 h-4 flex items-center justify-center shrink-0">
-                                        {sortBy === option.id && <Check size={12} strokeWidth={3} className="text-[#D90097]" />}
-                                    </div>
-                                    <span>{option.label}</span>
-                                </button>
-                            ))}
-
-                            {/* Divider */}
-                            <hr className="border-neutral-800/80 my-1.5 mx-1" />
-
-                            {/* Section Order */}
-                            <div className="px-3 py-1 text-[11px] font-bold text-neutral-500 uppercase tracking-wider">
-                                Order
-                            </div>
-                            {[
-                                { id: "asc", label: sortBy === "alphabetical" ? "A to Z" : "Oldest first" },
-                                { id: "desc", label: sortBy === "alphabetical" ? "Z to A" : "Newest first" },
-                            ].map((option) => (
-                                <button
-                                    key={option.id}
-                                    type="button"
-                                    onClick={() => {
-                                        setSortOrder(option.id as any);
-                                        setIsSortMenuOpen(false);
-                                    }}
-                                    className="w-full text-left px-3 py-1.5 text-xs font-medium rounded-lg text-neutral-300 hover:text-white hover:bg-white/5 flex items-center gap-2 transition-colors cursor-pointer"
-                                >
-                                    <div className="w-4 h-4 flex items-center justify-center shrink-0">
-                                        {sortOrder === option.id && <Check size={12} strokeWidth={3} className="text-[#D90097]" />}
-                                    </div>
-                                    <span>{option.label}</span>
-                                </button>
-                            ))}
-                        </div>
+                {/* Project Image */}
+                <div className="relative w-32 h-32 md:w-36 md:h-36 rounded-2xl overflow-hidden border border-neutral-800 shadow-2xl shrink-0 bg-neutral-900 flex items-center justify-center">
+                    {currentProject?.image ? (
+                        <img
+                            src={typeof currentProject.image === "object" ? currentProject.image.src : currentProject.image}
+                            alt={displayTitle}
+                            className="w-full h-full object-cover"
+                        />
+                    ) : (
+                        <FolderOpen size={40} className="text-neutral-600" />
                     )}
                 </div>
 
-                {/* Toggle View */}
-                <div className="flex items-center border border-neutral-800 rounded-lg overflow-hidden ml-2">
-                    <button
-                        onClick={() => setViewMode("grid")}
-                        className={`p-1.5 transition-colors ${viewMode === "grid" ? "bg-neutral-800 text-white" : "bg-transparent text-neutral-500 hover:bg-neutral-800/50"}`}
-                    >
-                        <LayoutGrid size={16} />
-                    </button>
-                    <button
-                        onClick={() => setViewMode("list")}
-                        className={`p-1.5 transition-colors ${viewMode === "list" ? "bg-neutral-800 text-white" : "bg-transparent text-neutral-500 hover:bg-neutral-800/50"}`}
-                    >
-                        <List size={16} />
-                    </button>
+                {/* Project Info */}
+                <div className="flex-1 flex flex-col justify-between w-full">
+                    <div className="flex items-center gap-2 mb-2.5">
+                        <span className="bg-neutral-850 text-neutral-300 text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider border border-neutral-805">
+                            {currentProject?.type || "Project"}
+                        </span>
+                    </div>
+
+                    <h1 className="font-syne font-extrabold text-3xl md:text-4xl text-white mb-2 leading-tight">
+                        {displayTitle}
+                    </h1>
+
+                    {/* Project Description */}
+                    <p className="text-sm text-neutral-400 max-w-2xl leading-relaxed mb-4">
+                        {currentProject?.description || (
+                            <span className="text-neutral-600 italic">No description yet. Edit this project to add one.</span>
+                        )}
+                    </p>
+
+                    {/* Footer Meta Row */}
+                    <div className="flex flex-wrap items-center justify-between gap-4 text-xs text-neutral-500 font-semibold border-t border-neutral-900 pt-3.5">
+                        <div className="flex items-center gap-4">
+                            <div>
+                                Songs: <span className="text-neutral-300">{sortedProjectList.length}</span>
+                            </div>
+                            {currentProject?.collaboratorsList && currentProject.collaboratorsList.length > 0 && (
+                                <div className="flex items-center gap-2 border-l border-neutral-800 pl-4">
+                                    <span>Collaborators ({currentProject.collaboratorsList.length}):</span>
+                                    <span className="text-neutral-300">
+                                        {currentProject.collaboratorsList.join(", ")}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                window.dispatchEvent(
+                                    new CustomEvent("open-edit-modal", {
+                                        detail: {
+                                            type: "project",
+                                            itemId: projectId,
+                                        },
+                                    })
+                                );
+                            }}
+                            className="text-xs font-bold text-[#D90097] hover:text-white transition-colors cursor-pointer border border-[#D90097]/25 hover:border-white px-3.5 py-1.5 rounded-xl bg-neutral-900/50 hover:bg-neutral-800/40 flex items-center gap-1.5"
+                        >
+                            <Edit3 size={12} />
+                            <span>Edit Details</span>
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
+
+            <LibraryHeader
+                title=""
+                itemCount={sortedProjectList.length}
+                itemLabelSingular="song"
+                itemLabelPlural="songs"
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                sortBy={sortBy}
+                setSortBy={setSortBy}
+                sortOrder={sortOrder}
+                setSortOrder={setSortOrder}
+                viewMode={viewMode}
+                setViewMode={setViewMode}
+                sortOptions={[
+                    { id: "custom", label: "ID" },
+                    { id: "alphabetical", label: "Alphabetical" },
+                    { id: "created", label: "Date created" },
+                    { id: "modified", label: "Last modified" },
+                ]}
+            />
 
             {/* CONDITION D'AFFICHAGE SELON LE VIEWMODE */}
-            {sortedProjectList.length === 0 ? (
+            {sortedProjectList.length === 0 && searchQuery ? (
                 <div className="flex flex-col items-center justify-center py-20 text-neutral-500 border border-neutral-800/80 rounded-2xl bg-[#151515] border-dashed">
-                    <p>No tracks in this project yet.</p>
+                    <p>No tracks matching "{searchQuery}" in this project.</p>
                 </div>
             ) : viewMode === "grid" ? (
                 /* --- VUE GRILLE --- */
                 <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <SongCard
+                        viewMode="grid"
+                        context="insideProject"
+                        isCreatePlaceholder={true}
+                        projectId={projectId}
+                        projectName={displayTitle}
+                    />
                     {sortedProjectList.map((song, index) => (
-                        <ProjectGridItem 
-                            key={song.id} 
-                            song={song} 
-                            index={index} 
+                        <SongCard
+                            key={song.id}
+                            song={song}
+                            viewMode="grid"
+                            context="insideProject"
+                            index={song.position}
+                            isSelected={selectedIds.includes(song.id)}
+                            onSelect={(e) => handleSelect(song.id, "song", song, e, sortedProjectList)}
                             onContextMenu={(e) => handleContextMenu(e, song)}
+                            onDragStart={(e) => handleDragStart(e, index)}
+                            onDragOver={(e) => handleDragOver(e, index)}
+                            onDragEnd={handleDragEnd}
+                            onDragEnter={() => handleDragEnter(index)}
+                            onDragLeave={() => handleDragLeave(index)}
+                            onDrop={(e) => handleDrop(e, index)}
+                            isDragOver={dragOverIndex === index}
+                            dragOverType={dragOverIndex === index ? dragOverType : null}
                         />
                     ))}
                 </div>
@@ -219,20 +371,70 @@ export const insideProject = () => {
                 <div className="w-full">
                     {/* En-tête du tableau */}
                     <div className="grid grid-cols-12 gap-4 pb-4 mb-2 text-xs font-medium text-neutral-500 border-b border-neutral-800">
-                        <div className="col-span-5 pl-2">Name</div>
+                        <button
+                            type="button"
+                            onClick={() => handleHeaderSort("alphabetical")}
+                            className="col-span-4 pl-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                        >
+                            <span>Name</span>
+                            {sortBy === "alphabetical" && (
+                                sortOrder === "asc" ? <ChevronUp size={12} /> : <ChevronDown size={12} />
+                            )}
+                        </button>
                         <div className="col-span-2">State</div>
-                        <div className="col-span-2">Last modified</div>
-                        <div className="col-span-3">Created</div>
+                        <button
+                            type="button"
+                            onClick={() => handleHeaderSort("modified")}
+                            className="col-span-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                        >
+                            <span>Last modified</span>
+                            {sortBy === "modified" && (
+                                sortOrder === "asc" ? <ChevronUp size={12} /> : <ChevronDown size={12} />
+                            )}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handleHeaderSort("created")}
+                            className="col-span-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                        >
+                            <span>Created</span>
+                            {sortBy === "created" && (
+                                sortOrder === "asc" ? <ChevronUp size={12} /> : <ChevronDown size={12} />
+                            )}
+                        </button>
+                        <div className="col-span-2">Collaborators</div>
                     </div>
 
                     {/* Lignes du tableau */}
                     <div className="flex flex-col">
+                        <SongCard
+                            viewMode="list"
+                            context="insideProject"
+                            isCreatePlaceholder={true}
+                            projectId={projectId}
+                            projectName={displayTitle}
+                        />
                         {sortedProjectList.map((song, index) => (
-                            <ProjectListItem 
-                                key={song.id} 
-                                song={song} 
-                                isLast={index === sortedProjectList.length - 1} 
-                                onContextMenu={(e) => handleContextMenu(e, song)}
+                            <SongCard
+                                key={song.id}
+                                song={song}
+                                viewMode="list"
+                                context="insideProject"
+                                index={song.position}
+                                isLast={index === sortedProjectList.length - 1}
+                                isSelected={selectedIds.includes(song.id)}
+                                onSelect={(e) => handleSelect(song.id, "song", song, e, sortedProjectList)}
+                                onContextMenu={(e) =>
+                                    handleContextMenu(e, song)
+                                }
+                                onDragStart={(e) => handleDragStart(e, index)}
+                                onDragOver={(e) => handleDragOver(e, index)}
+                                onDragEnd={handleDragEnd}
+                                onDragEnter={() => handleDragEnter(index)}
+                                onDragLeave={() => handleDragLeave(index)}
+                                onDrop={(e) => handleDrop(e, index)}
+                                isDragOver={dragOverIndex === index}
+                                dragOverType={dragOverIndex === index ? dragOverType : null}
                             />
                         ))}
                     </div>
@@ -241,164 +443,13 @@ export const insideProject = () => {
 
             {/* Custom overlays for actions */}
             {contextMenu && (
-                <ContextMenu
+                <MenuContext
                     x={contextMenu.x}
                     y={contextMenu.y}
+                    itemType="song"
                     song={contextMenu.song}
                     onClose={() => setContextMenu(null)}
-                    onRenameClick={() => setRenameModal({ songId: contextMenu.song.id, initialTitle: contextMenu.song.title })}
                 />
-            )}
-
-            {renameModal && (
-                <RenameModal
-                    isOpen={true}
-                    onClose={() => setRenameModal(null)}
-                    songId={renameModal.songId}
-                    initialTitle={renameModal.initialTitle}
-                />
-            )}
-
-            <Toast />
-        </div>
-    );
-};
-
-const ProjectGridItem = ({ song, index, onContextMenu }: { song: Song; index: number; onContextMenu?: React.MouseEventHandler }) => {
-    const { togglePlay, isPlaying } = useAudioClick(song.audioSrc, 30);
-
-    return (
-        <div
-            onContextMenu={onContextMenu}
-            className="bg-[#151515] border border-neutral-800/80 hover:border-neutral-600 hover:bg-[#1a1a1a] transition-all duration-300 rounded-2xl p-3 flex flex-col sm:flex-row gap-4 group cursor-context-menu"
-        >
-            <div 
-                className="w-full aspect-square sm:w-32 sm:h-32 rounded-xl overflow-hidden flex-shrink-0 relative cursor-pointer" 
-            >
-                <Image
-                    src={song.image}
-                    alt={song.title}
-                    fill
-                    className={`object-cover transition-transform duration-500 ${isPlaying ? "scale-105" : "group-hover:scale-105"}`}
-                    sizes="(max-width: 640px) 100vw, 128px"
-                />
-                <div className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-300 ${isPlaying ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
-                    <button
-                        onClick={togglePlay}
-                        className="w-10 h-10 rounded-full bg-[#D90097] flex items-center justify-center shadow-[0_0_15px_rgba(217,0,151,0.5)] transform hover:scale-105 transition-transform duration-200"
-                    >
-                        {isPlaying ? (
-                            <Pause size={16} className="text-white fill-white" />
-                        ) : (
-                            <Play size={16} className="text-white fill-white ml-0.5" />
-                        )}
-                    </button>
-                </div>
-            </div>
-            <div className="flex flex-col flex-1 justify-center gap-2 py-1 relative">
-                <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-bold text-white text-base line-clamp-2 leading-tight pr-2 sm:pr-10 mt-1">
-                        {song.title}
-                    </h3>
-                    <span
-                        className={`sm:absolute sm:top-0 sm:right-0 text-[10px] px-2 py-0.5 rounded uppercase tracking-wider flex-shrink-0 h-fit ${
-                            song.title === "F.I.C.O."
-                                ? "bg-[#D90097]/10 text-[#D90097] border border-[#D90097]/30 font-bold"
-                                : "border border-neutral-700 text-neutral-400"
-                        }`}
-                    >
-                        {song.state}
-                    </span>
-                </div>
-                <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-neutral-500">
-                        {song.time}
-                    </span>
-                    <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] text-neutral-500 hidden sm:block">
-                            Collaborators ({song.collabs})
-                        </span>
-                        <div className="flex -space-x-2">
-                            {[
-                                ...Array(
-                                    Math.min(song.collabs, 3),
-                                ),
-                            ].map((_, i) => (
-                                <div
-                                    key={i}
-                                    className="w-6 h-6 rounded-full overflow-hidden relative z-10"
-                                >
-                                    <Image
-                                        src={ALL_AVATARS[(index + i) % ALL_AVATARS.length]}
-                                        alt={`Collab ${i + 1}`}
-                                        fill
-                                        className="object-cover"
-                                        sizes="24px"
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-const ProjectListItem = ({ song, isLast, onContextMenu }: { song: Song; isLast: boolean; onContextMenu?: React.MouseEventHandler }) => {
-    const { togglePlay, isPlaying } = useAudioClick(song.audioSrc, 30);
-
-    return (
-        <div className="flex flex-col" onContextMenu={onContextMenu}>
-            <div className="grid grid-cols-12 gap-4 items-center p-2 rounded-xl hover:bg-[#151515] transition-colors group cursor-context-menu">
-                <div className="col-span-5 flex items-center gap-4">
-                    <div 
-                        className="w-12 h-12 rounded-lg overflow-hidden relative flex-shrink-0 cursor-pointer" 
-                    >
-                        <Image
-                            src={song.image}
-                            alt={song.title}
-                            fill
-                            className="object-cover"
-                            sizes="48px"
-                        />
-                        <div className={`absolute inset-0 bg-black/50 flex items-center justify-center transition-opacity duration-300 ${isPlaying ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
-                            <button
-                                onClick={togglePlay}
-                                className="w-7 h-7 rounded-full bg-[#D90097] flex items-center justify-center shadow-[0_0_10px_rgba(217,0,151,0.5)] transform hover:scale-105 transition-transform duration-200"
-                            >
-                                {isPlaying ? (
-                                    <Pause size={12} className="text-white fill-white" />
-                                ) : (
-                                    <Play size={12} className="text-white fill-white ml-0.5" />
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                    <span className={`font-bold text-sm transition-colors ${isPlaying ? "text-[#D90097]" : "text-white"}`}>
-                        {song.title}
-                    </span>
-                </div>
-                <div className="col-span-2 text-xs font-bold">
-                    {song.title === "F.I.C.O." ? (
-                        <span className="bg-[#D90097]/10 text-[#D90097] border border-[#D90097]/30 px-2 py-0.5 rounded uppercase tracking-wider text-[10px] inline-block">
-                            {song.state}
-                        </span>
-                    ) : (
-                        <span className="text-white">
-                            {song.state}
-                        </span>
-                    )}
-                </div>
-                <div className="col-span-2 text-xs text-neutral-400">
-                    {song.lastModified}
-                </div>
-                <div className="col-span-3 text-xs text-neutral-400">
-                    {song.created}
-                </div>
-            </div>
-            {!isLast && (
-                <div className="border-b border-neutral-800 mx-2 my-1"></div>
             )}
         </div>
     );
