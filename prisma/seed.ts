@@ -74,8 +74,8 @@ async function main() {
 
     console.log("✅ Seed terminé !");
     console.log(`👤 Léa (ADMIN) → cognitoId: cognito-lea-001`);
-    console.log(`👤 Marcus (LEAD_PAROLIER) → cognitoId: cognito-marcus-001`);
-    console.log(`👤 Romain (LECTURE_SEULE) → cognitoId: cognito-romain-001`);
+    console.log(`👤 Marcus (LEAD_LYRICIST) → cognitoId: cognito-marcus-001`);
+    console.log(`👤 Romain (READONLY) → cognitoId: cognito-romain-001`);
     console.log(`🎵 Projet: ${project.id}`);
 }
 
