@@ -1,26 +1,9 @@
-import { hasPermission } from '@/lib/rbac';
+import { hasPermission } from "@/lib/rbac";
 
-// Mock Prisma
-jest.mock('@/lib/prisma', () => ({
-  prisma: {
-    user: {
-      findUnique: jest.fn(),
-    },
-    projectMember: {
-      findMany: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-    },
-    invitation: {
-      create: jest.fn(),
-    },
-  },
-}));
+describe("RBAC — hasPermission", () => {
 
-describe('RBAC — hasPermission', () => {
-  // ✅ Admin peut tout faire
-  it('ADMIN peut accéder aux routes ADMIN', () => {
-    expect(hasPermission('ADMIN', 'ADMIN')).toBe(true);
+  it("ADMIN peut accéder aux routes ADMIN", () => {
+    expect(hasPermission("ADMIN", "ADMIN")).toBe(true);
   });
 
   it('ADMIN peut accéder aux routes LEAD_LYRICIST', () => {
