@@ -1,13 +1,5 @@
-/*
-  Warnings:
-
-  - A unique constraint covering the columns `[cognitoId]` on the table `User` will be added. If there are existing duplicate values, this will fail.
-  - A unique constraint covering the columns `[username]` on the table `User` will be added. If there are existing duplicate values, this will fail.
-  - Added the required column `cognitoId` to the `User` table without a default value. This is not possible if the table is not empty.
-
-*/
 -- CreateEnum
-CREATE TYPE "Role" AS ENUM ('ADMIN', 'LEAD_PAROLIER', 'PAROLIER', 'LECTURE_SEULE');
+CREATE TYPE "Role" AS ENUM ('ADMIN', 'LEAD_LYRICIST', 'LYRICIST', 'READONLY');
 
 -- CreateEnum
 CREATE TYPE "SectionType" AS ENUM ('COUPLET', 'REFRAIN', 'PONT', 'INTRO', 'OUTRO', 'BRIDGE');
@@ -15,9 +7,25 @@ CREATE TYPE "SectionType" AS ENUM ('COUPLET', 'REFRAIN', 'PONT', 'INTRO', 'OUTRO
 -- CreateEnum
 CREATE TYPE "SuggestionStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
 
--- AlterTable
-ALTER TABLE "User" ADD COLUMN     "cognitoId" TEXT NOT NULL,
-ADD COLUMN     "username" TEXT;
+-- CreateEnum
+CREATE TYPE "ProjectStatus" AS ENUM ('DRAFT', 'IN_PROGRESS', 'COMPLETED', 'ARCHIVED');
+
+-- CreateEnum
+CREATE TYPE "LyricsState" AS ENUM ('DRAFT', 'IN_PROGRESS', 'COMPLETED', 'REVIEW');
+
+-- CreateTable
+CREATE TABLE "User" (
+    "id" TEXT NOT NULL,
+    "cognitoId" TEXT NOT NULL DEFAULT '',
+    "email" TEXT NOT NULL,
+    "name" TEXT,
+    "username" TEXT,
+    "avatarUrl" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "Project" (
@@ -25,7 +33,11 @@ CREATE TABLE "Project" (
     "name" TEXT NOT NULL,
     "description" TEXT,
     "genre" TEXT,
-    "status" TEXT NOT NULL DEFAULT 'DRAFT',
+    "status" "ProjectStatus" NOT NULL DEFAULT 'DRAFT',
+    "imageUrl" TEXT,
+    "isFavorite" BOOLEAN NOT NULL DEFAULT false,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+    "deletedAt" TIMESTAMP(3),
     "ownerId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -36,7 +48,7 @@ CREATE TABLE "Project" (
 -- CreateTable
 CREATE TABLE "ProjectMember" (
     "id" TEXT NOT NULL,
-    "role" "Role" NOT NULL DEFAULT 'PAROLIER',
+    "role" "Role" NOT NULL DEFAULT 'LYRICIST',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "userId" TEXT NOT NULL,
@@ -49,7 +61,7 @@ CREATE TABLE "ProjectMember" (
 CREATE TABLE "Invitation" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
-    "role" "Role" NOT NULL DEFAULT 'PAROLIER',
+    "role" "Role" NOT NULL DEFAULT 'LYRICIST',
     "token" TEXT NOT NULL,
     "accepted" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -67,7 +79,13 @@ CREATE TABLE "Lyrics" (
     "content" JSONB NOT NULL,
     "order" INTEGER NOT NULL DEFAULT 0,
     "sectionType" "SectionType" NOT NULL DEFAULT 'COUPLET',
-    "projectId" TEXT NOT NULL,
+    "state" "LyricsState" NOT NULL DEFAULT 'DRAFT',
+    "imageUrl" TEXT,
+    "audioSrc" TEXT,
+    "isFavorite" BOOLEAN NOT NULL DEFAULT false,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+    "deletedAt" TIMESTAMP(3),
+    "projectId" TEXT,
     "authorId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -101,6 +119,19 @@ CREATE TABLE "LyricVersion" (
 );
 
 -- CreateTable
+CREATE TABLE "Comment" (
+    "id" TEXT NOT NULL,
+    "content" TEXT NOT NULL,
+    "lyricsId" TEXT NOT NULL,
+    "authorId" TEXT NOT NULL,
+    "isRead" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Comment_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "File" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -108,7 +139,6 @@ CREATE TABLE "File" (
     "mimeType" TEXT NOT NULL,
     "size" INTEGER NOT NULL,
     "s3Key" TEXT NOT NULL,
-    "s3Bucket" TEXT NOT NULL,
     "projectId" TEXT NOT NULL,
     "uploadedBy" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -162,16 +192,25 @@ CREATE TABLE "AuditLog" (
 );
 
 -- CreateTable
-CREATE TABLE "RgpdConsent" (
+CREATE TABLE "PasswordResetRequest" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
-    "accepted" BOOLEAN NOT NULL,
-    "version" TEXT NOT NULL,
+    "token" TEXT NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "used" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "RgpdConsent_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "PasswordResetRequest_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_cognitoId_key" ON "User"("cognitoId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ProjectMember_userId_projectId_key" ON "ProjectMember"("userId", "projectId");
@@ -183,13 +222,7 @@ CREATE UNIQUE INDEX "Invitation_token_key" ON "Invitation"("token");
 CREATE UNIQUE INDEX "File_s3Key_key" ON "File"("s3Key");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "RgpdConsent_userId_key" ON "RgpdConsent"("userId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "User_cognitoId_key" ON "User"("cognitoId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
+CREATE UNIQUE INDEX "PasswordResetRequest_token_key" ON "PasswordResetRequest"("token");
 
 -- AddForeignKey
 ALTER TABLE "Project" ADD CONSTRAINT "Project_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -225,6 +258,12 @@ ALTER TABLE "LyricVersion" ADD CONSTRAINT "LyricVersion_lyricsId_fkey" FOREIGN K
 ALTER TABLE "LyricVersion" ADD CONSTRAINT "LyricVersion_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Comment" ADD CONSTRAINT "Comment_lyricsId_fkey" FOREIGN KEY ("lyricsId") REFERENCES "Lyrics"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Comment" ADD CONSTRAINT "Comment_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "File" ADD CONSTRAINT "File_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -246,4 +285,4 @@ ALTER TABLE "LabelCopy" ADD CONSTRAINT "LabelCopy_projectId_fkey" FOREIGN KEY ("
 ALTER TABLE "AuditLog" ADD CONSTRAINT "AuditLog_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "RgpdConsent" ADD CONSTRAINT "RgpdConsent_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "PasswordResetRequest" ADD CONSTRAINT "PasswordResetRequest_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
