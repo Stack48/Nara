@@ -12,6 +12,7 @@ import { MenuContext } from "@/context/MenuContext";
 import { RenameModal } from "../modals/RenameModal";
 import { useSelection } from "@/context/SelectionContext";
 import { useApiProjects } from "@/hooks/useApiProjects";
+import { useApiSongs } from "@/hooks/useApiSongs";
 
 import {
     useLibrarySortAndFilter,
@@ -46,7 +47,7 @@ export const Recents = () => {
 
     const { selectedIds, handleSelect } = useSelection();
 
-    const allSongs = useSongs();
+    const { songs: allSongs } = useApiSongs();
     const activeSongs = allSongs.filter((song) => !song.isDeleted);
 
     const { projects: allProjects } = useApiProjects();

@@ -8,6 +8,7 @@ import { LibraryHeader } from "./LibraryHeader";
 import { useSelection } from "@/context/SelectionContext";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { useApiProjects } from "@/hooks/useApiProjects";
+import { useApiSongs } from "@/hooks/useApiSongs";
 import {
     SortByOption,
     SortOrderOption,
@@ -46,7 +47,7 @@ export const SharedFiles = () => {
 
     const { selectedIds, handleSelect } = useSelection();
 
-    const allSongs = useSongs();
+    const { songs: allSongs } = useApiSongs();
     const sharedList = allSongs.filter(
         (song) => song.isShared && !song.isDeleted,
     );

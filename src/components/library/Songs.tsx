@@ -2,11 +2,12 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Check, ChevronDown, ChevronUp } from "lucide-react";
-import { useSongs, Song, renameSong } from "@/lib/songStore";
+import { Song, renameSong } from "@/lib/songStore";
 import { MenuContext } from "@/context/MenuContext";
 import { RenameModal } from "../modals/RenameModal";
 import { useLibrarySortAndFilter } from "@/hooks/useLibrarySortAndFilter";
 import { LibraryHeader } from "./LibraryHeader";
+import { useApiSongs } from "@/hooks/useApiSongs";
 import { SongCard } from "./songCard";
 import { useSelection } from "@/context/SelectionContext";
 
@@ -39,7 +40,7 @@ export const Songs = () => {
         return "In a project";
     };
 
-    const allSongs = useSongs();
+    const { songs: allSongs } = useApiSongs();
 
     // Pre-filtrer par "origin" et supprimer les deleted
     const preFilteredSongs = allSongs.filter((song) => {
