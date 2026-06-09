@@ -11,6 +11,8 @@ import { SongCard } from "./songCard";
 import { MenuContext } from "@/context/MenuContext";
 import { RenameModal } from "../modals/RenameModal";
 import { useSelection } from "@/context/SelectionContext";
+import { useApiSongs } from "@/hooks/useApiSongs";
+import { useApiProjects } from "@/hooks/useApiProjects";
 
 import {
     useLibrarySortAndFilter,
@@ -45,12 +47,12 @@ export const Favorites = () => {
 
     const { selectedIds, handleSelect } = useSelection();
 
-    const allSongs = useSongs();
+    const { songs: allSongs } = useApiSongs();
     const favoritesSongs = allSongs.filter(
         (song) => song.isFavorite && !song.isDeleted,
     );
 
-    const allProjects = useProjects();
+    const { projects: allProjects } = useApiProjects();
     const favoritesProjects = allProjects.filter(
         (project) => project.isFavorite && !project.isDeleted,
     );
@@ -239,7 +241,7 @@ export const Favorites = () => {
                                                         isLast={
                                                             index ===
                                                             filteredProjects.length -
-                                                                1
+                                                            1
                                                         }
                                                         isSelected={selectedIds.includes(project.id)}
                                                         onSelect={(e) => handleSelect(project.id, "project", project, e, combinedViewItems)}
@@ -297,7 +299,7 @@ export const Favorites = () => {
                                                         isLast={
                                                             index ===
                                                             filteredSongs.length -
-                                                                1
+                                                            1
                                                         }
                                                         isSelected={selectedIds.includes(song.id)}
                                                         onSelect={(e) => handleSelect(song.id, "song", song, e, combinedViewItems)}
