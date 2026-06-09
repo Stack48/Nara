@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireRole, forbidden, unauthorized } from "@/middleware/rbac.middleware";
+import { requireRole, forbidden, unauthorized } from "@/lib/rbac";
 import { z } from "zod";
 
 const updateLyricsSchema = z.object({
@@ -22,7 +22,7 @@ export async function PATCH(
     const cognitoId = getCognitoId(request);
     if (!cognitoId) return unauthorized();
 
-    const { authorized } = await requireRole(cognitoId, params.id, "LEAD_PAROLIER");
+    const { authorized } = await requireRole(cognitoId, params.id, "LEAD_LYRICIST");
     if (!authorized) return forbidden("Seul un Lead Parolier ou Admin peut modifier les lyrics");
 
     const body = await request.json();
