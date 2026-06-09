@@ -76,6 +76,9 @@ export const useApiProjects = (): {
             }
         };
         fetchProjects();
+        const handleUpdate = () => setTrigger((t) => t + 1);
+        window.addEventListener("nara-data-updated", handleUpdate);
+        return () => window.removeEventListener("nara-data-updated", handleUpdate);
     }, [trigger]);
 
     return { projects, loading, error, refetch: () => setTrigger((t) => t + 1) };

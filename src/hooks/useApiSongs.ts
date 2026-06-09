@@ -72,6 +72,9 @@ export const useApiSongs = (): {
             }
         };
         fetchSongs();
+        const handleUpdate = () => setTrigger((t) => t + 1);
+        window.addEventListener("nara-data-updated", handleUpdate);
+        return () => window.removeEventListener("nara-data-updated", handleUpdate);
     }, [trigger]);
 
     return { songs, loading, error, refetch: () => setTrigger((t) => t + 1) };
