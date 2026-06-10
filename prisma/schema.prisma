@@ -9,9 +9,15 @@ datasource db {
 
 enum Role {
   ADMIN
+<<<<<<< HEAD
   LEAD_LYRICIST
   LYRICIST
   READONLY
+=======
+  LEAD_PAROLIER
+  PAROLIER
+  LECTURE_SEULE
+>>>>>>> ebd3cd6 (feat(lyrics): add CRUD lyrics endpoints, TipTap JSON storage, suggestions system, Zod validation, unit tests)
 }
 
 enum SectionType {
@@ -30,6 +36,7 @@ enum SuggestionStatus {
 }
 
 model User {
+<<<<<<< HEAD
   id             String   @id @default(cuid())
   cognitoId      String   @unique @default("")
   email          String   @unique
@@ -49,6 +56,21 @@ model User {
   rgpdConsent    RgpdConsent?
   markers        AudioMarker[]
   passwordResets PasswordResetRequest[]
+=======
+  id            String   @id @default(cuid())
+  cognitoId     String   @unique
+  email         String   @unique
+  name          String?
+  username      String?  @unique
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  memberships   ProjectMember[]
+  invitations   Invitation[]
+  ownedProjects Project[]       @relation("OwnedProjects")
+  lyrics        Lyrics[]
+  suggestions   Suggestion[]
+>>>>>>> ebd3cd6 (feat(lyrics): add CRUD lyrics endpoints, TipTap JSON storage, suggestions system, Zod validation, unit tests)
 }
 
 model Project {
@@ -67,8 +89,11 @@ model Project {
   invitations Invitation[]
   versions    ProjectVersion[]
   lyrics      Lyrics[]
+<<<<<<< HEAD
   files       File[]
   labelCopies LabelCopy[]
+=======
+>>>>>>> ebd3cd6 (feat(lyrics): add CRUD lyrics endpoints, TipTap JSON storage, suggestions system, Zod validation, unit tests)
 }
 
 model ProjectVersion {
@@ -94,7 +119,11 @@ model WordSuggestion {
 
 model ProjectMember {
   id        String   @id @default(cuid())
+<<<<<<< HEAD
   role      Role     @default(LYRICIST)
+=======
+  role      Role     @default(PAROLIER)
+>>>>>>> ebd3cd6 (feat(lyrics): add CRUD lyrics endpoints, TipTap JSON storage, suggestions system, Zod validation, unit tests)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -109,7 +138,11 @@ model ProjectMember {
 model Invitation {
   id        String   @id @default(cuid())
   email     String
+<<<<<<< HEAD
   role      Role     @default(LYRICIST)
+=======
+  role      Role     @default(PAROLIER)
+>>>>>>> ebd3cd6 (feat(lyrics): add CRUD lyrics endpoints, TipTap JSON storage, suggestions system, Zod validation, unit tests)
   token     String   @unique @default(cuid())
   accepted  Boolean  @default(false)
   createdAt DateTime @default(now())
@@ -132,11 +165,17 @@ model Lyrics {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
+<<<<<<< HEAD
   project     Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
   author      User           @relation(fields: [authorId], references: [id])
   suggestions Suggestion[]
   versions    LyricVersion[]
   markers     AudioMarker[]
+=======
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  author      User         @relation(fields: [authorId], references: [id])
+  suggestions Suggestion[]
+>>>>>>> ebd3cd6 (feat(lyrics): add CRUD lyrics endpoints, TipTap JSON storage, suggestions system, Zod validation, unit tests)
 }
 
 model Suggestion {
@@ -150,6 +189,7 @@ model Suggestion {
 
   lyrics    Lyrics @relation(fields: [lyricsId], references: [id], onDelete: Cascade)
   author    User   @relation(fields: [authorId], references: [id])
+<<<<<<< HEAD
 }
 
 model LyricVersion {
@@ -245,4 +285,6 @@ model PasswordResetRequest {
   createdAt DateTime @default(now())
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+=======
+>>>>>>> ebd3cd6 (feat(lyrics): add CRUD lyrics endpoints, TipTap JSON storage, suggestions system, Zod validation, unit tests)
 }

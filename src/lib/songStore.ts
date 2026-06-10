@@ -35,6 +35,9 @@ export interface Song {
     isDeleted: boolean;
     isShared?: boolean;
     owner?: string;
+    position?: number;
+    description?: string;
+    collaboratorsList?: string[];
 }
 
 const STATIC_SONGS_LIST = [
@@ -43,7 +46,7 @@ const STATIC_SONGS_LIST = [
         id: "MHM",
         title: "MHM",
         time: "Edited 5 minutes ago",
-        collabs: 2,
+        collabs: 0,
         state: "En écriture",
         lastModified: "5 mins ago",
         created: "7 months ago",
@@ -59,23 +62,23 @@ const STATIC_SONGS_LIST = [
         id: "test",
         title: "test",
         time: "Edited 8 minutes ago",
-        collabs: 1,
+        collabs: 0,
         state: "Terminé",
         lastModified: "8 mins ago",
         created: "6 months ago",
         lastModifiedDate: new Date(Date.now() - 8 * 60 * 1000),
         createdDate: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000),
-        image: testCover,
+        image: null,
         audioSrc: "/audio/ensalada.mp3",
-        defaultOrigin: "standalone" as const,
-        defaultProjectId: "",
-        defaultProjectName: "",
+        defaultOrigin: "project" as const,
+        defaultProjectId: "June5",
+        defaultProjectName: "June5",
     },
     {
         id: "Time_killers",
         title: "Time killers",
         time: "Edited 12 minutes ago",
-        collabs: 2,
+        collabs: 1,
         state: "Terminé",
         lastModified: "12 mins ago",
         created: "5 months ago",
@@ -91,7 +94,7 @@ const STATIC_SONGS_LIST = [
         id: "untitled_01",
         title: "untitled 01",
         time: "Edited 1 hour ago",
-        collabs: 4,
+        collabs: 3,
         state: "Terminé",
         lastModified: "1 hour ago",
         created: "4 months ago",
@@ -123,7 +126,7 @@ const STATIC_SONGS_LIST = [
         id: "Love_Is_Only_A_Feeling",
         title: "Love Is Only A Feeling",
         time: "Edited 3 hours ago",
-        collabs: 3,
+        collabs: 1,
         state: "En écriture",
         lastModified: "3 hours ago",
         created: "2 months ago",
@@ -139,7 +142,7 @@ const STATIC_SONGS_LIST = [
         id: "WIDE_Open",
         title: "WIDE Open",
         time: "Edited 1 day ago",
-        collabs: 2,
+        collabs: 0,
         state: "En écriture",
         lastModified: "1 day ago",
         created: "1 month ago",
@@ -396,7 +399,7 @@ const STATIC_SONGS_LIST = [
     {
         id: "Ensalada",
         title: "Ensalada",
-        time: "Shared 2 hours ago",
+        time: "Edited 2 hours ago",
         collabs: 2,
         state: "Terminé",
         lastModified: "2 hours ago",
@@ -414,7 +417,7 @@ const STATIC_SONGS_LIST = [
     {
         id: "Ghetto_Dreams",
         title: "Ghetto Dreams",
-        time: "Shared 6 days ago",
+        time: "Edited 6 days ago",
         collabs: 1,
         state: "Terminé",
         lastModified: "6 days ago",
@@ -441,7 +444,12 @@ export interface Mappings {
         origin: "standalone" | "project";
         isFavorite: boolean;
         isDeleted: boolean;
+        isPermanentlyDeleted?: boolean;
         title: string;
+        description?: string;
+        collaboratorsList?: string[];
+        state?: string;
+        image?: string;
     };
 }
 
@@ -473,7 +481,56 @@ export const getSongProjectMappings = (): Mappings => {
                     map.title = originalSong ? originalSong.title : key;
                     upgraded = true;
                 }
+                if (typeof map.description === "undefined") {
+                    map.description = "";
+                    upgraded = true;
+                }
+                if (
+                    typeof map.collaboratorsList === "undefined" ||
+                    (Array.isArray(map.collaboratorsList) &&
+                        map.collaboratorsList.length === 0)
+                ) {
+                    const originalSong = STATIC_SONGS_LIST.find(
+                        (s) => s.id === key,
+                    );
+                    const collabsCount = originalSong
+                        ? originalSong.collabs
+                        : 0;
+                    map.collaboratorsList = [
+                        "Ray Allen",
+                        "Tim Duncan",
+                        "Udonis Haslem",
+                        "Tracy McGrady",
+                        "Kobe Bryant",
+                        "Allen Iverson",
+                    ].slice(0, collabsCount);
+                    upgraded = true;
+                }
+                if (typeof map.state === "undefined") {
+                    const originalSong = STATIC_SONGS_LIST.find(
+                        (s) => s.id === key,
+                    );
+                    map.state = originalSong
+                        ? originalSong.state
+                        : "En écriture";
+                    upgraded = true;
+                }
+                if (typeof map.image === "undefined") {
+                    map.image = "";
+                    upgraded = true;
+                }
             });
+            if (
+                parsed["test"] &&
+                !localStorage.getItem("test_song_migrated_june5")
+            ) {
+                parsed["test"].projectId = "June5";
+                parsed["test"].projectName = "June5";
+                parsed["test"].origin = "project";
+                localStorage.setItem("test_song_migrated_june5", "true");
+                upgraded = true;
+            }
+
             // Upgrade existing mappings in local storage if new static songs are missing
             STATIC_SONGS_LIST.forEach((song) => {
                 if (!parsed[song.id]) {
@@ -486,6 +543,17 @@ export const getSongProjectMappings = (): Mappings => {
                             song.id === "So_Into_You" ||
                             song.id === "Right_in_the_Middle",
                         title: song.title,
+                        description: "",
+                        collaboratorsList: [
+                            "Ray Allen",
+                            "Tim Duncan",
+                            "Udonis Haslem",
+                            "Tracy McGrady",
+                            "Kobe Bryant",
+                            "Allen Iverson",
+                        ].slice(0, song.collabs),
+                        state: song.state,
+                        image: "",
                     };
                     upgraded = true;
                 }
@@ -510,6 +578,17 @@ export const getSongProjectMappings = (): Mappings => {
             isDeleted:
                 song.id === "So_Into_You" || song.id === "Right_in_the_Middle",
             title: song.title,
+            description: "",
+            collaboratorsList: [
+                "Ray Allen",
+                "Tim Duncan",
+                "Udonis Haslem",
+                "Tracy McGrady",
+                "Kobe Bryant",
+                "Allen Iverson",
+            ].slice(0, song.collabs),
+            state: song.state,
+            image: "",
         };
     });
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(initialMappings));
@@ -534,6 +613,13 @@ export const setSongProject = (
         title: songId,
     };
 
+    if (existing.projectId === projectId) {
+        return;
+    }
+
+    const previousProjectId = existing.projectId || "";
+    const previousProjectName = existing.projectName || "";
+
     currentMappings[songId] = {
         ...existing,
         projectId,
@@ -543,6 +629,20 @@ export const setSongProject = (
 
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentMappings));
     window.dispatchEvent(new CustomEvent(EVENT_NAME));
+
+    // Dispatch event for undo/revert tracking
+    window.dispatchEvent(
+        new CustomEvent("nara-song-moved", {
+            detail: {
+                songId,
+                songTitle: existing.title || songId,
+                previousProjectId,
+                previousProjectName,
+                targetProjectId: projectId,
+                targetProjectTitle: projectName,
+            },
+        }),
+    );
 };
 
 // Toggle Favorite helper
@@ -591,6 +691,36 @@ export const renameSong = (songId: string, newTitle: string) => {
     }
 };
 
+// Update Song Details helper
+export const updateSongDetails = (
+    songId: string,
+    details: {
+        title?: string;
+        image?: string;
+        description?: string;
+        state?: string;
+        collaboratorsList?: string[];
+    },
+) => {
+    if (typeof window === "undefined") return;
+
+    const currentMappings = getSongProjectMappings();
+    if (currentMappings[songId]) {
+        currentMappings[songId] = {
+            ...currentMappings[songId],
+            ...details,
+        };
+        if (details.title) {
+            currentMappings[songId].title = details.title;
+        }
+        localStorage.setItem(
+            LOCAL_STORAGE_KEY,
+            JSON.stringify(currentMappings),
+        );
+        window.dispatchEvent(new CustomEvent(EVENT_NAME));
+    }
+};
+
 // Create Song helper
 export const createSong = (
     title: string,
@@ -617,7 +747,7 @@ export const createSong = (
         created: "Just now",
         lastModifiedDate: new Date().toISOString(),
         createdDate: new Date().toISOString(),
-        imageKey: "vince",
+        image: null,
         audioSrc: "/audio/drafts/mhm.mp3",
         defaultOrigin: projectId
             ? ("project" as const)
@@ -671,7 +801,7 @@ const getCreatedSongsList = (): any[] => {
                 ...song,
                 lastModifiedDate: new Date(song.lastModifiedDate),
                 createdDate: new Date(song.createdDate),
-                image: vince, // default cover
+                image: song.image || null, // default cover
             }));
         } catch {}
     }
@@ -691,7 +821,9 @@ export const useSongs = (): Song[] => {
                 ...createdSongs,
             ];
 
-            const updated = combinedStaticAndCreated.map((song) => {
+            const updated = combinedStaticAndCreated
+                .filter((song) => !mappings[song.id]?.isPermanentlyDeleted)
+                .map((song) => {
                 const songMapping = mappings[song.id] || {
                     projectId: song.defaultProjectId,
                     projectName: song.defaultProjectName,
@@ -699,19 +831,36 @@ export const useSongs = (): Song[] => {
                     isFavorite: false,
                     isDeleted: false,
                     title: song.title,
+                    description: "",
+                    collaboratorsList: [],
+                    state: song.state,
+                    image: "",
                 };
+
+                const mappingCollabs =
+                    songMapping.collaboratorsList &&
+                    songMapping.collaboratorsList.length > 0
+                        ? songMapping.collaboratorsList
+                        : [
+                              "Ray Allen",
+                              "Tim Duncan",
+                              "Udonis Haslem",
+                              "Tracy McGrady",
+                              "Kobe Bryant",
+                              "Allen Iverson",
+                          ].slice(0, song.collabs);
 
                 return {
                     id: song.id,
                     title: songMapping.title || song.title,
                     time: song.time,
-                    collabs: song.collabs,
-                    state: song.state,
+                    collabs: mappingCollabs.length,
+                    state: songMapping.state || song.state,
                     lastModified: song.lastModified,
                     created: song.created,
                     lastModifiedDate: song.lastModifiedDate,
                     createdDate: song.createdDate,
-                    image: song.image,
+                    image: songMapping.image ? songMapping.image : song.image,
                     audioSrc: song.audioSrc,
                     projectId: songMapping.projectId,
                     projectName: getStoredProjectTitle(
@@ -723,6 +872,8 @@ export const useSongs = (): Song[] => {
                     isDeleted: !!songMapping.isDeleted,
                     isShared: !!song.isShared,
                     owner: song.owner || "",
+                    description: songMapping.description || "",
+                    collaboratorsList: mappingCollabs,
                 };
             });
             setSongs(updated);
@@ -745,4 +896,46 @@ export const useSongs = (): Song[] => {
     }, []);
 
     return songs;
+};
+
+// Persistence functions for project song order
+export const getSongOrder = (projectId: string): string[] => {
+    if (typeof window === "undefined" || !projectId) return [];
+    const stored = localStorage.getItem(`nara_project_song_order_${projectId}`);
+    return stored ? JSON.parse(stored) : [];
+};
+
+export const saveSongOrder = (projectId: string, songIds: string[]) => {
+    if (typeof window === "undefined" || !projectId) return;
+    localStorage.setItem(
+        `nara_project_song_order_${projectId}`,
+        JSON.stringify(songIds),
+    );
+    window.dispatchEvent(new CustomEvent(EVENT_NAME));
+};
+
+export const deleteSongPermanently = (songId: string) => {
+    if (typeof window === "undefined") return;
+
+    const currentMappings = getSongProjectMappings();
+    if (currentMappings[songId]) {
+        currentMappings[songId].isPermanentlyDeleted = true;
+        localStorage.setItem(
+            LOCAL_STORAGE_KEY,
+            JSON.stringify(currentMappings),
+        );
+    }
+    
+    // Also remove from created songs if present
+    const createdSongsStored = localStorage.getItem("nara_created_songs");
+    if (createdSongsStored) {
+        try {
+            const createdSongs = JSON.parse(createdSongsStored);
+            const filtered = createdSongs.filter((s: any) => s.id !== songId);
+            localStorage.setItem("nara_created_songs", JSON.stringify(filtered));
+        } catch {}
+    }
+
+    window.dispatchEvent(new CustomEvent(EVENT_NAME));
+    window.dispatchEvent(new CustomEvent("project-store-updated"));
 };

@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
-import "@/components/Header.css";
-import { Unbounded, Arimo } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { Unbounded, Arimo } from 'next/font/google';
+import './globals.css';
+import { Toast } from '@/components/library/Toast';
 
 // Configuration de Unbounded
 const unbounded = Unbounded({
@@ -27,14 +27,15 @@ export default function RootLayout({
 }: {
 	children: React.ReactNode;
 }) {
-	return (
-		<html lang="fr" className="dark">
-			{/* On applique les variables et la police par défaut (Arimo et Unbounded) */}
-			<body
-				className={`${unbounded.variable} ${arimo.variable} font-arimo antialiased bg-[#050505] text-white`}
-			>
-				<>{children}</>
-			</body>
-		</html>
-	);
+    return (
+        <html lang="fr" className="dark">
+            {/* On applique les variables et la police par défaut (Arimo et Unbounded) */}
+            <body
+                className={`${unbounded.variable} ${arimo.variable} font-arimo antialiased bg-[#050505] text-white`}
+            >
+                <>{children}</>
+                <Toast />
+            </body>
+        </html>
+    );
 }

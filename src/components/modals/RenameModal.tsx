@@ -2,37 +2,45 @@
 
 import { useState, useEffect } from "react";
 import { X, Edit2 } from "lucide-react";
-import { renameSong } from "@/lib/songStore";
 
 interface RenameModalProps {
     isOpen: boolean;
     onClose: () => void;
-    songId: string;
-    initialTitle: string;
+    title: string;
+    label: string;
+    placeholder: string;
+    initialValue: string;
+    onSave: (newValue: string) => void;
 }
 
-export const RenameModal = ({ isOpen, onClose, songId, initialTitle }: RenameModalProps) => {
-    const [title, setTitle] = useState(initialTitle);
+export const RenameModal = ({
+    isOpen,
+    onClose,
+    title,
+    label,
+    placeholder,
+    initialValue,
+    onSave,
+}: RenameModalProps) => {
+    const [value, setValue] = useState(initialValue);
 
     useEffect(() => {
         if (isOpen) {
-            setTitle(initialTitle);
+            setValue(initialValue);
         }
-    }, [isOpen, initialTitle]);
+    }, [isOpen, initialValue]);
 
     if (!isOpen) return null;
 
-    const handleSave = (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (title.trim()) {
-            renameSong(songId, title.trim());
-            // Dispatch a toast event
-            window.dispatchEvent(new CustomEvent("show-nara-toast", {
-                detail: { message: `Song renamed to "${title.trim()}"` }
-            }));
+        if (value.trim()) {
+            onSave(value.trim());
             onClose();
         }
     };
+
+    const inputId = `rename-input-${label.toLowerCase().replace(/\s+/g, "-")}`;
 
     return (
         <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-[100] flex items-center justify-center p-4">
@@ -51,23 +59,26 @@ export const RenameModal = ({ isOpen, onClose, songId, initialTitle }: RenameMod
                         <Edit2 size={18} />
                     </div>
                     <h3 className="font-syne font-bold text-white text-base">
-                        Rename song
+                        {title}
                     </h3>
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSave}>
+                <form onSubmit={handleSubmit}>
                     <div className="mb-6">
-                        <label htmlFor="song-title-input" className="block text-neutral-500 text-[10px] font-bold uppercase tracking-wider mb-2">
-                            Song Title
+                        <label
+                            htmlFor={inputId}
+                            className="block text-neutral-500 text-[10px] font-bold uppercase tracking-wider mb-2"
+                        >
+                            {label}
                         </label>
                         <input
-                            id="song-title-input"
+                            id={inputId}
                             type="text"
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
+                            value={value}
+                            onChange={(e) => setValue(e.target.value)}
                             className="w-full bg-[#151515] border border-neutral-800/80 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-neutral-600 transition-colors"
-                            placeholder="Enter song title"
+                            placeholder={placeholder}
                             autoFocus
                         />
                     </div>
