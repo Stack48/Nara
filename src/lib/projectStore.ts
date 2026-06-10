@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 
 // Cover images imports
 import lgseo from "@/assets/cover/lgseo.png";
-import america from "@/assets/cover/america.jpg";
 import mrclean from "@/assets/cover/mrclean.jpg";
 import aquemini from "@/assets/cover/aquemini.jpg";
 import infamous from "@/assets/cover/infamous.jpg";
@@ -14,7 +13,6 @@ import whocoppin from "@/assets/cover/whocoppin.jpg";
 
 export const PROJECT_IMAGES: { [key: string]: any } = {
     Let_God_Sort_Em_Out: lgseo,
-    This_Is_America: america,
     Mr_Clean_Modern_Day_Mugging: mrclean,
     Aquemini: aquemini,
     The_Infamous: infamous,
@@ -38,6 +36,11 @@ export interface Project {
     image: any;
     isFavorite: boolean;
     isDeleted: boolean;
+    isPermanentlyDeleted?: boolean;
+    isShared?: boolean;
+    owner?: string;
+    description?: string;
+    collaboratorsList?: string[];
 }
 
 const STATIC_PROJECTS = [
@@ -54,8 +57,8 @@ const STATIC_PROJECTS = [
         imageKey: "Let_God_Sort_Em_Out",
     },
     {
-        id: "This_Is_America",
-        title: "This Is America",
+        id: "June5",
+        title: "June5",
         type: "Single",
         collabs: 0,
         state: "Terminé",
@@ -63,7 +66,7 @@ const STATIC_PROJECTS = [
         created: "10 days ago",
         lastModifiedDate: new Date(Date.now() - 10 * 60 * 1000),
         createdDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
-        imageKey: "This_Is_America",
+        imageKey: "",
     },
     {
         id: "Mr_Clean_Modern_Day_Mugging",
@@ -88,6 +91,7 @@ const STATIC_PROJECTS = [
         lastModifiedDate: new Date(Date.now() - 2 * 60 * 60 * 1000),
         createdDate: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
         imageKey: "Aquemini",
+        isDeleted: true,
     },
     {
         id: "The_Infamous",
@@ -105,13 +109,16 @@ const STATIC_PROJECTS = [
         id: "Alfredo_2",
         title: "Alfredo 2",
         type: "Album",
-        collabs: 0,
+        collabs: 5,
         state: "En cours",
         lastModified: "2 days ago",
-        created: "1.5 months ago",
+        created: "2 months ago",
         lastModifiedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-        createdDate: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000),
+        createdDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
         imageKey: "Alfredo_2",
+        isDeleted: false,
+        isShared: true,
+        owner: "Tim Duncan",
     },
     {
         id: "Microphone_Champion",
@@ -156,6 +163,12 @@ interface StoredProjects {
         imageKey: string;
         isFavorite: boolean;
         isDeleted: boolean;
+        isPermanentlyDeleted?: boolean;
+        isShared?: boolean;
+        owner?: string;
+        description?: string;
+        image?: string;
+        collaboratorsList?: string[];
     };
 }
 
@@ -165,7 +178,9 @@ const getSongsCountForProject = (projectId: string): number => {
     if (!stored) return 0;
     try {
         const mappings = JSON.parse(stored);
-        return Object.values(mappings).filter((song: any) => song.projectId === projectId && !song.isDeleted).length;
+        return Object.values(mappings).filter(
+            (song: any) => song.projectId === projectId && !song.isDeleted,
+        ).length;
     } catch {
         return 0;
     }
@@ -176,15 +191,8 @@ export const getProjectsFromStorage = (): StoredProjects => {
         return {};
     }
     const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (stored) {
-        try {
-            return JSON.parse(stored);
-        } catch (e) {
-            console.error("Failed to parse local storage projects", e);
-        }
-    }
 
-    // Default initial storage creation
+    // Default initial projects structure from STATIC_PROJECTS
     const initialProjects: StoredProjects = {};
     STATIC_PROJECTS.forEach((proj) => {
         initialProjects[proj.id] = {
@@ -199,9 +207,98 @@ export const getProjectsFromStorage = (): StoredProjects => {
             createdDate: proj.createdDate.toISOString(),
             imageKey: proj.imageKey,
             isFavorite: false,
-            isDeleted: false,
+            isDeleted: (proj as any).isDeleted || false,
+            isShared: (proj as any).isShared || false,
+            owner: (proj as any).owner || "",
+            description: "",
+            image: "",
+            collaboratorsList: [
+                "Ray Allen",
+                "Tim Duncan",
+                "Udonis Haslem",
+                "Tracy McGrady",
+                "Kobe Bryant",
+                "Allen Iverson",
+            ].slice(0, proj.collabs),
         };
     });
+
+    if (stored) {
+        try {
+            const parsed = JSON.parse(stored);
+
+            // Sync static project updates (like collabs, created, lastModified, owner, type, state) from STATIC_PROJECTS code
+            // while preserving user interaction fields (isFavorite, isDeleted)
+            Object.keys(initialProjects).forEach((id) => {
+                if (parsed[id]) {
+                    const finalCollabsList =
+                        parsed[id].collaboratorsList !== undefined &&
+                        parsed[id].collaboratorsList.length > 0
+                            ? parsed[id].collaboratorsList
+                            : [
+                                  "Ray Allen",
+                                  "Tim Duncan",
+                                  "Udonis Haslem",
+                                  "Tracy McGrady",
+                                  "Kobe Bryant",
+                                  "Allen Iverson",
+                              ].slice(0, initialProjects[id].collabs);
+
+                    parsed[id] = {
+                        ...parsed[id],
+                        title: initialProjects[id].title,
+                        type: initialProjects[id].type,
+                        collabs: finalCollabsList.length,
+                        state: initialProjects[id].state,
+                        lastModified: initialProjects[id].lastModified,
+                        created: initialProjects[id].created,
+                        lastModifiedDate: initialProjects[id].lastModifiedDate,
+                        createdDate: initialProjects[id].createdDate,
+                        imageKey: initialProjects[id].imageKey,
+                        isShared: initialProjects[id].isShared,
+                        owner: initialProjects[id].owner,
+                        description:
+                            parsed[id].description !== undefined
+                                ? parsed[id].description
+                                : "",
+                        image:
+                            parsed[id].image !== undefined
+                                ? parsed[id].image
+                                : "",
+                        collaboratorsList: finalCollabsList,
+                    };
+                } else {
+                    parsed[id] = initialProjects[id];
+                }
+            });
+
+            // Perform migrations if needed
+            if (
+                parsed["Aquemini"] &&
+                parsed["Aquemini"].isDeleted !== true &&
+                !localStorage.getItem("aquemini_migrated")
+            ) {
+                parsed["Aquemini"].isDeleted = true;
+                localStorage.setItem("aquemini_migrated", "true");
+            }
+            if (
+                parsed["Alfredo_2"] &&
+                !localStorage.getItem("alfredo2_shared_migrated")
+            ) {
+                parsed["Alfredo_2"].isDeleted = false;
+                parsed["Alfredo_2"].isShared = true;
+                parsed["Alfredo_2"].owner = "Tim Duncan";
+                parsed["Alfredo_2"].type = "Album";
+                localStorage.setItem("alfredo2_shared_migrated", "true");
+            }
+
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(parsed));
+            return parsed;
+        } catch (e) {
+            console.error("Failed to parse local storage projects", e);
+        }
+    }
+
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(initialProjects));
     return initialProjects;
 };
@@ -223,7 +320,7 @@ export const setProjectDeleted = (projectId: string, isDeleted: boolean) => {
         current[projectId].isDeleted = isDeleted;
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(current));
         window.dispatchEvent(new CustomEvent(EVENT_NAME));
-        
+
         // Also trigger sidebar project updates event
         window.dispatchEvent(new CustomEvent("song-project-updated"));
     }
@@ -236,17 +333,47 @@ export const renameProject = (projectId: string, newTitle: string) => {
         current[projectId].title = newTitle;
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(current));
         window.dispatchEvent(new CustomEvent(EVENT_NAME));
-        
+
         // Dispatch update song event too so songs in this project reflect name change
         window.dispatchEvent(new CustomEvent("song-project-updated"));
     }
 };
 
-export const createProject = (title: string, type: "Album" | "EP" | "Single") => {
+export const updateProjectDetails = (
+    projectId: string,
+    details: {
+        title?: string;
+        image?: string;
+        description?: string;
+        state?: string;
+        type?: string;
+        collaboratorsList?: string[];
+    },
+) => {
+    if (typeof window === "undefined") return;
+    const current = getProjectsFromStorage();
+    if (current[projectId]) {
+        current[projectId] = {
+            ...current[projectId],
+            ...details,
+        };
+        if (details.title) {
+            current[projectId].title = details.title;
+        }
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(current));
+        window.dispatchEvent(new CustomEvent(EVENT_NAME));
+        window.dispatchEvent(new CustomEvent("song-project-updated"));
+    }
+};
+
+export const createProject = (
+    title: string,
+    type: "Album" | "EP" | "Single",
+) => {
     if (typeof window === "undefined") return;
     const current = getProjectsFromStorage();
     const id = title.replace(/\s+/g, "_");
-    
+
     current[id] = {
         id,
         title,
@@ -257,11 +384,11 @@ export const createProject = (title: string, type: "Album" | "EP" | "Single") =>
         created: "Just now",
         lastModifiedDate: new Date().toISOString(),
         createdDate: new Date().toISOString(),
-        imageKey: "Let_God_Sort_Em_Out", // fallback cover art preset
+        imageKey: "", // fallback cover art preset
         isFavorite: false,
         isDeleted: false,
     };
-    
+
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(current));
     window.dispatchEvent(new CustomEvent(EVENT_NAME));
     window.dispatchEvent(new CustomEvent("song-project-updated"));
@@ -279,23 +406,45 @@ export const useProjects = (): Project[] => {
     useEffect(() => {
         const updateProjectsList = () => {
             const stored = getProjectsFromStorage();
-            const list: Project[] = Object.values(stored).map((proj) => {
+            const list: Project[] = Object.values(stored)
+                .filter((proj: any) => !proj.isPermanentlyDeleted)
+                .map((proj) => {
                 const songsCount = getSongsCountForProject(proj.id);
+                const mappingCollabs =
+                    proj.collaboratorsList && proj.collaboratorsList.length > 0
+                        ? proj.collaboratorsList
+                        : [
+                              "Ray Allen",
+                              "Tim Duncan",
+                              "Udonis Haslem",
+                              "Tracy McGrady",
+                              "Kobe Bryant",
+                              "Allen Iverson",
+                          ].slice(0, proj.collabs);
+
                 return {
                     id: proj.id,
                     title: proj.title,
                     type: proj.type,
                     songsCount,
-                    collabs: proj.collabs,
+                    collabs: mappingCollabs.length,
                     state: proj.state,
                     lastModified: proj.lastModified,
                     created: proj.created,
                     lastModifiedDate: new Date(proj.lastModifiedDate),
                     createdDate: new Date(proj.createdDate),
                     imageKey: proj.imageKey,
-                    image: PROJECT_IMAGES[proj.imageKey] || lgseo,
+                    image: proj.image
+                        ? proj.image
+                        : proj.imageKey
+                          ? PROJECT_IMAGES[proj.imageKey] || null
+                          : null,
                     isFavorite: !!proj.isFavorite,
                     isDeleted: !!proj.isDeleted,
+                    isShared: !!proj.isShared,
+                    owner: proj.owner || "",
+                    description: proj.description || "",
+                    collaboratorsList: mappingCollabs,
                 };
             });
             setProjects(list);
@@ -305,12 +454,27 @@ export const useProjects = (): Project[] => {
 
         window.addEventListener(EVENT_NAME, updateProjectsList);
         window.addEventListener("song-project-updated", updateProjectsList); // Listen to song updates to update song counts!
-        
+
         return () => {
             window.removeEventListener(EVENT_NAME, updateProjectsList);
-            window.removeEventListener("song-project-updated", updateProjectsList);
+            window.removeEventListener(
+                "song-project-updated",
+                updateProjectsList,
+            );
         };
     }, []);
 
     return projects;
+};
+
+export const deleteProjectPermanently = (projectId: string) => {
+    if (typeof window === "undefined") return;
+
+    const current = getProjectsFromStorage();
+    if (current[projectId]) {
+        current[projectId].isPermanentlyDeleted = true;
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(current));
+        window.dispatchEvent(new CustomEvent(EVENT_NAME));
+        window.dispatchEvent(new CustomEvent("song-project-updated"));
+    }
 };

@@ -9,9 +9,24 @@ datasource db {
 
 enum Role {
   ADMIN
-  LEAD_PAROLIER
-  PAROLIER
-  LECTURE_SEULE
+  LEAD_LYRICIST
+  LYRICIST
+  READONLY
+}
+
+enum SectionType {
+  COUPLET
+  REFRAIN
+  PONT
+  INTRO
+  OUTRO
+  BRIDGE
+}
+
+enum SuggestionStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum SectionType {
@@ -30,19 +45,25 @@ enum SuggestionStatus {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  cognitoId     String   @unique
-  email         String   @unique
-  name          String?
-  username      String?  @unique
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id             String   @id @default(cuid())
+  cognitoId      String   @unique @default("")
+  email          String   @unique
+  name           String?
+  username       String?  @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  memberships   ProjectMember[]
-  invitations   Invitation[]
-  ownedProjects Project[]       @relation("OwnedProjects")
-  lyrics        Lyrics[]
-  suggestions   Suggestion[]
+  memberships    ProjectMember[]
+  invitations    Invitation[]
+  ownedProjects  Project[]            @relation("OwnedProjects")
+  lyrics         Lyrics[]
+  suggestions    Suggestion[]
+  lyricVersions  LyricVersion[]
+  files          File[]
+  auditLogs      AuditLog[]
+  rgpdConsent    RgpdConsent?
+  markers        AudioMarker[]
+  passwordResets PasswordResetRequest[]
   lyricVersions LyricVersion[]
 }
 
@@ -60,11 +81,13 @@ model Project {
   members     ProjectMember[]
   invitations Invitation[]
   lyrics      Lyrics[]
+  files       File[]
+  labelCopies LabelCopy[]
 }
 
 model ProjectMember {
   id        String   @id @default(cuid())
-  role      Role     @default(PAROLIER)
+  role      Role     @default(LYRICIST)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -79,7 +102,7 @@ model ProjectMember {
 model Invitation {
   id        String   @id @default(cuid())
   email     String
-  role      Role     @default(PAROLIER)
+  role      Role     @default(LYRICIST)
   token     String   @unique @default(cuid())
   accepted  Boolean  @default(false)
   createdAt DateTime @default(now())
@@ -106,6 +129,11 @@ model Lyrics {
   author      User         @relation(fields: [authorId], references: [id])
   suggestions Suggestion[]
   versions    LyricVersion[]
+  project     Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  author      User           @relation(fields: [authorId], references: [id])
+  suggestions Suggestion[]
+  versions    LyricVersion[]
+  markers     AudioMarker[]
 }
 
 model Suggestion {
