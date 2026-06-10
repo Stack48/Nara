@@ -5,27 +5,27 @@ import { Toast } from '@/components/library/Toast';
 
 // Configuration de Unbounded
 const unbounded = Unbounded({
-  subsets: ['latin'],
-  variable: '--font-unbounded',
-  weight: ['300', '400', '500', '600', '700', '800', '900'],
+	subsets: ["latin"],
+	variable: "--font-unbounded",
+	weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
 // Configuration d'Arimo
 const arimo = Arimo({
-    subsets: ["latin"],
-    variable: "--font-arimo", // Le nom qu'on a mis dans le CSS
-    weight: ["400", "500", "600", "700"],
+	subsets: ["latin"],
+	variable: "--font-arimo", // Le nom qu'on a mis dans le CSS
+	weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
-    title: "Nara",
-    description: "Ton prochain hit mérite mieux qu'un brouillon perdu.",
+	title: "Nara",
+	description: "Ton prochain hit mérite mieux qu'un brouillon perdu.",
 };
 
 export default function RootLayout({
-    children,
+	children,
 }: {
-    children: React.ReactNode;
+	children: React.ReactNode;
 }) {
     return (
         <html lang="fr" className="dark">
