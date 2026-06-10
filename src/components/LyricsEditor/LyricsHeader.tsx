@@ -6,9 +6,9 @@ import {
 	AlignRight,
 	Badge,
 	Bold,
+	Check,
 	ChevronDown,
 	Disc,
-	Focus,
 	Italic,
 	PanelLeftClose,
 	PanelLeftOpen,
@@ -28,8 +28,6 @@ import {
 	type ReactElement,
 } from "react";
 
-export type TextAlign = "left" | "center" | "right";
-
 export type LyricsFormat = {
 	fontFamily: string;
 	fontSize: string;
@@ -38,7 +36,7 @@ export type LyricsFormat = {
 	italic: boolean;
 	strike: boolean;
 	underline: boolean;
-	align: TextAlign;
+	align: "left" | "center" | "right";
 	textColor: string;
 	textOpacity: number;
 	showTrackPanel: boolean;
@@ -100,7 +98,6 @@ const fontOptions: SelectOption[] = [
 	{ label: "Arimo", value: "Arimo" },
 	{ label: "Syne", value: "Syne" },
 	{ label: "Arial", value: "Arial" },
-	{ label: "Georgia", value: "Georgia" },
 ];
 
 const fontSizeOptions: SelectOption[] = [
@@ -370,50 +367,117 @@ function ToolbarSelect({
 	widthClassName,
 	onChange,
 }: ToolbarSelectProps): ReactElement {
-	function handleChange(event: ChangeEvent<HTMLSelectElement>): void {
-		onChange(event.target.value);
+	const [isOpen, setIsOpen] = useState<boolean>(false);
+	const containerRef = useRef<HTMLDivElement | null>(null);
+
+	useEffect((): void | (() => void) => {
+		if (!isOpen) {
+			return;
+		}
+
+		function handleOutside(event: Event): void {
+			if (
+				containerRef.current &&
+				!containerRef.current.contains(event.target as Node)
+			) {
+				setIsOpen(false);
+			}
+		}
+
+		document.addEventListener("mousedown", handleOutside);
+		return (): void =>
+			document.removeEventListener("mousedown", handleOutside);
+	}, [isOpen]);
+
+	const selectedLabel: string =
+		options.find((option: SelectOption): boolean => option.value === value)
+			?.label ?? value;
+
+	function fontStyleFor(optionValue: string): CSSProperties | undefined {
+		if (!previewFont) {
+			return undefined;
+		}
+
+		return {
+			fontFamily:
+				optionValue === "Arimo" ? "Arimo, sans-serif" : optionValue,
+		};
 	}
 
 	return (
-		<label
-			className={`relative inline-flex h-7 items-center ${widthClassName}`}
+		<div
+			ref={containerRef}
+			className={`relative inline-flex h-full items-center ${widthClassName} w-full`}
 		>
-			<span className="sr-only">{ariaLabel}</span>
-			<select
+			<button
+				type="button"
 				aria-label={ariaLabel}
-				value={value}
-				onChange={handleChange}
-				className="h-full w-full appearance-none rounded-[4px] bg-transparent pl-0 pr-4 text-[13px] font-semibold leading-none text-[#F3F4F6] outline-none transition-colors hover:text-white focus-visible:bg-[#24242A]"
-				style={
-					previewFont
-						? {
-								fontFamily:
-									value === "Arimo"
-										? "Arimo, sans-serif"
-										: value,
-							}
-						: undefined
+				aria-haspopup="listbox"
+				aria-expanded={isOpen}
+				onMouseDown={(event: MouseEvent<HTMLButtonElement>): void =>
+					event.preventDefault()
 				}
+				onClick={(): void =>
+					setIsOpen((current: boolean): boolean => !current)
+				}
+				className="flex h-full w-full items-center justify-between gap-1 rounded-lg bg-[#24242A] py-2 pl-2.5 pr-2 text-[13px] font-semibold leading-none text-[#F3F4F6] outline-none transition-colors hover:bg-[#2C2C32] focus-visible:bg-[#2C2C32]"
+				style={fontStyleFor(value)}
 			>
-				{options.map(
-					(option: SelectOption): ReactElement => (
-						<option
-							key={option.value}
-							value={option.value}
-							className="bg-[#17171C] text-[#F3F4F6]"
-						>
-							{option.label}
-						</option>
-					),
-				)}
-			</select>
-			<ChevronDown
-				aria-hidden="true"
-				size={11}
-				strokeWidth={2}
-				className="pointer-events-none absolute right-0 text-[#F3F4F6]"
-			/>
-		</label>
+				<span className="truncate">{selectedLabel}</span>
+				<ChevronDown
+					aria-hidden="true"
+					size={11}
+					strokeWidth={2}
+					className={`shrink-0 text-[#A1A1AA] transition-transform duration-200 ${
+						isOpen ? "rotate-180" : ""
+					}`}
+				/>
+			</button>
+
+			{isOpen && (
+				<div
+					role="listbox"
+					className="absolute left-0 top-[calc(100%+6px)] z-[100] min-w-full overflow-hidden rounded-xl border border-white/[0.08] bg-[#141418]/90 py-1  backdrop-blur-2xl backdrop-saturate-150"
+				>
+					{options.map((option: SelectOption): ReactElement => {
+						const isSelected: boolean = option.value === value;
+
+						return (
+							<button
+								key={option.value}
+								type="button"
+								role="option"
+								aria-selected={isSelected}
+								onMouseDown={(
+									event: MouseEvent<HTMLButtonElement>,
+								): void => event.preventDefault()}
+								onClick={(): void => {
+									onChange(option.value);
+									setIsOpen(false);
+								}}
+								className={`flex w-full items-center gap-2 whitespace-nowrap px-3 py-1.5 text-left text-[13px] font-medium transition-colors ${
+									isSelected
+										? "bg-[#DA069A]/15 text-white"
+										: "text-[#D9D9DE] hover:bg-white/[0.06]"
+								}`}
+								style={fontStyleFor(option.value)}
+							>
+								<span className="flex-1 truncate">
+									{option.label}
+								</span>
+								{isSelected && (
+									<Check
+										size={12}
+										strokeWidth={2.5}
+										className="shrink-0 text-[#DA069A]"
+									/>
+								)}
+							</button>
+						);
+					})}
+				</div>
+			)}
+		</div>
 	);
 }
 
@@ -1289,27 +1353,6 @@ export default function LyricsHeader({
 		},
 	];
 
-	const alignTools: ToolbarButton[] = [
-		{
-			label: "Align left",
-			icon: AlignLeft,
-			active: format.align === "left",
-			onClick: () => onFormatChange({ align: "left" }),
-		},
-		{
-			label: "Align center",
-			icon: AlignCenter,
-			active: format.align === "center",
-			onClick: () => onFormatChange({ align: "center" }),
-		},
-		{
-			label: "Align right",
-			icon: AlignRight,
-			active: format.align === "right",
-			onClick: () => onFormatChange({ align: "right" }),
-		},
-	];
-
 	const rightTools: ToolbarButton[] = [
 		{
 			label: "Piste",
@@ -1325,16 +1368,6 @@ export default function LyricsHeader({
 			onClick: () =>
 				onFormatChange({
 					showInspectorTools: !format.showInspectorTools,
-				}),
-		},
-		{
-			label: "Mode focus",
-			icon: Focus,
-			active: format.focusMode,
-			onClick: () =>
-				onFormatChange({
-					focusMode: !format.focusMode,
-					hideAppChrome: false,
 				}),
 		},
 		...(format.focusMode
@@ -1359,105 +1392,97 @@ export default function LyricsHeader({
 	return (
 		<header
 			data-lyrics-header="true"
-			className="relative z-[90] flex h-8 w-full items-center justify-between overflow-visible border-b border-[var(--nara-border)] bg-[var(--nara-surface)] px-5 text-[var(--nara-text-primary)]"
+			className="relative z-[90] flex w-full h-16 justify-center items-center bg-[#0D0D10]/70 backdrop-blur-2xl backdrop-saturate-150 px-2 py-2 text-[var(--nara-text-primary)] rounded-2xl"
 		>
-			<div className="flex min-w-0 items-center gap-3">
-				<ToolbarSelect
-					ariaLabel="Font family"
-					previewFont
-					options={fontOptions}
-					value={format.fontFamily}
-					widthClassName="w-[66px]"
-					onChange={(fontFamily: string): void => {
-						onFormatChange({ fontFamily });
-					}}
-				/>
-
-				<ToolbarSelect
-					ariaLabel="Font size"
-					options={fontSizeOptions}
-					value={format.fontSize}
-					widthClassName="w-[38px]"
-					onChange={(fontSize: string): void => {
-						onFormatChange({ fontSize });
-					}}
-				/>
-
-				<ToolbarSeparator />
-
-				<div className="flex items-center gap-0.5">
-					{textTools.map(
-						(tool: ToolbarButton): ReactElement => (
-							<IconButton key={tool.label} {...tool} />
-						),
-					)}
-				</div>
-
-				<ToolbarSeparator />
-
-				<div ref={colorPickerRef} className="relative">
-					<button
-						type="button"
-						aria-label="Text color"
-						aria-expanded={isColorPickerOpen}
-						onMouseDown={(
-							event: MouseEvent<HTMLButtonElement>,
-						): void => event.preventDefault()}
-						onClick={(): void => {
-							setIsColorPickerOpen(
-								(currentValue: boolean): boolean =>
-									!currentValue,
-							);
+			<div className="flex h-8 w-full items-center justify-between gap-2 overflow-visible rounded-[8px] px-2">
+				<div className="flex min-w-0 items-center gap-3">
+					<ToolbarSelect
+						ariaLabel="Font family"
+						previewFont
+						options={fontOptions}
+						value={format.fontFamily}
+						widthClassName="w-[66px]"
+						onChange={(fontFamily: string): void => {
+							onFormatChange({ fontFamily });
 						}}
-						className={`inline-flex h-7 w-7 items-center justify-center rounded-[5px] transition-colors hover:bg-[#24242A] ${
-							isColorPickerOpen ? "bg-[#2C2C32]" : ""
-						}`}
-					>
-						<span
-							className="h-[18px] w-[18px] rounded-[5px] border border-[var(--nara-color-swatch-border)]"
-							style={{ backgroundColor: textColorCss }}
-						/>
-					</button>
-					{isColorPickerOpen && (
-						<ColorPickerPopover
-							color={format.textColor}
-							opacity={format.textOpacity}
-							onChange={(patch): void => {
-								onFormatChange(patch);
+					/>
+
+					<ToolbarSelect
+						ariaLabel="Font size"
+						options={fontSizeOptions}
+						value={format.fontSize}
+						widthClassName="w-[38px]"
+						onChange={(fontSize: string): void => {
+							onFormatChange({ fontSize });
+						}}
+					/>
+
+					<ToolbarSeparator />
+
+					<div className="flex items-center gap-0.5">
+						{textTools.map(
+							(tool: ToolbarButton): ReactElement => (
+								<IconButton key={tool.label} {...tool} />
+							),
+						)}
+					</div>
+
+					<ToolbarSeparator />
+
+					<div ref={colorPickerRef} className="relative">
+						<button
+							type="button"
+							aria-label="Text color"
+							aria-expanded={isColorPickerOpen}
+							onMouseDown={(
+								event: MouseEvent<HTMLButtonElement>,
+							): void => event.preventDefault()}
+							onClick={(): void => {
+								setIsColorPickerOpen(
+									(currentValue: boolean): boolean =>
+										!currentValue,
+								);
 							}}
-						/>
-					)}
+							className={`inline-flex h-7 w-7 items-center justify-center rounded-[5px] transition-colors hover:bg-[#24242A] ${
+								isColorPickerOpen ? "bg-[#2C2C32]" : ""
+							}`}
+						>
+							<span
+								className="h-[18px] w-[18px] rounded-[5px] border border-[var(--nara-color-swatch-border)]"
+								style={{ backgroundColor: textColorCss }}
+							/>
+						</button>
+						{isColorPickerOpen && (
+							<ColorPickerPopover
+								color={format.textColor}
+								opacity={format.textOpacity}
+								onChange={(patch): void => {
+									onFormatChange(patch);
+								}}
+							/>
+						)}
+					</div>
+
+					<ToolbarSeparator />
+
+					<ToolbarSelect
+						ariaLabel="Block size"
+						options={blockSizeOptions}
+						value={format.blockSize}
+						widthClassName="w-[58px]"
+						onChange={(blockSize: string): void => {
+							onFormatChange({ blockSize });
+						}}
+					/>
 				</div>
 
-				<ToolbarSeparator />
-
-				<div className="flex items-center gap-0.5">
-					{alignTools.map(
+				<div className="flex items-center gap-1">
+					{rightTools.map(
 						(tool: ToolbarButton): ReactElement => (
 							<IconButton key={tool.label} {...tool} />
 						),
 					)}
 				</div>
-
-				<ToolbarSeparator />
-
-				<ToolbarSelect
-					ariaLabel="Block size"
-					options={blockSizeOptions}
-					value={format.blockSize}
-					widthClassName="w-[58px]"
-					onChange={(blockSize: string): void => {
-						onFormatChange({ blockSize });
-					}}
-				/>
-			</div>
-
-			<div className="flex items-center gap-1">
-				{rightTools.map(
-					(tool: ToolbarButton): ReactElement => (
-						<IconButton key={tool.label} {...tool} />
-					),
-				)}
 			</div>
 		</header>
 	);

@@ -76,7 +76,7 @@ async function fetchDicoLink(
 						}
 						return null;
 					})
-					.filter(Boolean)
+					.filter((x): x is string => x !== null)
 			: [];
 
 		return {

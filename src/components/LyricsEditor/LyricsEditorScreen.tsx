@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState, type ReactElement } from "react";
-import LyricsEditorWorkspaceTiptap from "@/components/lyricsEditor/LyricsEditorWorkspaceTiptap";
+import LyricsEditorWorkspace from "@/components/LyricsEditor/LyricsEditorWorkspace";
 import LyricsHeader, {
 	type LyricsFormat,
-} from "@/components/lyricsEditor/LyricsHeader";
+} from "@/components/LyricsEditor/LyricsHeader";
 
 const initialFormat: LyricsFormat = {
 	fontFamily: "Arimo",
@@ -17,13 +17,13 @@ const initialFormat: LyricsFormat = {
 	align: "left",
 	textColor: "#F3F4F6",
 	textOpacity: 100,
-	showTrackPanel: false,
+	showTrackPanel: true,
 	showInspectorTools: true,
-	focusMode: false,
-	hideAppChrome: false,
+	focusMode: true, // Default to true in V2!
+	hideAppChrome: true, // Default to hide sidebar navigation in Focus Mode V2!
 	rhymes: false,
 	annotation: false,
-	syllables: true,
+	syllables: false,
 };
 
 export default function LyricsEditorScreen(): ReactElement {
@@ -59,9 +59,14 @@ export default function LyricsEditorScreen(): ReactElement {
 	}
 
 	return (
-		<section className="flex h-full w-full min-h-0 flex-1 flex-col overflow-hidden ">
-			<LyricsHeader format={format} onFormatChange={handleFormatChange} />
-			<LyricsEditorWorkspaceTiptap
+		<section className="flex h-full w-full min-h-0 flex-1 flex-col overflow-hidden relative">
+			<div className="absolute top-0 z-90 w-full">
+				<LyricsHeader
+					format={format}
+					onFormatChange={handleFormatChange}
+				/>
+			</div>
+			<LyricsEditorWorkspace
 				format={format}
 				onFormatChange={handleFormatChange}
 			/>

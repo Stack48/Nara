@@ -9,16 +9,22 @@ export function useLinguistic(panel: Panel) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const search = useCallback(async (word: string) => {
+  const search = useCallback(async (
+    word: string,
+    filters?: { syllables?: number | null; category?: string | null },
+  ) => {
     if (!word.trim()) return;
 
     setLoading(true);
     setError(null);
 
     const endpoint = panel === 'lexical' ? 'lexical-field' : panel;
+    const query = new URLSearchParams({ word });
+    if (filters?.syllables != null) query.set('syllables', String(filters.syllables));
+    if (filters?.category) query.set('category', filters.category);
 
     try {
-      const res = await fetch(`/api/linguistic/${endpoint}?word=${encodeURIComponent(word)}`);
+      const res = await fetch(`/api/linguistic/${endpoint}?${query.toString()}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       setData(json);

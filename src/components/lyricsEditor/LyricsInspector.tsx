@@ -4,6 +4,7 @@ import {
 	AudioWaveform,
 	Bot,
 	ChevronRight,
+	ChevronDown,
 	MoreHorizontal,
 	Shuffle,
 	Sparkles,
@@ -20,6 +21,7 @@ import {
 	type ReactElement,
 } from "react";
 import { useLinguistic } from "@/hooks/useLinguistic";
+import { useRef } from "react";
 
 export type LyricsInspectorPanelId =
 	| "rhymes"
@@ -30,6 +32,11 @@ export type LyricsInspectorPanelId =
 export type LyricsInspectorField = {
 	label: string;
 	value: string;
+};
+
+export type PanelFilters = {
+	syllables: number | null;
+	category: string | null;
 };
 
 export type LyricsInspectorPanel = {
@@ -70,6 +77,18 @@ export type LyricsInspectorProps = {
 
 export const defaultLyricsInspectorPanels: LyricsInspectorPanel[] = [
 	{
+		id: "lexical",
+		title: "Champs lexical",
+		icon: Sparkles,
+		railIcon: Bot,
+		fields: [
+			{ label: "Theme", value: "La mer" },
+			{ label: "Syllabes", value: "" },
+			{ label: "Category", value: "" },
+		],
+		chips: ["Vague", "Ocean", "Rivage"],
+	},
+	{
 		id: "rhymes",
 		title: "Rimes",
 		icon: AudioWaveform,
@@ -84,7 +103,11 @@ export const defaultLyricsInspectorPanels: LyricsInspectorPanel[] = [
 		id: "synonyms",
 		title: "Synonymes",
 		icon: Shuffle,
-		fields: [{ label: "Mot", value: "ecrire" }],
+		fields: [
+			{ label: "Mot", value: "ecrire" },
+			{ label: "Syllabes", value: "" },
+			{ label: "Category", value: "" },
+		],
 		chips: ["Rediger", "Composer", "inscrire"],
 	},
 	{
@@ -92,16 +115,12 @@ export const defaultLyricsInspectorPanels: LyricsInspectorPanel[] = [
 		title: "Antonymes",
 		icon: Shuffle,
 		railIcon: Sparkles,
-		fields: [{ label: "Mot", value: "ecrire" }],
+		fields: [
+			{ label: "Mot", value: "ecrire" },
+			{ label: "Syllabes", value: "" },
+			{ label: "Category", value: "" },
+		],
 		chips: ["Annihiler", "annuler", "biffer"],
-	},
-	{
-		id: "lexical",
-		title: "Champs lexical",
-		icon: Sparkles,
-		railIcon: Bot,
-		fields: [{ label: "Theme", value: "La mer" }],
-		chips: ["Vague", "Ocean", "Rivage"],
 	},
 ];
 
@@ -182,12 +201,126 @@ function applyLookupTermToTargetFields(
 	return nextValues;
 }
 
+type InspectorSelectOption = {
+	label: string;
+	value: string;
+};
+
+function InspectorSelect({
+	options,
+	value,
+	onChange,
+}: {
+	options: InspectorSelectOption[];
+	value: string;
+	onChange: (value: string) => void;
+}): ReactElement {
+	const [isOpen, setIsOpen] = useState<boolean>(false);
+	const containerRef = useRef<HTMLDivElement | null>(null);
+
+	useEffect((): void | (() => void) => {
+		if (!isOpen) {
+			return;
+		}
+
+		function handleOutside(event: Event): void {
+			if (
+				containerRef.current &&
+				!containerRef.current.contains(event.target as Node)
+			) {
+				setIsOpen(false);
+			}
+		}
+
+		document.addEventListener("mousedown", handleOutside);
+		return (): void =>
+			document.removeEventListener("mousedown", handleOutside);
+	}, [isOpen]);
+
+	const selectedLabel: string =
+		options.find((option: InspectorSelectOption): boolean => option.value === value)
+			?.label ?? value;
+
+	return (
+		<div
+			ref={containerRef}
+			className="relative inline-flex h-6.5 w-full items-center min-w-0"
+		>
+			<button
+				type="button"
+				aria-haspopup="listbox"
+				aria-expanded={isOpen}
+				onMouseDown={(event): void => event.preventDefault()}
+				onClick={(): void => setIsOpen((current) => !current)}
+				className="flex h-6.5 w-full items-center justify-between gap-1 rounded-[6px] border border-white/[0.08] bg-black/40 px-2 text-[11px] font-medium text-white/90 outline-none transition-all hover:bg-black/60 focus:border-[#DA069A] focus:ring-1 focus:ring-[#DA069A]/20"
+			>
+				<span className="truncate text-left">{selectedLabel}</span>
+				<ChevronDown
+					aria-hidden="true"
+					size={11}
+					strokeWidth={2}
+					className={`shrink-0 text-white/40 transition-transform duration-200 ${
+						isOpen ? "rotate-180" : ""
+					}`}
+				/>
+			</button>
+
+			{isOpen && (
+				<div
+					role="listbox"
+					className="absolute left-0 bottom-[calc(100%+6px)] z-[100] min-w-[120px] max-h-[160px] overflow-y-auto rounded-xl border border-white/[0.08] bg-[#141418]/95 py-1 shadow-[0_8px_30px_rgb(0,0,0,0.5)] backdrop-blur-2xl backdrop-saturate-150"
+					style={{
+						scrollbarWidth: "thin",
+						scrollbarColor: "rgba(255,255,255,0.08) transparent",
+					}}
+				>
+					{options.map((option: InspectorSelectOption): ReactElement => {
+						const isSelected: boolean = option.value === value;
+
+						return (
+							<button
+								key={option.value}
+								type="button"
+								role="option"
+								aria-selected={isSelected}
+								onMouseDown={(event): void => event.preventDefault()}
+								onClick={(): void => {
+									onChange(option.value);
+									setIsOpen(false);
+								}}
+								className={`flex w-full items-center gap-2 whitespace-nowrap px-2.5 py-1 text-left text-[11px] font-medium transition-colors cursor-pointer ${
+									isSelected
+										? "bg-[#DA069A]/15 text-white"
+										: "text-[#D9D9DE] hover:bg-white/[0.06]"
+								}`}
+							>
+								<span className="flex-1 truncate">
+									{option.label}
+								</span>
+								{isSelected && (
+									<Check
+										size={10}
+										strokeWidth={2.5}
+										className="shrink-0 text-[#DA069A]"
+									/>
+								)}
+							</button>
+						);
+					})}
+				</div>
+			)}
+		</div>
+	);
+}
+
 function LyricsInspectorPanelCard({
 	fieldValues,
 	onFieldChange,
 	onSearch,
 	onChipClick,
 	panel,
+	rhymeFilters,
+	onRhymeFilterChange,
 }: {
 	fieldValues: Record<string, string>;
 	onFieldChange: (
@@ -197,26 +330,41 @@ function LyricsInspectorPanelCard({
 	) => void;
 	onSearch: (panelId: LyricsInspectorPanelId, value: string) => void;
 	onChipClick: (panelId: LyricsInspectorPanelId, value: string) => void;
-	panel: LyricsInspectorPanel & { loading: boolean; error: string | null };
+	panel: LyricsInspectorPanel & {
+		loading: boolean;
+		error: string | null;
+		availableSyllables?: number[];
+		availableCategories?: string[];
+	};
+	rhymeFilters: { syllables: number | null; category: string | null };
+	onRhymeFilterChange: (next: {
+		syllables?: number | null;
+		category?: string | null;
+	}) => void;
 }): ReactElement {
 	const Icon: LucideIcon = panel.icon;
 	const isCompactGrid: boolean = panel.fields.length > 1;
 
+	const [isExpanded, setIsExpanded] = useState(false);
+
+	// Reset expansion state when searched word or chips array changes
+	useEffect(() => {
+		setIsExpanded(false);
+	}, [panel.chips.length, panel.fields]);
+
+	const visibleChips = isExpanded ? panel.chips : panel.chips.slice(0, 8);
+
 	return (
-		<section className="min-w-0 border-b border-[#2C2C32] p-2.5">
-			<div className="mb-2 flex items-center justify-between">
+		<section className="min-w-0 bg-white/[0.02] border border-white/[0.05] rounded-xl px-3 py-2 select-none hover:bg-white/[0.035] hover:border-white/[0.08] transition-all duration-300 flex flex-col gap-2 mx-2.5 my-1">
+			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-2">
-					<Icon
-						size={13}
-						strokeWidth={1.8}
-						className="text-[#F3F4F6]"
-					/>
-					<h3 className="text-[12px] font-bold text-[#F3F4F6]">
+					<Icon size={14} strokeWidth={2} className="text-white/60" />
+					<h3 className="text-[11px] font-bold tracking-wide uppercase text-white/40">
 						{panel.title}
 					</h3>
 				</div>
 				{panel.loading && (
-					<span className="text-[9px] text-[#A1A1AA] animate-pulse">
+					<span className="text-[10px] text-[#DA069A] font-medium animate-pulse">
 						Chargement...
 					</span>
 				)}
@@ -225,7 +373,7 @@ function LyricsInspectorPanelCard({
 			<div
 				className={`grid min-w-0 gap-1.5 ${
 					isCompactGrid
-						? "grid-cols-[minmax(0,1fr)_minmax(44px,0.42fr)_minmax(50px,0.48fr)]"
+						? "grid-cols-[minmax(0,1fr)_minmax(50px,0.42fr)_minmax(56px,0.48fr)]"
 						: "grid-cols-1"
 				}`}
 			>
@@ -236,13 +384,68 @@ function LyricsInspectorPanelCard({
 							field.label,
 						);
 						const canEdit: boolean = isLookupField(field);
+						const isFilterField: boolean =
+							field.label === "Syllabes" ||
+							field.label === "Category";
+
+						if (isFilterField) {
+							const isSyllables = field.label === "Syllabes";
+
+							return (
+								<label
+									key={`${panel.id}-${field.label}`}
+									className="grid min-w-0 gap-1"
+								>
+									<span className="truncate text-[10px] font-semibold text-white/50 tracking-tight">
+										{field.label}
+									</span>
+									{isSyllables ? (
+										<InspectorSelect
+											value={
+												rhymeFilters.syllables !== null
+													? String(rhymeFilters.syllables)
+													: ""
+											}
+											onChange={(val): void =>
+												onRhymeFilterChange({
+													syllables: val ? Number(val) : null,
+												})
+											}
+											options={[
+												{ label: "Toutes", value: "" },
+												...(panel.availableSyllables ?? []).map((n) => ({
+													label: String(n),
+													value: String(n),
+												})),
+											]}
+										/>
+									) : (
+										<InspectorSelect
+											value={rhymeFilters.category ?? ""}
+											onChange={(val): void =>
+												onRhymeFilterChange({
+													category: val || null,
+												})
+											}
+											options={[
+												{ label: "Toutes", value: "" },
+												...(panel.availableCategories ?? []).map((c) => ({
+													label: c,
+													value: c,
+												})),
+											]}
+										/>
+									)}
+								</label>
+							);
+						}
 
 						return (
 							<label
 								key={`${panel.id}-${field.label}`}
 								className="grid min-w-0 gap-1"
 							>
-								<span className="truncate text-[10px] font-medium text-[#F3F4F6]">
+								<span className="truncate text-[10px] font-semibold text-white/50 tracking-tight">
 									{field.label}
 								</span>
 								<input
@@ -278,7 +481,7 @@ function LyricsInspectorPanelCard({
 											);
 										}
 									}}
-									className="h-5 min-w-0 w-full rounded-[2px] border border-[#A1A1AA] bg-transparent px-2 text-[9px] text-[#F3F4F6] outline-none transition-colors focus:border-[#F3F4F6]"
+									className="h-6.5 w-full rounded-[6px] border border-white/[0.08] bg-black/40 px-2.5 text-[11px] font-medium text-white/90 outline-none transition-all placeholder-white/20 focus:border-[#DA069A] focus:ring-1 focus:ring-[#DA069A]/20"
 								/>
 							</label>
 						);
@@ -287,44 +490,48 @@ function LyricsInspectorPanelCard({
 			</div>
 
 			{panel.error && (
-				<div className="mt-1 text-[9px] text-red-400">
+				<div className="text-[10px] text-red-400/90 font-medium px-0.5">
 					{panel.error}
 				</div>
 			)}
 
-			<div className="mt-2 flex min-w-0 items-start gap-1.5">
+			<div className="mt-1 flex min-w-0 items-start gap-1.5">
 				<div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
-					{panel.chips.map(
+					{visibleChips.map(
 						(chip: string): ReactElement => (
 							<button
 								key={`${panel.id}-${chip}`}
 								type="button"
+								onMouseDown={(event): void =>
+									event.preventDefault()
+								}
 								onClick={(): void =>
 									onChipClick(panel.id, chip)
 								}
-								className="h-5 max-w-full min-w-0 truncate rounded-[2px] bg-[#2C2C32] px-2 text-[9px] font-medium text-[#F3F4F6] transition-colors hover:bg-[#3A3A42] cursor-pointer"
+								className="h-[22px] max-w-full min-w-0 truncate rounded-full bg-white/[0.04] border border-white/[0.05] hover:bg-[#DA069A]/10 hover:border-[#DA069A]/20 hover:text-[#DA069A] active:scale-95 px-3 text-[10px] font-semibold text-white/70 transition-all cursor-pointer shadow-sm"
 							>
 								{chip}
 							</button>
 						),
 					)}
 				</div>
-				<button
-					type="button"
-					aria-label={`Plus d'options pour ${panel.title}`}
-					className="inline-flex h-5 w-6 shrink-0 items-center justify-center rounded-[2px] bg-[#2C2C32] text-[#F3F4F6] transition-colors hover:bg-[#3A3A42]"
-				>
-					<MoreHorizontal size={12} strokeWidth={1.8} />
-				</button>
 			</div>
 
-			<button
-				type="button"
-				className="mt-2 flex w-full items-center justify-end gap-1 text-[9px] font-medium text-[#F3F4F6] transition-colors hover:text-white"
-			>
-				Voir plus
-				<ChevronRight size={10} strokeWidth={1.8} />
-			</button>
+			{panel.chips.length > 8 && (
+				<button
+					type="button"
+					onMouseDown={(event): void => event.preventDefault()}
+					onClick={(): void => setIsExpanded(!isExpanded)}
+					className="flex w-full items-center justify-end gap-1 text-[10px] font-bold text-[#DA069A] hover:text-[#E60091] transition-colors mt-0.5"
+				>
+					{isExpanded ? "Voir moins" : "Voir plus"}
+					<ChevronRight
+						size={10}
+						strokeWidth={1.8}
+						className={`transition-transform duration-200 ${isExpanded ? "rotate-90" : ""}`}
+					/>
+				</button>
+			)}
 		</section>
 	);
 }
@@ -339,7 +546,7 @@ function LyricsInspectorRail({
 	onTogglePanel: (panelId: LyricsInspectorPanelId) => void;
 }): ReactElement {
 	return (
-		<nav className="flex w-9 shrink-0 flex-col items-center gap-2 border-l border-[#2C2C32] pt-3">
+		<nav className="w-[40px] shrink-0 flex flex-col items-center gap-1 rounded-xl border border-white/[0.08] bg-[#141418]/65 p-1.5 shadow-[0_16px_50px_-12px_rgba(0,0,0,0.55)] backdrop-blur-2xl backdrop-saturate-150">
 			{tools.map((tool: LyricsInspectorRailTool): ReactElement => {
 				const Icon: LucideIcon = tool.icon;
 				const isActive: boolean = visiblePanelIds.has(tool.id);
@@ -348,18 +555,19 @@ function LyricsInspectorRail({
 					<button
 						key={tool.id}
 						type="button"
+						onMouseDown={(event): void => event.preventDefault()}
 						aria-label={`${isActive ? "Masquer" : "Afficher"} ${tool.label}`}
 						aria-pressed={isActive}
 						onClick={(): void => {
 							onTogglePanel(tool.id);
 						}}
-						className={`inline-flex h-7 w-7 items-center justify-center rounded-[5px] border text-[#A1A1AA] transition-colors hover:text-white ${
+						className={`inline-flex h-8 w-8 items-center justify-center rounded-[8px] border transition-all duration-200 active:scale-90 ${
 							isActive
-								? "border-[#3A3A42] bg-[#2C2C32] text-[#F3F4F6]"
-								: "border-transparent bg-[#17171C]"
+								? "bg-white/[0.10] text-white border-white/[0.06]"
+								: "border-transparent text-white/40 hover:bg-white/[0.05] hover:text-white"
 						}`}
 					>
-						<Icon size={15} strokeWidth={1.8} />
+						<Icon size={15} strokeWidth={2} />
 					</button>
 				);
 			})}
@@ -381,9 +589,15 @@ export function LyricsInspector({
 		createInitialFieldValues(panels),
 	);
 
-	const [failedLookups, setFailedLookups] = useState<Record<string, number>>({});
+	const [failedLookups, setFailedLookups] = useState<Record<string, number>>(
+		{},
+	);
 	const [modalWord, setModalWord] = useState<string | null>(null);
-	const [modalForm, setModalForm] = useState({ description: "", synonyms: "", antonyms: "" });
+	const [modalForm, setModalForm] = useState({
+		description: "",
+		synonyms: "",
+		antonyms: "",
+	});
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [lastSearchedWord, setLastSearchedWord] = useState<string>("");
 
@@ -392,34 +606,85 @@ export function LyricsInspector({
 	const antonymsHook = useLinguistic("antonyms");
 	const lexicalHook = useLinguistic("lexical");
 
+	const hookByPanel = useMemo(
+		() => ({
+			rhymes: rhymesHook,
+			synonyms: synonymsHook,
+			antonyms: antonymsHook,
+			lexical: lexicalHook,
+		}),
+		[rhymesHook, synonymsHook, antonymsHook, lexicalHook],
+	);
+
+	const createEmptyFilters = (): Record<
+		LyricsInspectorPanelId,
+		PanelFilters
+	> => ({
+		rhymes: { syllables: null, category: null },
+		synonyms: { syllables: null, category: null },
+		antonyms: { syllables: null, category: null },
+		lexical: { syllables: null, category: null },
+	});
+
+	const [filtersByPanel, setFiltersByPanel] = useState<
+		Record<LyricsInspectorPanelId, PanelFilters>
+	>(createEmptyFilters);
+
 	const handleSearch = useCallback(
 		(panelId: LyricsInspectorPanelId, term: string) => {
 			const cleanTerm = term.trim();
 			if (!cleanTerm) return;
 
 			setLastSearchedWord(cleanTerm);
-
-			if (panelId === "rhymes") rhymesHook.search(cleanTerm);
-			else if (panelId === "synonyms") synonymsHook.search(cleanTerm);
-			else if (panelId === "antonyms") antonymsHook.search(cleanTerm);
-			else if (panelId === "lexical") lexicalHook.search(cleanTerm);
+			// A fresh word search clears the panel's active filters.
+			setFiltersByPanel((prev) => ({
+				...prev,
+				[panelId]: { syllables: null, category: null },
+			}));
+			hookByPanel[panelId]?.search(cleanTerm);
 
 			onLookupTermChange?.(cleanTerm);
 		},
-		[
-			rhymesHook,
-			synonymsHook,
-			antonymsHook,
-			lexicalHook,
-			onLookupTermChange,
-		],
+		[hookByPanel, onLookupTermChange],
+	);
+
+	const handleFilterChange = useCallback(
+		(
+			panelId: LyricsInspectorPanelId,
+			next: { syllables?: number | null; category?: string | null },
+		) => {
+			setFiltersByPanel((prev) => {
+				const merged = { ...prev[panelId], ...next };
+				const hook = hookByPanel[panelId];
+				const wordFieldLabel =
+					panelId === "lexical" ? "Theme" : "Mot";
+				const word =
+					(hook?.data?.word ?? "") ||
+					fieldValues[createFieldKey(panelId, wordFieldLabel)] ||
+					lastSearchedWord;
+
+				if (word) {
+					hook?.search(word, {
+						syllables: merged.syllables,
+						category: merged.category,
+					});
+				}
+
+				return { ...prev, [panelId]: merged };
+			});
+		},
+		[hookByPanel, fieldValues, lastSearchedWord],
 	);
 
 	const handleChipClick = useCallback(
 		(panelId: LyricsInspectorPanelId, chip: string) => {
-			handleSearch(panelId, chip);
+			try {
+				document.execCommand("insertText", false, chip);
+			} catch (e) {
+				console.error("Failed to insert word:", e);
+			}
 		},
-		[handleSearch],
+		[],
 	);
 
 	const activePanels = useMemo(() => {
@@ -428,44 +693,33 @@ export function LyricsInspector({
 			let fields = [...panel.fields];
 			let loading = false;
 			let error = null;
+			let availableSyllables: number[] = [];
+			let availableCategories: string[] = [];
 
-			if (panel.id === "rhymes") {
-				loading = rhymesHook.loading;
-				error = rhymesHook.error || (rhymesHook.data?.error ?? null);
-				if (rhymesHook.data) {
-					const rhymeData = rhymesHook.data as any;
-					chips = rhymeData.results || [];
+			const hook = hookByPanel[panel.id];
+			if (hook) {
+				loading = hook.loading;
+				error = hook.error || (hook.data?.error ?? null);
+				if (hook.data) {
+					const hookData = hook.data as any;
+					chips = hookData.results || [];
+					availableSyllables = hookData.availableSyllables || [];
+					availableCategories = hookData.availableCategories || [];
+
+					const wordLabel = panel.id === "lexical" ? "Theme" : "Mot";
+					const activeFilters = filtersByPanel[panel.id];
+
 					fields = [
-						{ label: "Mot", value: rhymeData.word },
+						{ label: wordLabel, value: hookData.word },
 						{
 							label: "Syllabes",
-							value: String(rhymeData.syllables ?? ""),
+							value: String(activeFilters.syllables ?? ""),
 						},
-						{ label: "Category", value: rhymeData.category ?? "" },
+						{
+							label: "Category",
+							value: activeFilters.category ?? "",
+						},
 					];
-				}
-			} else if (panel.id === "synonyms") {
-				loading = synonymsHook.loading;
-				error =
-					synonymsHook.error || (synonymsHook.data?.error ?? null);
-				if (synonymsHook.data) {
-					chips = synonymsHook.data.results || [];
-					fields = [{ label: "Mot", value: synonymsHook.data.word }];
-				}
-			} else if (panel.id === "antonyms") {
-				loading = antonymsHook.loading;
-				error =
-					antonymsHook.error || (antonymsHook.data?.error ?? null);
-				if (antonymsHook.data) {
-					chips = antonymsHook.data.results || [];
-					fields = [{ label: "Mot", value: antonymsHook.data.word }];
-				}
-			} else if (panel.id === "lexical") {
-				loading = lexicalHook.loading;
-				error = lexicalHook.error || (lexicalHook.data?.error ?? null);
-				if (lexicalHook.data) {
-					chips = lexicalHook.data.results || [];
-					fields = [{ label: "Theme", value: lexicalHook.data.word }];
 				}
 			}
 
@@ -475,10 +729,14 @@ export function LyricsInspector({
 				chips,
 				loading,
 				error,
+				availableSyllables,
+				availableCategories,
 			};
 		});
 	}, [
 		panels,
+		filtersByPanel,
+		hookByPanel,
 		rhymesHook.data,
 		rhymesHook.loading,
 		rhymesHook.error,
@@ -532,50 +790,77 @@ export function LyricsInspector({
 			setFieldValues((prev) => ({
 				...prev,
 				[createFieldKey("synonyms", "Mot")]: synonymsHook.data!.word,
+				[createFieldKey("synonyms", "Syllabes")]: String(
+					filtersByPanel.synonyms.syllables ?? "",
+				),
+				[createFieldKey("synonyms", "Category")]:
+					filtersByPanel.synonyms.category ?? "",
 			}));
 		}
-	}, [synonymsHook.data]);
+	}, [synonymsHook.data, filtersByPanel.synonyms]);
 
 	useEffect(() => {
 		if (antonymsHook.data) {
 			setFieldValues((prev) => ({
 				...prev,
 				[createFieldKey("antonyms", "Mot")]: antonymsHook.data!.word,
+				[createFieldKey("antonyms", "Syllabes")]: String(
+					filtersByPanel.antonyms.syllables ?? "",
+				),
+				[createFieldKey("antonyms", "Category")]:
+					filtersByPanel.antonyms.category ?? "",
 			}));
 		}
-	}, [antonymsHook.data]);
+	}, [antonymsHook.data, filtersByPanel.antonyms]);
 
 	useEffect(() => {
 		if (lexicalHook.data) {
 			setFieldValues((prev) => ({
 				...prev,
 				[createFieldKey("lexical", "Theme")]: lexicalHook.data!.word,
+				[createFieldKey("lexical", "Syllabes")]: String(
+					filtersByPanel.lexical.syllables ?? "",
+				),
+				[createFieldKey("lexical", "Category")]:
+					filtersByPanel.lexical.category ?? "",
 			}));
 		}
-	}, [lexicalHook.data]);
+	}, [lexicalHook.data, filtersByPanel.lexical]);
 
 	const processedWordRef = useRef<string | null>(null);
 
 	useEffect(() => {
 		if (!lastSearchedWord) return;
 
-		const isLoading = rhymesHook.loading || synonymsHook.loading || antonymsHook.loading || lexicalHook.loading;
+		const isLoading =
+			rhymesHook.loading ||
+			synonymsHook.loading ||
+			antonymsHook.loading ||
+			lexicalHook.loading;
 		if (isLoading) return;
 
 		if (processedWordRef.current === lastSearchedWord) return;
 
 		// Helper to check if a hook failed (has network error OR empty/error data)
-		const didFail = (hook: { error: string | null, data: any }) => {
+		const didFail = (hook: { error: string | null; data: any }) => {
 			if (hook.error) return true;
 			if (!hook.data) return true; // No data means it failed to get anything
-			return !!hook.data.error || (Array.isArray(hook.data.results) && hook.data.results.length === 0);
+			return (
+				!!hook.data.error ||
+				(Array.isArray(hook.data.results) &&
+					hook.data.results.length === 0)
+			);
 		};
 
 		// The word is truly missing only if ALL searched hooks failed
-		const allFailed = didFail(rhymesHook) && didFail(synonymsHook) && didFail(antonymsHook) && didFail(lexicalHook);
+		const allFailed =
+			didFail(rhymesHook) &&
+			didFail(synonymsHook) &&
+			didFail(antonymsHook) &&
+			didFail(lexicalHook);
 
 		if (allFailed) {
-			setFailedLookups(prev => {
+			setFailedLookups((prev) => {
 				const count = (prev[lastSearchedWord] || 0) + 1;
 				if (count >= 2) {
 					setModalWord(lastSearchedWord);
@@ -586,11 +871,19 @@ export function LyricsInspector({
 
 		processedWordRef.current = lastSearchedWord;
 	}, [
-		lastSearchedWord, 
-		rhymesHook.loading, rhymesHook.error, rhymesHook.data,
-		synonymsHook.loading, synonymsHook.error, synonymsHook.data,
-		antonymsHook.loading, antonymsHook.error, antonymsHook.data,
-		lexicalHook.loading, lexicalHook.error, lexicalHook.data
+		lastSearchedWord,
+		rhymesHook.loading,
+		rhymesHook.error,
+		rhymesHook.data,
+		synonymsHook.loading,
+		synonymsHook.error,
+		synonymsHook.data,
+		antonymsHook.loading,
+		antonymsHook.error,
+		antonymsHook.data,
+		lexicalHook.loading,
+		lexicalHook.error,
+		lexicalHook.data,
 	]);
 
 	useEffect((): void => {
@@ -707,10 +1000,19 @@ export function LyricsInspector({
 	}
 
 	return (
-		<aside className="flex h-full min-h-0 overflow-hidden border-l border-[#2C2C32] bg-[#17171C]">
+		<aside className="flex h-full min-h-0 items-start gap-2 overflow-visible">
 			{hasVisiblePanels && (
-				<div className="flex min-h-0 w-[284px] min-w-0 flex-col">
-					<div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+				// <div className="flex max-h-full min-h-0 w-[286px] min-w-0 flex-col overflow-hidden rounded-[12px] border border-white/[0.08] bg-[#0D0D10]/70  backdrop-blur-2xl backdrop-saturate-150">
+				// <div className="flex max-h-full min-h-0 w-[286px] min-w-0 flex-col overflow-hidden rounded-[12px]   backdrop-blur-2xl backdrop-saturate-150">
+				<div className="flex max-h-full min-h-0 w-[286px] min-w-0 flex-col overflow-hidden rounded-[12px]">
+					<div
+						className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden py-1.5"
+						style={{
+							scrollbarWidth: "thin",
+							scrollbarColor:
+								"rgba(255,255,255,0.08) transparent",
+						}}
+					>
 						{visiblePanels.map(
 							(panel): ReactElement => (
 								<LyricsInspectorPanelCard
@@ -720,6 +1022,10 @@ export function LyricsInspector({
 									onSearch={handleSearch}
 									onChipClick={handleChipClick}
 									panel={panel}
+									rhymeFilters={filtersByPanel.rhymes}
+									onRhymeFilterChange={(next) =>
+										handleFilterChange(panel.id, next)
+									}
 								/>
 							),
 						)}
@@ -737,47 +1043,78 @@ export function LyricsInspector({
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
 					<div className="w-full max-w-sm rounded-2xl border border-white/[0.08] bg-[#1a1a20] p-6 shadow-2xl flex flex-col gap-4">
 						<div className="flex items-center justify-between">
-							<h3 className="text-sm font-bold text-white tracking-wide">Mot introuvable</h3>
-							<button onClick={() => setModalWord(null)} className="text-white/40 hover:text-white transition-colors">
+							<h3 className="text-sm font-bold text-white tracking-wide">
+								Mot introuvable
+							</h3>
+							<button
+								onClick={() => setModalWord(null)}
+								className="text-white/40 hover:text-white transition-colors"
+							>
 								<X size={16} strokeWidth={2} />
 							</button>
 						</div>
-						
+
 						<p className="text-[13px] leading-relaxed text-white/60">
-							Le mot <strong className="text-white font-semibold">"{modalWord}"</strong> n'a pas été trouvé dans notre base de données linguistique. Voulez-vous suggérer son ajout ?
+							Le mot{" "}
+							<strong className="text-white font-semibold">
+								"{modalWord}"
+							</strong>{" "}
+							n'a pas été trouvé dans notre base de données
+							linguistique. Voulez-vous suggérer son ajout ?
 						</p>
 
 						<div className="flex flex-col gap-3 pt-2">
 							<div>
-								<label className="text-[11px] font-bold text-white/50 uppercase tracking-wider mb-1.5 block">Description (Obligatoire)</label>
+								<label className="text-[11px] font-bold text-white/50 uppercase tracking-wider mb-1.5 block">
+									Description (Obligatoire)
+								</label>
 								<input
 									type="text"
 									value={modalForm.description}
-									onChange={(e) => setModalForm(prev => ({ ...prev, description: e.target.value }))}
+									onChange={(e) =>
+										setModalForm((prev) => ({
+											...prev,
+											description: e.target.value,
+										}))
+									}
 									placeholder="Courte définition..."
-									className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 text-[13px] text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]/50 focus:bg-white/[0.05] transition-all"
+									className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 text-[13px] text-white placeholder:text-white/20 focus:outline-none focus:border-[#DA069A]/50 focus:bg-white/[0.05] transition-all"
 								/>
 							</div>
-							
+
 							<div className="flex gap-3">
 								<div className="flex-1">
-									<label className="text-[11px] font-bold text-white/50 uppercase tracking-wider mb-1.5 block">Synonymes</label>
+									<label className="text-[11px] font-bold text-white/50 uppercase tracking-wider mb-1.5 block">
+										Synonymes
+									</label>
 									<input
 										type="text"
 										value={modalForm.synonyms}
-										onChange={(e) => setModalForm(prev => ({ ...prev, synonyms: e.target.value }))}
+										onChange={(e) =>
+											setModalForm((prev) => ({
+												...prev,
+												synonyms: e.target.value,
+											}))
+										}
 										placeholder="Séparés par des virgules"
-										className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 text-[12px] text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]/50 focus:bg-white/[0.05] transition-all"
+										className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 text-[12px] text-white placeholder:text-white/20 focus:outline-none focus:border-[#DA069A]/50 focus:bg-white/[0.05] transition-all"
 									/>
 								</div>
 								<div className="flex-1">
-									<label className="text-[11px] font-bold text-white/50 uppercase tracking-wider mb-1.5 block">Antonymes</label>
+									<label className="text-[11px] font-bold text-white/50 uppercase tracking-wider mb-1.5 block">
+										Antonymes
+									</label>
 									<input
 										type="text"
 										value={modalForm.antonyms}
-										onChange={(e) => setModalForm(prev => ({ ...prev, antonyms: e.target.value }))}
+										onChange={(e) =>
+											setModalForm((prev) => ({
+												...prev,
+												antonyms: e.target.value,
+											}))
+										}
 										placeholder="Séparés par des virgules"
-										className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 text-[12px] text-white placeholder:text-white/20 focus:outline-none focus:border-[#0A84FF]/50 focus:bg-white/[0.05] transition-all"
+										className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 text-[12px] text-white placeholder:text-white/20 focus:outline-none focus:border-[#DA069A]/50 focus:bg-white/[0.05] transition-all"
 									/>
 								</div>
 							</div>
@@ -787,7 +1124,11 @@ export function LyricsInspector({
 							<button
 								onClick={() => {
 									setModalWord(null);
-									setModalForm({ description: "", synonyms: "", antonyms: "" });
+									setModalForm({
+										description: "",
+										synonyms: "",
+										antonyms: "",
+									});
 								}}
 								className="flex-1 rounded-xl bg-white/[0.04] border border-white/[0.08] py-2.5 text-[12px] font-semibold text-white/70 hover:bg-white/[0.08] hover:text-white transition-all active:scale-95"
 							>
@@ -800,26 +1141,43 @@ export function LyricsInspector({
 									try {
 										await fetch("/api/linguistic/add", {
 											method: "POST",
-											headers: { "Content-Type": "application/json" },
-											body: JSON.stringify({ 
+											headers: {
+												"Content-Type":
+													"application/json",
+											},
+											body: JSON.stringify({
 												word: modalWord,
-												description: modalForm.description.trim(),
-												synonyms: modalForm.synonyms.trim() || undefined,
-												antonyms: modalForm.antonyms.trim() || undefined
+												description:
+													modalForm.description.trim(),
+												synonyms:
+													modalForm.synonyms.trim() ||
+													undefined,
+												antonyms:
+													modalForm.antonyms.trim() ||
+													undefined,
 											}),
 										});
 										setModalWord(null);
-										setModalForm({ description: "", synonyms: "", antonyms: "" });
+										setModalForm({
+											description: "",
+											synonyms: "",
+											antonyms: "",
+										});
 									} catch (e) {
 										console.error("Failed to add word", e);
 									} finally {
 										setIsSubmitting(false);
 									}
 								}}
-								disabled={isSubmitting || !modalForm.description.trim()}
-								className="flex-1 rounded-xl bg-[#0A84FF] border border-[#0A84FF]/50 py-2.5 text-[12px] font-semibold text-white shadow-[0_4px_12px_rgba(10,132,255,0.3)] hover:bg-[#3399FF] transition-all active:scale-95 flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:active:scale-100"
+								disabled={
+									isSubmitting ||
+									!modalForm.description.trim()
+								}
+								className="flex-1 rounded-xl bg-[#DA069A] border border-[#DA069A]/50 py-2.5 text-[12px] font-semibold text-white shadow-[0_4px_12px_rgba(10,132,255,0.3)] hover:bg-[#E60091] transition-all active:scale-95 flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:active:scale-100"
 							>
-								{isSubmitting ? "Envoi..." : (
+								{isSubmitting ? (
+									"Envoi..."
+								) : (
 									<>
 										<Check size={14} strokeWidth={2.5} />
 										Soumettre

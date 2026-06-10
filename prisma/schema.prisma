@@ -66,6 +66,9 @@ model Project {
   members     ProjectMember[]
   invitations Invitation[]
   versions    ProjectVersion[]
+  lyrics      Lyrics[]
+  files       File[]
+  labelCopies LabelCopy[]
 }
 
 model ProjectVersion {

@@ -336,65 +336,7 @@ export default function AppNav({ children }: AppNavProps): ReactElement {
 		};
 	}, [closeProfileOverlay, isProfileOverlayOpen]);
 
-	useEffect(() => {
-		const storedTheme = window.localStorage.getItem(appThemeStorageKey);
 
-		if (storedTheme === "light" || storedTheme === "dark") {
-			setAppTheme(storedTheme);
-		}
-	}, []);
-
-	function handleToggleTheme(): void {
-		setAppTheme((currentTheme: AppTheme): AppTheme => {
-			const nextTheme: AppTheme =
-				currentTheme === "light" ? "dark" : "light";
-			window.localStorage.setItem(appThemeStorageKey, nextTheme);
-			return nextTheme;
-		});
-	}
-
-	const closeProfileOverlay = useCallback((): void => {
-		setIsProfileOverlayOpen(false);
-	}, []);
-
-	useEffect(() => {
-		if (!isProfileOverlayOpen) {
-			return;
-		}
-
-		function handleDocumentPointerDown(
-			event: globalThis.PointerEvent,
-		): void {
-			if (profileOverlayRef.current?.contains(event.target as Node)) {
-				return;
-			}
-
-			closeProfileOverlay();
-		}
-
-		function handleDocumentKeyDown(event: KeyboardEvent): void {
-			if (event.key === "Escape") {
-				closeProfileOverlay();
-			}
-		}
-
-		window.document.addEventListener(
-			"pointerdown",
-			handleDocumentPointerDown,
-		);
-		window.document.addEventListener("keydown", handleDocumentKeyDown);
-
-		return () => {
-			window.document.removeEventListener(
-				"pointerdown",
-				handleDocumentPointerDown,
-			);
-			window.document.removeEventListener(
-				"keydown",
-				handleDocumentKeyDown,
-			);
-		};
-	}, [closeProfileOverlay, isProfileOverlayOpen]);
 
 	useLayoutEffect(() => {
 		let animationFrameId: number | null = null;

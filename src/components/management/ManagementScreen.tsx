@@ -33,7 +33,7 @@ import {
 import {
 	commentsStorageKey as lyricsEditorCommentsStorageKey,
 	storageKey as lyricsEditorDocumentStorageKey,
-} from "@/components/lyricsEditor/v2/lyricsEditorStorage";
+} from "@/components/LyricsEditor/lyricsEditorStorage";
 
 const syne = Syne({
 	weight: "800",

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import "@/Components/header/header.css";
+import "@/components/Header.css";
 import { Unbounded, Arimo } from "next/font/google";
 import "./globals.css";
 

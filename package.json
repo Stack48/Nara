@@ -15,6 +15,7 @@
 		"db:studio": "prisma studio"
 	},
 	"dependencies": {
+		"@aws-amplify/adapter-nextjs": "^1.7.3",
 		"@hocuspocus/provider": "^4.1.0",
 		"@hocuspocus/server": "^4.1.0",
 		"@prisma/client": "^6.7.0",
@@ -25,6 +26,7 @@
 		"@tiptap/extension-text-style": "^3.23.5",
 		"@tiptap/react": "^3.23.5",
 		"@tiptap/starter-kit": "^3.23.5",
+		"aws-amplify": "^6.17.0",
 		"axios": "^1.15.1",
 		"lucide-react": "^1.16.0",
 		"next": "^15.5.18",
@@ -38,14 +40,17 @@
 	"devDependencies": {
 		"@eslint/eslintrc": "^3",
 		"@tailwindcss/postcss": "^4",
+		"@types/jest": "^30.0.0",
 		"@types/node": "^20",
 		"@types/react": "^19",
 		"@types/react-dom": "^19",
 		"@types/three": "^0.184.1",
 		"eslint": "^9",
 		"eslint-config-next": "15.5.15",
+		"jest": "^30.4.2",
 		"prisma": "^6.7.0",
 		"tailwindcss": "^4",
+		"ts-jest": "^29.4.11",
 		"typescript": "^5"
 	}
 }

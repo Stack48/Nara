@@ -77,31 +77,116 @@ export function getWordInfo(word: string): LexiqueEntry | null {
   return index.get(word.toLowerCase()) ?? null;
 }
 
-export function getRhymes(word: string, limit = 8): RhymeResult {
+export interface WordFilterResult {
+  results: string[];
+  availableSyllables: number[];
+  availableCategories: string[];
+}
+
+// Generic filter usable by every panel (synonyms / antonyms / lexical field):
+// looks up each word's syllable count + grammatical category in the Lexique
+// index, then filters and surfaces the available options. Degrades
+// gracefully to "no filtering" when a word is missing from the dataset.
+export function filterWordsByLexique(
+  words: string[],
+  filters: RhymeFilters = {},
+): WordFilterResult {
+  const index = loadLexique();
+  const enriched = words.map((word) => ({
+    word,
+    entry: index.get(word.toLowerCase()),
+  }));
+
+  const availableSyllables = Array.from(
+    new Set(
+      enriched
+        .map((e) => e.entry?.syllables)
+        .filter((n): n is number => typeof n === 'number' && n > 0),
+    ),
+  ).sort((a, b) => a - b);
+  const availableCategories = Array.from(
+    new Set(
+      enriched
+        .map((e) => e.entry?.category)
+        .filter((c): c is string => Boolean(c)),
+    ),
+  ).sort();
+
+  const results = enriched
+    .filter((e) => {
+      if (filters.syllables != null) {
+        if (!e.entry || e.entry.syllables !== filters.syllables) return false;
+      }
+      if (filters.category) {
+        if (!e.entry || e.entry.category !== filters.category) return false;
+      }
+      return true;
+    })
+    .map((e) => e.word);
+
+  return { results, availableSyllables, availableCategories };
+}
+
+export interface RhymeFilters {
+  syllables?: number;   // keep only rhymes with this many syllables
+  category?: string;    // keep only rhymes with this grammatical category (cgram)
+}
+
+export function getRhymes(
+  word: string,
+  limit = 8,
+  filters: RhymeFilters = {},
+): RhymeResult {
   const index = loadLexique();
   const entry = index.get(word.toLowerCase());
 
   if (!entry || !entry.phoneme) {
-    return { word, results: [], syllables: entry?.syllables ?? 0, category: entry?.category ?? '' };
+    return {
+      word,
+      results: [],
+      syllables: entry?.syllables ?? 0,
+      category: entry?.category ?? '',
+      availableSyllables: [],
+      availableCategories: [],
+    };
   }
 
   // Rhyme = same phonemic suffix (last 3 phonemes, or full phoneme if shorter)
   const phoneme = entry.phoneme;
   const rhymeSuffix = phoneme.slice(-3);
 
-  const rhymes: string[] = [];
+  // First pass: collect every rhyme candidate (unfiltered) so we can both
+  // surface the available syllable counts / categories for the UI filters
+  // AND apply the requested filter.
+  const candidates: LexiqueEntry[] = [];
   for (const [w, e] of index) {
     if (w === word.toLowerCase()) continue;
     if (e.phoneme && e.phoneme.endsWith(rhymeSuffix)) {
-      rhymes.push(w);
-      if (rhymes.length >= limit) break;
+      candidates.push(e);
     }
+  }
+
+  const availableSyllables = Array.from(
+    new Set(candidates.map((e) => e.syllables).filter((n) => n > 0)),
+  ).sort((a, b) => a - b);
+  const availableCategories = Array.from(
+    new Set(candidates.map((e) => e.category).filter(Boolean)),
+  ).sort();
+
+  const rhymes: string[] = [];
+  for (const e of candidates) {
+    if (filters.syllables != null && e.syllables !== filters.syllables) continue;
+    if (filters.category && e.category !== filters.category) continue;
+    rhymes.push(e.word);
+    if (rhymes.length >= limit) break;
   }
 
   return {
     word,
     results: rhymes,
-    syllables: entry.syllables,
-    category: entry.category,
+    syllables: filters.syllables ?? entry.syllables,
+    category: filters.category ?? entry.category,
+    availableSyllables,
+    availableCategories,
   };
 }

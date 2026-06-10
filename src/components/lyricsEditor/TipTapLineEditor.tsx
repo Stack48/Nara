@@ -15,7 +15,7 @@ import type { JSONContent } from "@tiptap/core";
 import {
 	getLyricsTextColorCss,
 	type LyricsFormat,
-} from "@/components/lyricsEditor/LyricsHeader";
+} from "./lyricsEditorStorage";
 
 export type TipTapLineUpdate = {
 	content: JSONContent;
