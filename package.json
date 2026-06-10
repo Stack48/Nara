@@ -15,11 +15,8 @@
     "db:studio": "prisma studio",
     "test": "jest",
     "test:watch": "jest --watch",
-<<<<<<< HEAD
-    "db:seed": "ts-node --project tsconfig.seed.json prisma/seed.ts"
-=======
+    "db:seed": "ts-node --project tsconfig.seed.json prisma/seed.ts",
     "test:coverage": "jest --coverage"
->>>>>>> ebd3cd6 (feat(lyrics): add CRUD lyrics endpoints, TipTap JSON storage, suggestions system, Zod validation, unit tests)
   },
   "dependencies": {
     "@aws-amplify/adapter-nextjs": "^1.7.3",
@@ -27,6 +24,7 @@
     "@aws-sdk/client-cognito-identity-provider": "^3.1053.0",
     "@aws-sdk/client-secrets-manager": "^3.1056.0",
     "@prisma/client": "^6.7.0",
+    "@sentry/nextjs": "^10.57.0",
     "aws-amplify": "^6.17.0",
     "axios": "^1.15.1",
     "bcryptjs": "^3.0.3",
@@ -40,6 +38,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "three": "^0.167.1",
+    "winston": "^3.19.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {

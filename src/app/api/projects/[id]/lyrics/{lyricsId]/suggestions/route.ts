@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole, forbidden, unauthorized } from "@/middleware/rbac.middleware";
 import { z } from "zod";
+import { withErrorHandler } from "@/lib/api-middleware";
 
 const suggestionSchema = z.object({
     content: z.record(z.string(), z.any()),
@@ -17,10 +18,8 @@ function getCognitoId(request: NextRequest): string | null {
 }
 
 // POST — soumet une suggestion
-export async function POST(
-    request: NextRequest,
-    { params }: { params: { id: string; lyricsId: string } }
-) {
+// PATCH — approuve ou rejette une suggestion (LEAD_PAROLIER+)
+export let POST = withErrorHandler(async (request: NextRequest, { params }: { params: { id: string; lyricsId: string } }) => {
     const cognitoId = getCognitoId(request);
     if (!cognitoId) return unauthorized();
 
@@ -49,13 +48,8 @@ export async function POST(
     });
 
     return NextResponse.json(suggestion, { status: 201 });
-}
-
-// PATCH — approuve ou rejette une suggestion (LEAD_PAROLIER+)
-export async function PATCH(
-    request: NextRequest,
-    { params }: { params: { id: string; lyricsId: string } }
-) {
+    });
+export let PATCH = withErrorHandler(async (request: NextRequest, { params }: { params: { id: string; lyricsId: string } }) => {
     const cognitoId = getCognitoId(request);
     if (!cognitoId) return unauthorized();
 
@@ -75,4 +69,4 @@ export async function PATCH(
     });
 
     return NextResponse.json(suggestion);
-}
+    });

@@ -3,8 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { exportUserData } from "@/server/rgpd.service";
 import { unauthorized } from "@/middleware/rbac.middleware";
 import { logAction } from "@/server/audit.service";
+import { withErrorHandler } from "@/lib/api-middleware";
 
-export async function GET(request: NextRequest) {
+export let GET = withErrorHandler(async (request: NextRequest) => {
     const cognitoId = request.headers.get("x-cognito-id");
     if (!cognitoId) return unauthorized();
 
@@ -18,4 +19,4 @@ export async function GET(request: NextRequest) {
     );
 
     return NextResponse.json(data);
-}
+    });

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole, forbidden, unauthorized } from "@/middleware/rbac.middleware";
 import { z } from "zod";
+import { withErrorHandler } from "@/lib/api-middleware";
 
 const createMarkerSchema = z.object({
     timecode: z.number().min(0, "Timecode invalide"),
@@ -15,10 +16,8 @@ function getCognitoId(request: NextRequest): string | null {
 }
 
 // GET /api/projects/:id/markers
-export async function GET(
-    request: NextRequest,
-    { params }: { params: { id: string } }
-) {
+// POST /api/projects/:id/markers
+export let GET = withErrorHandler(async (request: NextRequest, { params }: { params: { id: string } }) => {
     const cognitoId = getCognitoId(request);
     if (!cognitoId) return unauthorized();
 
@@ -38,13 +37,8 @@ export async function GET(
     });
 
     return NextResponse.json(markers);
-}
-
-// POST /api/projects/:id/markers
-export async function POST(
-    request: NextRequest,
-    { params }: { params: { id: string } }
-) {
+    });
+export let POST = withErrorHandler(async (request: NextRequest, { params }: { params: { id: string } }) => {
     const cognitoId = getCognitoId(request);
     if (!cognitoId) return unauthorized();
 
@@ -73,4 +67,4 @@ export async function POST(
     });
 
     return NextResponse.json(marker, { status: 201 });
-}
+    });

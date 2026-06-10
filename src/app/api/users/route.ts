@@ -1,22 +1,22 @@
 import { NextResponse } from "next/server";
 import { UsersController } from "@/server/users/controller";
 import { handleError } from "@/lib/errors";
+import { withErrorHandler } from "@/lib/api-middleware";
 
-export async function GET() {
-  try {
+export let GET = withErrorHandler(async () => {
+    try {
     const users = await UsersController.findAll();
     return NextResponse.json(users);
-  } catch (e) {
+    } catch (e) {
     return handleError(e);
-  }
-}
-
-export async function POST(request: Request) {
-  try {
+    }
+    });
+export let POST = withErrorHandler(async (request: Request) => {
+    try {
     const body = await request.json();
     const user = await UsersController.create(body);
     return NextResponse.json(user, { status: 201 });
-  } catch (e) {
+    } catch (e) {
     return handleError(e);
-  }
-}
+    }
+    });

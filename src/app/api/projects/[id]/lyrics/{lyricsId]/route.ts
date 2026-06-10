@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole, forbidden, unauthorized } from "@/middleware/rbac.middleware";
 import { z } from "zod";
+import { withErrorHandler } from "@/lib/api-middleware";
 
 const updateLyricsSchema = z.object({
     title: z.string().min(1).max(100).optional(),
@@ -15,10 +16,8 @@ function getCognitoId(request: NextRequest): string | null {
 }
 
 // PATCH /api/projects/:id/lyrics/:lyricsId
-export async function PATCH(
-    request: NextRequest,
-    { params }: { params: { id: string; lyricsId: string } }
-) {
+// DELETE /api/projects/:id/lyrics/:lyricsId
+export let PATCH = withErrorHandler(async (request: NextRequest, { params }: { params: { id: string; lyricsId: string } }) => {
     const cognitoId = getCognitoId(request);
     if (!cognitoId) return unauthorized();
 
@@ -38,13 +37,8 @@ export async function PATCH(
     });
 
     return NextResponse.json(lyrics);
-}
-
-// DELETE /api/projects/:id/lyrics/:lyricsId
-export async function DELETE(
-    request: NextRequest,
-    { params }: { params: { id: string; lyricsId: string } }
-) {
+    });
+export let DELETE = withErrorHandler(async (request: NextRequest, { params }: { params: { id: string; lyricsId: string } }) => {
     const cognitoId = getCognitoId(request);
     if (!cognitoId) return unauthorized();
 
@@ -54,4 +48,4 @@ export async function DELETE(
     await prisma.lyrics.delete({ where: { id: params.lyricsId } });
 
     return NextResponse.json({ success: true });
-}
+    });

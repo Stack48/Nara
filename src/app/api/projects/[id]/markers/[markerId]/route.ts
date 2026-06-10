@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole, forbidden, unauthorized } from "@/middleware/rbac.middleware";
 import { z } from "zod";
+import { withErrorHandler } from "@/lib/api-middleware";
 
 const updateMarkerSchema = z.object({
     timecode: z.number().min(0).optional(),
@@ -13,10 +14,8 @@ function getCognitoId(request: NextRequest): string | null {
 }
 
 // PATCH /api/projects/:id/markers/:markerId — déplace un marker
-export async function PATCH(
-    request: NextRequest,
-    { params }: { params: { id: string; markerId: string } }
-) {
+// DELETE /api/projects/:id/markers/:markerId
+export let PATCH = withErrorHandler(async (request: NextRequest, { params }: { params: { id: string; markerId: string } }) => {
     const cognitoId = getCognitoId(request);
     if (!cognitoId) return unauthorized();
 
@@ -36,13 +35,8 @@ export async function PATCH(
     });
 
     return NextResponse.json(marker);
-}
-
-// DELETE /api/projects/:id/markers/:markerId
-export async function DELETE(
-    request: NextRequest,
-    { params }: { params: { id: string; markerId: string } }
-) {
+    });
+export let DELETE = withErrorHandler(async (request: NextRequest, { params }: { params: { id: string; markerId: string } }) => {
     const cognitoId = getCognitoId(request);
     if (!cognitoId) return unauthorized();
 
@@ -52,4 +46,4 @@ export async function DELETE(
     await prisma.audioMarker.delete({ where: { id: params.markerId } });
 
     return NextResponse.json({ success: true });
-}
+    });

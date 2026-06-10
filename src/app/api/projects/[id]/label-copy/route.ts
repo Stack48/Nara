@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireRole, forbidden, unauthorized } from "@/middleware/rbac.middleware";
 import { syncLabelCopy } from "@/server/bridge-audio.service";
 import { z } from "zod";
+import { withErrorHandler } from "@/lib/api-middleware";
 
 const labelCopySchema = z.object({
     title: z.string().min(1),
@@ -19,10 +20,8 @@ function getCognitoId(request: NextRequest): string | null {
 }
 
 // GET /api/projects/:id/label-copy
-export async function GET(
-    request: NextRequest,
-    { params }: { params: { id: string } }
-) {
+// POST /api/projects/:id/label-copy
+export let GET = withErrorHandler(async (request: NextRequest, { params }: { params: { id: string } }) => {
     const cognitoId = getCognitoId(request);
     if (!cognitoId) return unauthorized();
 
@@ -42,13 +41,8 @@ export async function GET(
     }
 
     return NextResponse.json(labelCopy);
-}
-
-// POST /api/projects/:id/label-copy
-export async function POST(
-    request: NextRequest,
-    { params }: { params: { id: string } }
-) {
+    });
+export let POST = withErrorHandler(async (request: NextRequest, { params }: { params: { id: string } }) => {
     const cognitoId = getCognitoId(request);
     if (!cognitoId) return unauthorized();
 
@@ -73,4 +67,4 @@ export async function POST(
     });
 
     return NextResponse.json(labelCopy, { status: 201 });
-}
+    });
