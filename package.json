@@ -15,11 +15,7 @@
     "db:studio": "prisma studio",
     "test": "jest",
     "test:watch": "jest --watch",
-<<<<<<< HEAD
-    "db:seed": "ts-node --project tsconfig.seed.json prisma/seed.ts"
-=======
     "test:coverage": "jest --coverage"
->>>>>>> ebd3cd6 (feat(lyrics): add CRUD lyrics endpoints, TipTap JSON storage, suggestions system, Zod validation, unit tests)
   },
   "dependencies": {
     "@aws-amplify/adapter-nextjs": "^1.7.3",

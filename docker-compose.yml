@@ -52,8 +52,14 @@ services:
       - "3000:3000"
     environment:
       DATABASE_URL: postgresql://nara:nara_secret@db:5432/nara
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
       NODE_ENV: development
       WATCHPACK_POLLING: "true"
+      AWS_REGION: ${AWS_REGION}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET}
     depends_on:
       db:
         condition: service_healthy
