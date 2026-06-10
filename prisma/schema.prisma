@@ -9,15 +9,9 @@ datasource db {
 
 enum Role {
   ADMIN
-<<<<<<< HEAD
   LEAD_LYRICIST
   LYRICIST
   READONLY
-=======
-  LEAD_PAROLIER
-  PAROLIER
-  LECTURE_SEULE
->>>>>>> ebd3cd6 (feat(lyrics): add CRUD lyrics endpoints, TipTap JSON storage, suggestions system, Zod validation, unit tests)
 }
 
 enum SectionType {
@@ -35,19 +29,24 @@ enum SuggestionStatus {
   REJECTED
 }
 
+enum PlanType {
+  FREE_TRIAL
+  BASIC
+  PRO
+}
+
 model User {
-<<<<<<< HEAD
-  id             String   @id @default(cuid())
-  cognitoId      String   @unique @default("")
-  email          String   @unique
-  name           String?
-  username       String?  @unique
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id        String   @id @default(cuid())
+  cognitoId String   @unique @default("")
+  email     String   @unique
+  name      String?
+  username  String?  @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   memberships    ProjectMember[]
   invitations    Invitation[]
-  ownedProjects  Project[]            @relation("OwnedProjects")
+  ownedProjects  Project[]              @relation("OwnedProjects")
   lyrics         Lyrics[]
   suggestions    Suggestion[]
   lyricVersions  LyricVersion[]
@@ -56,21 +55,9 @@ model User {
   rgpdConsent    RgpdConsent?
   markers        AudioMarker[]
   passwordResets PasswordResetRequest[]
-=======
-  id            String   @id @default(cuid())
-  cognitoId     String   @unique
-  email         String   @unique
-  name          String?
-  username      String?  @unique
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
 
-  memberships   ProjectMember[]
-  invitations   Invitation[]
-  ownedProjects Project[]       @relation("OwnedProjects")
-  lyrics        Lyrics[]
-  suggestions   Suggestion[]
->>>>>>> ebd3cd6 (feat(lyrics): add CRUD lyrics endpoints, TipTap JSON storage, suggestions system, Zod validation, unit tests)
+  subscription Subscription?
+  apiKeys      ApiKey[]
 }
 
 model Project {
@@ -87,20 +74,13 @@ model Project {
   members     ProjectMember[]
   invitations Invitation[]
   lyrics      Lyrics[]
-<<<<<<< HEAD
   files       File[]
   labelCopies LabelCopy[]
-=======
->>>>>>> ebd3cd6 (feat(lyrics): add CRUD lyrics endpoints, TipTap JSON storage, suggestions system, Zod validation, unit tests)
 }
 
 model ProjectMember {
   id        String   @id @default(cuid())
-<<<<<<< HEAD
   role      Role     @default(LYRICIST)
-=======
-  role      Role     @default(PAROLIER)
->>>>>>> ebd3cd6 (feat(lyrics): add CRUD lyrics endpoints, TipTap JSON storage, suggestions system, Zod validation, unit tests)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -115,11 +95,7 @@ model ProjectMember {
 model Invitation {
   id        String   @id @default(cuid())
   email     String
-<<<<<<< HEAD
   role      Role     @default(LYRICIST)
-=======
-  role      Role     @default(PAROLIER)
->>>>>>> ebd3cd6 (feat(lyrics): add CRUD lyrics endpoints, TipTap JSON storage, suggestions system, Zod validation, unit tests)
   token     String   @unique @default(cuid())
   accepted  Boolean  @default(false)
   createdAt DateTime @default(now())
@@ -142,17 +118,11 @@ model Lyrics {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
-<<<<<<< HEAD
   project     Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
   author      User           @relation(fields: [authorId], references: [id])
   suggestions Suggestion[]
   versions    LyricVersion[]
   markers     AudioMarker[]
-=======
-  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  author      User         @relation(fields: [authorId], references: [id])
-  suggestions Suggestion[]
->>>>>>> ebd3cd6 (feat(lyrics): add CRUD lyrics endpoints, TipTap JSON storage, suggestions system, Zod validation, unit tests)
 }
 
 model Suggestion {
@@ -164,9 +134,8 @@ model Suggestion {
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
 
-  lyrics    Lyrics @relation(fields: [lyricsId], references: [id], onDelete: Cascade)
-  author    User   @relation(fields: [authorId], references: [id])
-<<<<<<< HEAD
+  lyrics Lyrics @relation(fields: [lyricsId], references: [id], onDelete: Cascade)
+  author User   @relation(fields: [authorId], references: [id])
 }
 
 model LyricVersion {
@@ -177,8 +146,8 @@ model LyricVersion {
   authorId  String
   createdAt DateTime @default(now())
 
-  lyrics    Lyrics @relation(fields: [lyricsId], references: [id], onDelete: Cascade)
-  author    User   @relation(fields: [authorId], references: [id])
+  lyrics Lyrics @relation(fields: [lyricsId], references: [id], onDelete: Cascade)
+  author User   @relation(fields: [authorId], references: [id])
 }
 
 model File {
@@ -194,9 +163,9 @@ model File {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  project      Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  uploader     User          @relation(fields: [uploadedBy], references: [id])
-  markers      AudioMarker[]
+  project  Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploader User          @relation(fields: [uploadedBy], references: [id])
+  markers  AudioMarker[]
 }
 
 model AudioMarker {
@@ -209,9 +178,9 @@ model AudioMarker {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  lyrics    Lyrics   @relation(fields: [lyricsId], references: [id], onDelete: Cascade)
-  file      File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
-  creator   User     @relation(fields: [createdBy], references: [id])
+  lyrics  Lyrics @relation(fields: [lyricsId], references: [id], onDelete: Cascade)
+  file    File   @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  creator User   @relation(fields: [createdBy], references: [id])
 }
 
 model LabelCopy {
@@ -227,7 +196,7 @@ model LabelCopy {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model AuditLog {
@@ -239,7 +208,7 @@ model AuditLog {
   userAgent String?
   createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model RgpdConsent {
@@ -250,7 +219,7 @@ model RgpdConsent {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model PasswordResetRequest {
@@ -261,7 +230,44 @@ model PasswordResetRequest {
   used      Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-=======
->>>>>>> ebd3cd6 (feat(lyrics): add CRUD lyrics endpoints, TipTap JSON storage, suggestions system, Zod validation, unit tests)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id                   String    @id @default(cuid())
+  userId               String    @unique
+  stripeCustomerId     String?   @unique
+  stripeSubscriptionId String?   @unique
+  planType             PlanType  @default(FREE_TRIAL)
+  status               String    @default("active")
+  currentPeriodEnd     DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ApiKey {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String   @default("Default Key")
+  keyHash   String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  rateLimits RateLimit[]
+}
+
+model RateLimit {
+  id       String   @id @default(cuid())
+  apiKeyId String
+  endpoint String
+  count    Int      @default(0)
+  resetAt  DateTime
+
+  apiKey ApiKey @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+
+  @@unique([apiKeyId, endpoint])
 }
