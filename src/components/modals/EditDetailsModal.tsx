@@ -299,26 +299,26 @@ export const EditDetailsModal = ({
     };
 
         return (
-            <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[110] flex items-center justify-center p-4">
-                <div className="bg-[#121212] border border-neutral-800 rounded-3xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="fixed inset-0 bg-n-bg/80 backdrop-blur-md z-[110] flex items-center justify-center p-4">
+                <div className="bg-n-bg border border-n-border rounded-3xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
                     {/* Header */}
                     <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-900 bg-neutral-950/20 shrink-0">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-[#D90097]/10 flex items-center justify-center text-[#D90097]">
+                            <div className="w-10 h-10 rounded-full bg-n-accent/10 flex items-center justify-center text-n-accent">
                                 <Edit3 size={18} />
                             </div>
                             <div>
-                                <h3 className="font-syne font-bold text-white text-base">
+                                <h3 className="font-serif font-bold text-n-text text-base">
                                     {isCreate ? "Create Project Details" : `Edit ${type === "song" ? "Song" : "Project"} Details`}
                                 </h3>
-                                <p className="text-xs text-neutral-400 font-medium mt-0.5">
+                                <p className="text-xs text-n-text-2 font-medium mt-0.5">
                                     {title || "Untitled"}
                                 </p>
                             </div>
                         </div>
                         <button
                             onClick={onClose}
-                            className="text-neutral-500 hover:text-white p-1.5 hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer"
+                            className="text-n-text-2 hover:text-n-text p-1.5 hover:bg-n-hover rounded-lg transition-colors cursor-pointer"
                         >
                             <X size={18} />
                         </button>
@@ -330,10 +330,10 @@ export const EditDetailsModal = ({
                         <div className="flex flex-col md:flex-row gap-6">
                             {/* Cover Image selector */}
                             <div className="flex flex-col items-center gap-2.5 shrink-0">
-                                <label className="text-neutral-500 text-[10px] font-bold uppercase tracking-wider self-start">
+                                <label className="text-n-text-2 text-[10px] font-bold uppercase tracking-wider self-start">
                                     Cover Art
                                 </label>
-                                <div className="relative w-36 h-36 rounded-2xl border border-neutral-800 overflow-hidden bg-neutral-900 flex items-center justify-center group shadow-md">
+                                <div className="relative w-36 h-36 rounded-2xl border border-n-border overflow-hidden bg-n-surface-2 flex items-center justify-center group shadow-md">
                                     {image ? (
                                         <Image
                                             src={image}
@@ -344,20 +344,20 @@ export const EditDetailsModal = ({
                                         />
                                     ) : type === "project" ? (
                                         <div className="absolute inset-0 bg-gradient-to-br from-neutral-900 via-[#181818] to-neutral-950 flex items-center justify-center">
-                                            <div className="relative flex items-center justify-center w-16 h-16 rounded-full bg-neutral-800/10 border border-neutral-800/30 group-hover:border-[#D90097]/20 group-hover:bg-[#D90097]/5 transition-all duration-500">
+                                            <div className="relative flex items-center justify-center w-16 h-16 rounded-full bg-n-hover/10 border border-n-border/30 group-hover:border-n-accent/20 group-hover:bg-n-accent/5 transition-all duration-500">
                                                 <FolderOpen
                                                     size={28}
-                                                    className="text-neutral-500 group-hover:text-[#D90097] transition-all duration-500"
+                                                    className="text-n-text-2 group-hover:text-n-accent transition-all duration-500"
                                                 />
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="text-neutral-600 text-xs">No Cover</div>
+                                        <div className="text-n-text-3 text-xs">No Cover</div>
                                     )}
                                     <button
                                         type="button"
                                         onClick={() => fileInputRef.current?.click()}
-                                        className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-white text-xs gap-1.5 transition-opacity duration-200 cursor-pointer"
+                                        className="absolute inset-0 bg-n-bg/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-n-text text-xs gap-1.5 transition-opacity duration-200 cursor-pointer"
                                     >
                                         <Upload size={18} />
                                         <span>Upload Image</span>
@@ -375,7 +375,7 @@ export const EditDetailsModal = ({
                             {/* Title & Description & Status */}
                             <div className="flex-1 space-y-4">
                                 <div>
-                                    <label className="block text-neutral-500 text-[10px] font-bold uppercase tracking-wider mb-2">
+                                    <label className="block text-n-text-2 text-[10px] font-bold uppercase tracking-wider mb-2">
                                         Name / Title
                                     </label>
                                     <input
@@ -384,19 +384,19 @@ export const EditDetailsModal = ({
                                         value={title}
                                         onChange={(e) => setTitle(e.target.value)}
                                         placeholder={type === "song" ? "Enter song title" : "Enter project name"}
-                                        className="w-full bg-[#151515] border border-neutral-800 focus:border-neutral-700 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none transition-colors"
+                                        className="w-full bg-n-surface border border-n-border focus:border-n-border-2 rounded-xl py-2.5 px-4 text-sm text-n-text focus:outline-none transition-colors"
                                     />
                                 </div>
 
                                 {type === "song" && (
                                     <div>
-                                        <label className="block text-neutral-500 text-[10px] font-bold uppercase tracking-wider mb-2">
+                                        <label className="block text-n-text-2 text-[10px] font-bold uppercase tracking-wider mb-2">
                                             Status / State
                                         </label>
                                         <select
                                             value={state}
                                             onChange={(e) => setState(e.target.value)}
-                                            className="w-full bg-[#151515] border border-neutral-800 focus:border-neutral-700 rounded-xl py-2.5 px-3 text-sm text-white focus:outline-none transition-colors cursor-pointer"
+                                            className="w-full bg-n-surface border border-n-border focus:border-n-border-2 rounded-xl py-2.5 px-3 text-sm text-n-text focus:outline-none transition-colors cursor-pointer"
                                         >
                                             <option value="En écriture">En écriture</option>
                                             <option value="En cours">En cours</option>
@@ -409,13 +409,13 @@ export const EditDetailsModal = ({
 
                                 {type === "project" && (
                                     <div>
-                                        <label className="block text-neutral-500 text-[10px] font-bold uppercase tracking-wider mb-2">
+                                        <label className="block text-n-text-2 text-[10px] font-bold uppercase tracking-wider mb-2">
                                             Project Type
                                         </label>
                                         <select
                                             value={projectType}
                                             onChange={(e) => setProjectType(e.target.value as any)}
-                                            className="w-full bg-[#151515] border border-neutral-800 focus:border-neutral-700 rounded-xl py-2.5 px-3 text-sm text-white focus:outline-none transition-colors cursor-pointer"
+                                            className="w-full bg-n-surface border border-n-border focus:border-n-border-2 rounded-xl py-2.5 px-3 text-sm text-n-text focus:outline-none transition-colors cursor-pointer"
                                         >
                                             <option value="Album">Album</option>
                                             <option value="EP">EP</option>
@@ -428,7 +428,7 @@ export const EditDetailsModal = ({
 
                         {/* Dynamic cover images select row */}
                         <div className="space-y-2">
-                            <label className="block text-neutral-500 text-[10px] font-bold uppercase tracking-wider">
+                            <label className="block text-n-text-2 text-[10px] font-bold uppercase tracking-wider">
                                 Existing Images
                             </label>
                             <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-thin scrollbar-thumb-neutral-800">
@@ -440,8 +440,8 @@ export const EditDetailsModal = ({
                                             type="button"
                                             onClick={() => handlePresetSelect(img)}
                                             className={`relative w-16 h-16 rounded-xl overflow-hidden shrink-0 border-2 transition-all duration-200 hover:scale-105 cursor-pointer ${isSelected
-                                                    ? "border-[#D90097] scale-105 shadow-md shadow-[#D90097]/25"
-                                                    : "border-neutral-800 hover:border-neutral-600"
+                                                    ? "border-n-accent scale-105 shadow-md shadow-[var(--accent)]/25"
+                                                    : "border-n-border hover:border-neutral-600"
                                                 }`}
                                         >
                                             <Image
@@ -460,7 +460,7 @@ export const EditDetailsModal = ({
 
                         {/* Description textarea */}
                         <div>
-                            <label className="block text-neutral-500 text-[10px] font-bold uppercase tracking-wider mb-2">
+                            <label className="block text-n-text-2 text-[10px] font-bold uppercase tracking-wider mb-2">
                                 Description
                             </label>
                             <textarea
@@ -468,14 +468,14 @@ export const EditDetailsModal = ({
                                 onChange={(e) => setDescription(e.target.value)}
                                 placeholder="Add a detailed description here..."
                                 rows={3}
-                                className="w-full bg-[#151515] border border-neutral-800 focus:border-neutral-700 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none transition-colors resize-none"
+                                className="w-full bg-n-surface border border-n-border focus:border-n-border-2 rounded-xl py-2.5 px-4 text-sm text-n-text focus:outline-none transition-colors resize-none"
                             />
                         </div>
 
                         {/* Collaborators chips list */}
                         <div className="space-y-4">
                             <div>
-                                <label className="flex items-center gap-1.5 text-neutral-500 text-[10px] font-bold uppercase tracking-wider mb-2">
+                                <label className="flex items-center gap-1.5 text-n-text-2 text-[10px] font-bold uppercase tracking-wider mb-2">
                                     <Users size={12} />
                                     <span>Collaborators ({collaboratorsList.length})</span>
                                 </label>
@@ -485,20 +485,20 @@ export const EditDetailsModal = ({
                                     {collaboratorsList.map((collab) => (
                                         <div
                                             key={collab}
-                                            className="flex items-center gap-1.5 bg-[#1a1a1a] border border-neutral-800 rounded-full py-1 px-3 text-xs text-white"
+                                            className="flex items-center gap-1.5 bg-n-surface-2 border border-n-border rounded-full py-1 px-3 text-xs text-n-text"
                                         >
                                             <span>{collab}</span>
                                             <button
                                                 type="button"
                                                 onClick={() => handleRemoveCollaborator(collab)}
-                                                className="text-neutral-500 hover:text-red-400 p-0.5 transition-colors cursor-pointer"
+                                                className="text-n-text-2 hover:text-red-400 p-0.5 transition-colors cursor-pointer"
                                             >
                                                 <X size={12} />
                                             </button>
                                         </div>
                                     ))}
                                     {collaboratorsList.length === 0 && (
-                                        <span className="text-xs text-neutral-600 italic">
+                                        <span className="text-xs text-n-text-3 italic">
                                             No collaborators added yet
                                         </span>
                                     )}
@@ -517,12 +517,12 @@ export const EditDetailsModal = ({
                                                 handleAddCollaborator();
                                             }
                                         }}
-                                        className="flex-1 bg-[#151515] border border-neutral-800 focus:border-neutral-700 rounded-xl py-2 px-4 text-xs text-white focus:outline-none transition-colors"
+                                        className="flex-1 bg-n-surface border border-n-border focus:border-n-border-2 rounded-xl py-2 px-4 text-xs text-n-text focus:outline-none transition-colors"
                                     />
                                     <button
                                         type="button"
                                         onClick={() => handleAddCollaborator()}
-                                        className="bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl p-2 transition-colors cursor-pointer flex items-center justify-center shrink-0 w-9 h-9"
+                                        className="bg-n-hover hover:bg-neutral-700 text-n-text rounded-xl p-2 transition-colors cursor-pointer flex items-center justify-center shrink-0 w-9 h-9"
                                     >
                                         <Plus size={16} />
                                     </button>
@@ -531,7 +531,7 @@ export const EditDetailsModal = ({
 
                             {/* Suggestions */}
                             <div className="space-y-2">
-                                <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider">
+                                <span className="text-[10px] text-n-text-2 font-bold uppercase tracking-wider">
                                     Suggestions
                                 </span>
                                 <div className="flex flex-wrap gap-2">
@@ -541,7 +541,7 @@ export const EditDetailsModal = ({
                                                 key={user}
                                                 type="button"
                                                 onClick={() => handleAddCollaborator(user)}
-                                                className="text-[11px] font-semibold text-neutral-400 hover:text-white bg-neutral-900 border border-neutral-800 hover:border-neutral-700 rounded-lg py-1 px-2.5 transition-all flex items-center gap-1 cursor-pointer hover:bg-neutral-800"
+                                                className="text-[11px] font-semibold text-n-text-2 hover:text-n-text bg-n-surface-2 border border-n-border hover:border-n-border-2 rounded-lg py-1 px-2.5 transition-all flex items-center gap-1 cursor-pointer hover:bg-n-hover"
                                             >
                                                 <Plus size={10} />
                                                 <span>{user}</span>
@@ -558,7 +558,7 @@ export const EditDetailsModal = ({
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 text-xs font-semibold text-neutral-400 hover:text-white border border-neutral-800 hover:border-neutral-700 rounded-lg transition-colors cursor-pointer"
+                            className="px-4 py-2 text-xs font-semibold text-n-text-2 hover:text-n-text border border-n-border hover:border-n-border-2 rounded-lg transition-colors cursor-pointer"
                         >
                             Cancel
                         </button>
@@ -566,7 +566,7 @@ export const EditDetailsModal = ({
                             type="button"
                             onClick={handleSave}
                             disabled={!title.trim()}
-                            className="px-5 py-2 text-xs font-semibold text-white bg-gradient-to-r from-[#AB0063] to-[#D50093] disabled:opacity-50 disabled:pointer-events-none rounded-lg shadow-lg hover:opacity-90 hover:scale-[1.02] transition-all cursor-pointer"
+                            className="bg-n-cta text-n-cta-text hover:bg-n-cta-hover rounded-lg px-4 py-2 font-semibold transition-colors"
                         >
                             {isCreate ? "Create Project" : "Save Changes"}
                         </button>

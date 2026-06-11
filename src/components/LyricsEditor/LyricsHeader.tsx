@@ -117,15 +117,15 @@ const blockSizeOptions: SelectOption[] = [
 ];
 
 const colorShortcuts: string[] = [
-	"#F3F4F6",
+	"var(--nara-text-primary)",
 	"#FFFFFF",
-	"#0D0D10",
-	"#17171C",
-	"#2C2C32",
-	"#666670",
-	"#A1A1AA",
-	"#D9D9DE",
-	"#DA069A",
+	"var(--nara-shell-bg)",
+	"var(--nara-surface)",
+	"var(--nara-border)",
+	"var(--nara-border-strong)",
+	"var(--nara-text-secondary)",
+	"var(--nara-text-primary)",
+	"#b4783c",
 	"#FF5C72",
 	"#F4B84A",
 	"#B8F36B",
@@ -135,11 +135,11 @@ const colorShortcuts: string[] = [
 	"#6D7DFF",
 	"#C4057F",
 	"#F97316",
-	"#202027",
-	"#38383C",
-	"#4A4A52",
-	"#8C8C96",
-	"#111116",
+	"var(--nara-surface-raised)",
+	"var(--nara-text-faint)",
+	"var(--nara-border-strong)",
+	"var(--nara-text-muted)",
+	"var(--nara-surface)",
 	"#E879F9",
 ];
 
@@ -173,7 +173,7 @@ function normalizeHexColor(value: string): string | null {
 }
 
 function hexToRgb(hexColor: string): RgbColor {
-	const normalizedColor: string = normalizeHexColor(hexColor) ?? "#F3F4F6";
+	const normalizedColor: string = normalizeHexColor(hexColor) ?? "var(--nara-text-primary)";
 	const value: number = Number.parseInt(normalizedColor.slice(1), 16);
 
 	return {
@@ -354,7 +354,7 @@ function ToolbarSeparator(): ReactElement {
 		<span
 			aria-hidden="true"
 			data-toolbar-separator="true"
-			className="h-[18px] w-px bg-[#A1A1AA]"
+			className="h-[18px] w-px bg-[var(--nara-text-secondary)]"
 		/>
 	);
 }
@@ -420,7 +420,7 @@ function ToolbarSelect({
 				onClick={(): void =>
 					setIsOpen((current: boolean): boolean => !current)
 				}
-				className="flex h-full w-full items-center justify-between gap-1 rounded-lg bg-[#24242A] py-2 pl-2.5 pr-2 text-[13px] font-semibold leading-none text-[#F3F4F6] outline-none transition-colors hover:bg-[#2C2C32] focus-visible:bg-[#2C2C32]"
+				className="flex h-full w-full items-center justify-between gap-1 rounded-lg bg-[var(--nara-surface-soft)] py-2 pl-2.5 pr-2 text-[13px] font-semibold leading-none text-[var(--nara-text-primary)] outline-none transition-colors hover:bg-[var(--nara-border)] focus-visible:bg-[var(--nara-border)]"
 				style={fontStyleFor(value)}
 			>
 				<span className="truncate">{selectedLabel}</span>
@@ -428,7 +428,7 @@ function ToolbarSelect({
 					aria-hidden="true"
 					size={11}
 					strokeWidth={2}
-					className={`shrink-0 text-[#A1A1AA] transition-transform duration-200 ${
+					className={`shrink-0 text-[var(--nara-text-secondary)] transition-transform duration-200 ${
 						isOpen ? "rotate-180" : ""
 					}`}
 				/>
@@ -437,7 +437,7 @@ function ToolbarSelect({
 			{isOpen && (
 				<div
 					role="listbox"
-					className="absolute left-0 top-[calc(100%+6px)] z-[100] min-w-full overflow-hidden rounded-xl border border-white/[0.08] bg-[#141418]/90 py-1  backdrop-blur-2xl backdrop-saturate-150"
+					className="absolute left-0 top-[calc(100%+6px)] z-[100] min-w-full overflow-hidden rounded-xl border border-[var(--nara-border)] bg-[var(--nara-surface-raised)]/90 py-1  backdrop-blur-2xl backdrop-saturate-150"
 				>
 					{options.map((option: SelectOption): ReactElement => {
 						const isSelected: boolean = option.value === value;
@@ -457,8 +457,8 @@ function ToolbarSelect({
 								}}
 								className={`flex w-full items-center gap-2 whitespace-nowrap px-3 py-1.5 text-left text-[13px] font-medium transition-colors ${
 									isSelected
-										? "bg-[#DA069A]/15 text-white"
-										: "text-[#D9D9DE] hover:bg-white/[0.06]"
+										? "bg-[#b4783c]/15 text-[var(--nara-text-primary)]"
+										: "text-[var(--nara-text-primary)] hover:bg-white/[0.06]"
 								}`}
 								style={fontStyleFor(option.value)}
 							>
@@ -469,7 +469,7 @@ function ToolbarSelect({
 									<Check
 										size={12}
 										strokeWidth={2.5}
-										className="shrink-0 text-[#DA069A]"
+										className="shrink-0 text-[#b4783c]"
 									/>
 								)}
 							</button>
@@ -498,8 +498,8 @@ function IconButton({
 			aria-pressed={active}
 			onMouseDown={keepEditorSelection}
 			onClick={onClick}
-			className={`inline-flex h-7 w-7 items-center justify-center rounded-[5px] text-[#F3F4F6] transition-colors hover:bg-[#24242A] hover:text-white ${
-				active ? "bg-[#2C2C32]" : ""
+			className={`inline-flex h-7 w-7 items-center justify-center rounded-[5px] text-[var(--nara-text-primary)] transition-colors hover:bg-[var(--nara-surface-soft)] hover:text-[var(--nara-text-primary)] ${
+				active ? "bg-[var(--nara-border)]" : ""
 			}`}
 		>
 			<Icon size={17} strokeWidth={2} />
@@ -606,12 +606,12 @@ function PickerSlider({
 					onChange(clampNumber(value + 1, min, max));
 				}
 			}}
-			className="relative h-4 w-full cursor-pointer rounded-full outline-none focus-visible:ring-1 focus-visible:ring-[#F3F4F6]"
+			className="relative h-4 w-full cursor-pointer rounded-full outline-none focus-visible:ring-1 focus-visible:ring-[var(--nara-text-primary)]"
 			style={{ backgroundImage, backgroundSize }}
 		>
 			<span
 				aria-hidden="true"
-				className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-[#F3F4F6] bg-transparent shadow-[0_1px_4px_rgba(0,0,0,0.45)]"
+				className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-[var(--nara-text-primary)] bg-transparent shadow-[0_1px_4px_rgba(0,0,0,0.45)]"
 				style={{ left: getPickerHandlePosition(percent) }}
 			/>
 		</div>
@@ -774,7 +774,7 @@ function ColorPickerPopover({
 }): ReactElement {
 	const colorAreaRef = useRef<HTMLDivElement | null>(null);
 	const activeColorAreaPointerIdRef = useRef<number | null>(null);
-	const normalizedColor: string = normalizeHexColor(color) ?? "#F3F4F6";
+	const normalizedColor: string = normalizeHexColor(color) ?? "var(--nara-text-primary)";
 	const normalizedRgbColor: RgbColor = hexToRgb(normalizedColor);
 	const [hsvColor, setHsvColor] = useState<HsvColor>(
 		(): HsvColor => rgbToHsv(hexToRgb(normalizedColor)),
@@ -981,7 +981,7 @@ function ColorPickerPopover({
 
 	const hueBackground =
 		"linear-gradient(90deg,#FF0000 0%,#FFFF00 17%,#00FF00 33%,#00FFFF 50%,#0000FF 67%,#FF00FF 83%,#FF0000 100%)";
-	const opacityBackground = `linear-gradient(90deg, rgba(${normalizedRgbColor.r}, ${normalizedRgbColor.g}, ${normalizedRgbColor.b}, 0), ${normalizedColor}), conic-gradient(#F3F4F6 25%, #D1D1D6 0 50%, #F3F4F6 0 75%, #D1D1D6 0)`;
+	const opacityBackground = `linear-gradient(90deg, rgba(${normalizedRgbColor.r}, ${normalizedRgbColor.g}, ${normalizedRgbColor.b}, 0), ${normalizedColor}), conic-gradient(var(--nara-text-primary) 25%, #D1D1D6 0 50%, var(--nara-text-primary) 0 75%, #D1D1D6 0)`;
 	const selectedModeLabel: string =
 		colorInputModes.find(
 			(mode: { label: string; value: ColorInputMode }): boolean =>
@@ -1002,11 +1002,11 @@ function ColorPickerPopover({
 		<div
 			role="dialog"
 			aria-label="Choisir une couleur"
-			className="absolute left-0 top-[calc(100%+8px)] z-[80] w-[258px] rounded-[7px] border border-[#3A3A42] bg-[#2B2B31] p-3 shadow-[0_18px_36px_rgba(0,0,0,0.42)]"
+			className="absolute left-0 top-[calc(100%+8px)] z-[80] w-[258px] rounded-[7px] border border-[var(--nara-border-strong)] bg-[var(--nara-surface-soft)] p-3 shadow-[0_18px_36px_rgba(0,0,0,0.42)]"
 		>
 			<div
 				ref={colorAreaRef}
-				className="relative h-[204px] w-full cursor-crosshair overflow-hidden rounded-[4px] border border-[#17171C]"
+				className="relative h-[204px] w-full cursor-crosshair overflow-hidden rounded-[4px] border border-[var(--nara-surface)]"
 				style={{ backgroundColor: `hsl(${hsvColor.h}, 100%, 50%)` }}
 				onPointerDown={(event: PointerEvent<HTMLDivElement>): void => {
 					event.preventDefault();
@@ -1065,15 +1065,15 @@ function ColorPickerPopover({
 			>
 				<span
 					aria-hidden="true"
-					className="absolute inset-0 bg-[linear-gradient(90deg,#F3F4F6,rgba(243,244,246,0))]"
+					className="absolute inset-0 bg-[linear-gradient(90deg,var(--nara-text-primary),rgba(243,244,246,0))]"
 				/>
 				<span
 					aria-hidden="true"
-					className="absolute inset-0 bg-[linear-gradient(0deg,#0D0D10,rgba(13,13,16,0))]"
+					className="absolute inset-0 bg-[linear-gradient(0deg,var(--nara-shell-bg),rgba(13,13,16,0))]"
 				/>
 				<span
 					aria-hidden="true"
-					className="absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-[#F3F4F6] shadow-[0_1px_4px_rgba(0,0,0,0.5)]"
+					className="absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-[var(--nara-text-primary)] shadow-[0_1px_4px_rgba(0,0,0,0.5)]"
 					style={{
 						left: getPickerHandlePosition(hsvColor.s),
 						top: getPickerHandlePosition(100 - hsvColor.v),
@@ -1082,7 +1082,7 @@ function ColorPickerPopover({
 			</div>
 
 			<div className="mt-3 grid grid-cols-[22px_minmax(0,1fr)] items-center gap-x-2 gap-y-2">
-				<span className="text-center text-[10px] font-bold text-[#F3F4F6]">
+				<span className="text-center text-[10px] font-bold text-[var(--nara-text-primary)]">
 					H
 				</span>
 				<PickerSlider
@@ -1095,7 +1095,7 @@ function ColorPickerPopover({
 						applyHsv({ ...hsvColorRef.current, h: hue });
 					}}
 				/>
-				<span className="text-center text-[10px] font-bold text-[#F3F4F6]">
+				<span className="text-center text-[10px] font-bold text-[var(--nara-text-primary)]">
 					A
 				</span>
 				<PickerSlider
@@ -1128,13 +1128,13 @@ function ColorPickerPopover({
 									!currentValue,
 							);
 						}}
-						className="inline-flex h-7 w-full items-center justify-between rounded-[4px] border border-[#4A4A52] bg-[#33333A] px-2 text-[11px] font-semibold text-[#F3F4F6] outline-none transition-colors hover:bg-[#3A3A42]"
+						className="inline-flex h-7 w-full items-center justify-between rounded-[4px] border border-[var(--nara-border-strong)] bg-[var(--nara-surface-soft)] px-2 text-[11px] font-semibold text-[var(--nara-text-primary)] outline-none transition-colors hover:bg-[var(--nara-border-strong)]"
 					>
 						{selectedModeLabel}
 						<ChevronDown size={11} strokeWidth={2} />
 					</button>
 					{isModeMenuOpen && (
-						<div className="absolute left-0 top-[calc(100%+4px)] z-[90] w-[86px] rounded-[6px] border border-[#4A4A52] bg-[#1F1F25] p-1 shadow-[0_12px_28px_rgba(0,0,0,0.4)]">
+						<div className="absolute left-0 top-[calc(100%+4px)] z-[90] w-[86px] rounded-[6px] border border-[var(--nara-border-strong)] bg-[var(--nara-surface-raised)] p-1 shadow-[0_12px_28px_rgba(0,0,0,0.4)]">
 							{colorInputModes.map(
 								(mode: {
 									label: string;
@@ -1152,8 +1152,8 @@ function ColorPickerPopover({
 										}}
 										className={`flex h-7 w-full items-center rounded-[4px] px-2 text-left text-[11px] font-semibold transition-colors ${
 											mode.value === colorInputMode
-												? "bg-[#34343C] text-[#F3F4F6]"
-												: "text-[#D9D9DE] hover:bg-[#2C2C32]"
+												? "bg-[var(--nara-surface-soft)] text-[var(--nara-text-primary)]"
+												: "text-[var(--nara-text-primary)] hover:bg-[var(--nara-border)]"
 										}`}
 									>
 										{mode.label}
@@ -1168,7 +1168,7 @@ function ColorPickerPopover({
 						aria-label="Couleur hexadecimale"
 						value={hexInput}
 						onChange={handleHexChange}
-						className="h-7 min-w-0 rounded-[4px] border border-[#4A4A52] bg-[#33333A] px-2 text-[11px] font-bold text-[#F3F4F6] outline-none focus:border-[#F3F4F6]"
+						className="h-7 min-w-0 rounded-[4px] border border-[var(--nara-border-strong)] bg-[var(--nara-surface-soft)] px-2 text-[11px] font-bold text-[var(--nara-text-primary)] outline-none focus:border-[var(--nara-text-primary)]"
 					/>
 				) : (
 					channelValues.map(
@@ -1194,7 +1194,7 @@ function ColorPickerPopover({
 										nextValue,
 									);
 								}}
-								className="h-7 min-w-0 rounded-[4px] border border-[#3E3E46] bg-[#33333A] px-1 text-center text-[11px] font-bold text-[#F3F4F6] outline-none focus:border-[#F3F4F6]"
+								className="h-7 min-w-0 rounded-[4px] border border-[var(--nara-border-strong)] bg-[var(--nara-surface-soft)] px-1 text-center text-[11px] font-bold text-[var(--nara-text-primary)] outline-none focus:border-[var(--nara-text-primary)]"
 							/>
 						),
 					)
@@ -1212,15 +1212,15 @@ function ColorPickerPopover({
 								textOpacity: nextOpacity,
 							});
 						}}
-						className="h-7 w-full rounded-[4px] border border-[#4A4A52] bg-[#33333A] pl-1 pr-5 text-center text-[11px] font-bold text-[#F3F4F6] outline-none focus:border-[#F3F4F6]"
+						className="h-7 w-full rounded-[4px] border border-[var(--nara-border-strong)] bg-[var(--nara-surface-soft)] pl-1 pr-5 text-center text-[11px] font-bold text-[var(--nara-text-primary)] outline-none focus:border-[var(--nara-text-primary)]"
 					/>
-					<span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-[#A1A1AA]">
+					<span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-[var(--nara-text-secondary)]">
 						%
 					</span>
 				</label>
 			</div>
 
-			<div className="mt-3 h-px bg-[#3A3A42]" />
+			<div className="mt-3 h-px bg-[var(--nara-border-strong)]" />
 
 			<div className="mt-3 grid grid-cols-8 gap-2">
 				{colorShortcuts.map((shortcutColor: string): ReactElement => {
@@ -1257,8 +1257,8 @@ function ColorPickerPopover({
 							}}
 							className={`h-4 w-4 rounded-[3px] border transition-transform hover:scale-110 ${
 								isSelected
-									? "border-[#F3F4F6]"
-									: "border-[#4A4A52]"
+									? "border-[var(--nara-text-primary)]"
+									: "border-[var(--nara-border-strong)]"
 							}`}
 							style={{ backgroundColor: shortcutColor }}
 						/>
@@ -1267,11 +1267,11 @@ function ColorPickerPopover({
 			</div>
 
 			<div className="mt-3 flex items-center justify-between">
-				<span className="text-[10px] font-medium text-[#A1A1AA]">
+				<span className="text-[10px] font-medium text-[var(--nara-text-secondary)]">
 					Couleur active
 				</span>
 				<span
-					className="h-4 w-10 rounded-[3px] border border-[#4A4A52]"
+					className="h-4 w-10 rounded-[3px] border border-[var(--nara-border-strong)]"
 					style={{ backgroundColor: colorCss }}
 				/>
 			</div>
@@ -1392,7 +1392,7 @@ export default function LyricsHeader({
 	return (
 		<header
 			data-lyrics-header="true"
-			className="relative z-[90] flex w-full h-16 justify-center items-center bg-[#0D0D10]/70 backdrop-blur-2xl backdrop-saturate-150 px-2 py-2 text-[var(--nara-text-primary)] rounded-2xl"
+			className="relative z-[90] flex w-full h-16 justify-center items-center bg-[var(--nara-shell-bg)]/70 backdrop-blur-2xl backdrop-saturate-150 px-2 py-2 text-[var(--nara-text-primary)] rounded-2xl"
 		>
 			<div className="flex h-8 w-full items-center justify-between gap-2 overflow-visible rounded-[8px] px-2">
 				<div className="flex min-w-0 items-center gap-3">
@@ -1443,8 +1443,8 @@ export default function LyricsHeader({
 										!currentValue,
 								);
 							}}
-							className={`inline-flex h-7 w-7 items-center justify-center rounded-[5px] transition-colors hover:bg-[#24242A] ${
-								isColorPickerOpen ? "bg-[#2C2C32]" : ""
+							className={`inline-flex h-7 w-7 items-center justify-center rounded-[5px] transition-colors hover:bg-[var(--nara-surface-soft)] ${
+								isColorPickerOpen ? "bg-[var(--nara-border)]" : ""
 							}`}
 						>
 							<span

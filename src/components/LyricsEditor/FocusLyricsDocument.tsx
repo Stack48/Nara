@@ -218,7 +218,7 @@ function createFocusSectionDragImage(
 	dragImage.style.left = "0";
 	dragImage.style.zIndex = "-1000";
 	dragImage.style.pointerEvents = "none";
-	dragImage.style.color = "#F3F4F6";
+	dragImage.style.color = "var(--nara-text-primary)";
 	dragImage.style.opacity = "1";
 
 	// Add label
@@ -439,7 +439,7 @@ export function SearchHighlightOverlay({
 		pieces.push(
 			<span
 				key={`match-${range.startIndex}-${range.endIndex}`}
-				className="rounded-[3px] bg-[#D90097]/25 shadow-[0_0_0_1px_rgba(217,0,151,0.16)]"
+				className="rounded-[3px] bg-[#b4783c]/25 shadow-[0_0_0_1px_rgba(180,120,60,0.16)]"
 				style={{
 					WebkitBoxDecorationBreak: "clone",
 					boxDecorationBreak: "clone",
@@ -471,8 +471,8 @@ export function SearchHighlightOverlay({
 	);
 }
 
-const focusEditorBackgroundColor = "#0D0D10";
-const focusDefaultTextColor = "#F3F4F6";
+const focusEditorBackgroundColor = "var(--nara-shell-bg)";
+const focusDefaultTextColor = "var(--nara-text-primary)";
 
 export function FormatMarksOverlay({
 	lineStyle,
@@ -637,7 +637,7 @@ export function RemoteCursorOverlay({
 									style={{ backgroundColor: presence.color }}
 								/>
 								<span
-									className="absolute left-[5px] rounded-[4px] px-1.5 py-0.5 text-[10px] font-bold leading-none text-white shadow-[0_2px_8px_rgba(0,0,0,0.18)]"
+									className="absolute left-[5px] rounded-[4px] px-1.5 py-0.5 text-[10px] font-bold leading-none text-[var(--nara-text-primary)] shadow-[0_2px_8px_rgba(0,0,0,0.18)]"
 									style={{
 										backgroundColor: presence.color,
 										top: `${-22 - index * 18}px`,
@@ -1392,7 +1392,7 @@ export default function FocusLyricsDocument({
 										onClick={(): void =>
 											onToggleAddMenu(marker.id)
 										}
-										className="inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded-[5px] text-[#38383C] hover:bg-[#202027] hover:text-[#F3F4F6]"
+										className="inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded-[5px] text-[var(--nara-text-faint)] hover:bg-[var(--nara-surface-raised)] hover:text-[var(--nara-text-primary)]"
 									>
 										<Plus size={20} strokeWidth={1.8} />
 									</button>
@@ -1457,7 +1457,7 @@ export default function FocusLyricsDocument({
 											setDragOverSectionId(null);
 											setDraggedHeight(0);
 										}}
-										className="inline-flex h-5 w-5 cursor-grab items-center justify-center rounded-[5px] text-[#38383C] hover:bg-[#202027] hover:text-[#F3F4F6] active:cursor-grabbing"
+										className="inline-flex h-5 w-5 cursor-grab items-center justify-center rounded-[5px] text-[var(--nara-text-faint)] hover:bg-[var(--nara-surface-raised)] hover:text-[var(--nara-text-primary)] active:cursor-grabbing"
 									>
 										<GripVertical
 											size={20}
@@ -1545,9 +1545,9 @@ export default function FocusLyricsDocument({
 									onClick={(): void =>
 										onToggleSectionComment(marker.id)
 									}
-									className={`pointer-events-auto inline-flex h-7 items-center gap-1.5 rounded-[7px] px-2 text-[#767680] transition-all duration-150 hover:bg-[#202027] hover:text-[#F3F4F6] ${
+									className={`pointer-events-auto inline-flex h-7 items-center gap-1.5 rounded-[7px] px-2 text-[#767680] transition-all duration-150 hover:bg-[var(--nara-surface-raised)] hover:text-[var(--nara-text-primary)] ${
 										isCommentOpen
-											? "bg-[#202027] text-[#F3F4F6] opacity-100"
+											? "bg-[var(--nara-surface-raised)] text-[var(--nara-text-primary)] opacity-100"
 											: isVisible ||
 												  sectionComments.length > 0
 												? "opacity-100"
@@ -1638,7 +1638,7 @@ export default function FocusLyricsDocument({
 										return (
 											<div
 												key={idx}
-												className="absolute left-0 right-0 text-[#F3F4F6]"
+												className="absolute left-0 right-0 text-[var(--nara-text-primary)]"
 												style={{
 													top: lineTop,
 													height: dynamicLineHeightPx,
@@ -1689,7 +1689,7 @@ export default function FocusLyricsDocument({
 						dragImg.style.left = "0";
 						dragImg.style.zIndex = "-1000";
 						dragImg.style.pointerEvents = "none";
-						dragImg.style.color = "#F3F4F6";
+						dragImg.style.color = "var(--nara-text-primary)";
 						dragImg.style.fontFamily =
 							computedLineStyle.fontFamily ?? "Georgia, serif";
 						dragImg.style.fontSize = computedLineStyle.fontSize
@@ -1709,7 +1709,7 @@ export default function FocusLyricsDocument({
 						setDraggedLineIdx(null);
 						setDragOverLineIdx(null);
 					}}
-					className={`absolute inline-flex h-5 w-5 cursor-grab items-center justify-center rounded-[5px] text-[#38383C] hover:bg-[#202027] hover:text-[#F3F4F6] active:cursor-grabbing z-30 transition-opacity ${
+					className={`absolute inline-flex h-5 w-5 cursor-grab items-center justify-center rounded-[5px] text-[var(--nara-text-faint)] hover:bg-[var(--nara-surface-raised)] hover:text-[var(--nara-text-primary)] active:cursor-grabbing z-30 transition-opacity ${
 						draggedLineIdx !== null
 							? "opacity-0 pointer-events-none"
 							: ""
@@ -1790,7 +1790,7 @@ export default function FocusLyricsDocument({
 					handleTextSelection(event.currentTarget);
 				}}
 				spellCheck={false}
-				className="block w-full resize-none overflow-hidden border-0 bg-transparent py-0 pr-0 text-[#F3F4F6] outline-none selection:bg-[#0B57D0] selection:text-white relative z-20"
+				className="block w-full resize-none overflow-hidden border-0 bg-transparent py-0 pr-0 text-[var(--nara-text-primary)] outline-none selection:bg-[#0B57D0] selection:text-[var(--nara-text-primary)] relative z-20"
 				style={{
 					...computedLineStyle,
 					height: textareaHeight,

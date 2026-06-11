@@ -22,7 +22,7 @@ export const SkeletonCard = ({ viewMode, type = "song" }: { viewMode: "grid" | "
 
     if (type === "project") {
         return (
-            <div className="aspect-square rounded-2xl border border-neutral-800/80 bg-[#151515] p-5 flex flex-col justify-end gap-3 relative overflow-hidden">
+            <div className="aspect-square rounded-2xl border border-n-border/80 bg-n-surface p-5 flex flex-col justify-end gap-3 relative overflow-hidden">
                 <Skeleton className="absolute inset-0 w-full h-full opacity-10" />
                 <div className="relative z-10 flex flex-col gap-2 w-full">
                     <Skeleton className="h-3 w-1/3" />
@@ -37,7 +37,7 @@ export const SkeletonCard = ({ viewMode, type = "song" }: { viewMode: "grid" | "
     }
 
     return (
-        <div className="border border-neutral-800/80 rounded-2xl p-3 flex flex-col sm:flex-row gap-4 bg-[#151515]">
+        <div className="border border-n-border/80 rounded-2xl p-3 flex flex-col sm:flex-row gap-4 bg-n-surface">
             <Skeleton className="w-full aspect-square sm:w-32 sm:h-32 rounded-xl flex-shrink-0" />
             <div className="flex flex-col flex-1 gap-3 py-1.5 justify-between">
                 <div className="flex flex-col gap-2">

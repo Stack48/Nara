@@ -63,32 +63,32 @@ export default function ProfilePage() {
 
     if (loading) return (
         <div className="flex items-center justify-center h-full">
-            <div className="w-8 h-8 rounded-full border-2 border-[#D90097] border-t-transparent animate-spin" />
+            <div className="w-8 h-8 rounded-full border-2 border-n-accent border-t-transparent animate-spin" />
         </div>
     );
 
     return (
-        <div className="max-w-2xl mx-auto py-10 px-6 font-arimo text-white">
-            <h1 className="font-syne font-bold text-2xl mb-8">Mon profil</h1>
+        <div className="max-w-2xl mx-auto py-10 px-6 font-arimo text-n-text">
+            <h1 className="font-serif font-bold text-2xl mb-8">Mon profil</h1>
 
             {/* Avatar */}
             <div className="flex items-center gap-6 mb-10">
                 <div className="relative">
-                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#AB0063] to-[#D50093] flex items-center justify-center text-white text-3xl font-bold uppercase overflow-hidden">
+                    <div className="w-20 h-20 rounded-full bg-n-text text-n-bg flex items-center justify-center text-3xl font-bold uppercase overflow-hidden">
                         {avatarUrl ? (
                             <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                         ) : (
                             (name || username || email)?.[0] ?? "N"
                         )}
                     </div>
-                    <button className="absolute bottom-0 right-0 w-7 h-7 bg-neutral-800 border border-neutral-700 rounded-full flex items-center justify-center hover:bg-neutral-700 transition-colors">
-                        <Camera size={12} className="text-neutral-300" />
+                    <button className="absolute bottom-0 right-0 w-7 h-7 bg-n-hover border border-n-border-2 rounded-full flex items-center justify-center hover:bg-neutral-700 transition-colors">
+                        <Camera size={12} className="text-n-text" />
                     </button>
                 </div>
                 <div>
-                    <p className="font-bold text-white">{name || username || email}</p>
-                    <p className="text-xs text-neutral-500 mt-0.5">@{username || email?.split("@")[0]}</p>
-                    <span className="text-[9px] bg-neutral-800 text-neutral-400 px-2 py-0.5 rounded font-bold uppercase mt-1 inline-block">
+                    <p className="font-bold text-n-text">{name || username || email}</p>
+                    <p className="text-xs text-n-text-2 mt-0.5">@{username || email?.split("@")[0]}</p>
+                    <span className="text-[9px] bg-n-hover text-n-text-2 px-2 py-0.5 rounded font-bold uppercase mt-1 inline-block">
                         Plan Gratuit
                     </span>
                 </div>
@@ -98,46 +98,46 @@ export default function ProfilePage() {
             <div className="flex flex-col gap-6">
                 {/* Email (readonly) */}
                 <div>
-                    <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-2">
+                    <label className="block text-[10px] font-bold text-n-text-2 uppercase tracking-wider mb-2">
                         Email
                     </label>
-                    <div className="flex items-center gap-3 bg-[#151515] border border-neutral-800 rounded-xl px-4 py-3 opacity-60">
-                        <Mail size={14} className="text-neutral-500 flex-shrink-0" />
-                        <span className="text-sm text-neutral-400">{email}</span>
+                    <div className="flex items-center gap-3 bg-n-surface border border-n-border rounded-xl px-4 py-3 opacity-60">
+                        <Mail size={14} className="text-n-text-2 flex-shrink-0" />
+                        <span className="text-sm text-n-text-2">{email}</span>
                     </div>
-                    <p className="text-[10px] text-neutral-600 mt-1">L'email ne peut pas être modifié</p>
+                    <p className="text-[10px] text-n-text-3 mt-1">L'email ne peut pas être modifié</p>
                 </div>
 
                 {/* Nom */}
                 <div>
-                    <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-2">
+                    <label className="block text-[10px] font-bold text-n-text-2 uppercase tracking-wider mb-2">
                         Nom complet
                     </label>
-                    <div className="flex items-center gap-3 bg-[#151515] border border-neutral-800 focus-within:border-neutral-600 rounded-xl px-4 py-3 transition-colors">
-                        <User size={14} className="text-neutral-500 flex-shrink-0" />
+                    <div className="flex items-center gap-3 bg-n-surface border border-n-border focus-within:border-neutral-600 rounded-xl px-4 py-3 transition-colors">
+                        <User size={14} className="text-n-text-2 flex-shrink-0" />
                         <input
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             placeholder="Ton nom"
-                            className="flex-1 bg-transparent text-sm text-white placeholder-neutral-600 focus:outline-none"
+                            className="flex-1 bg-transparent text-sm text-n-text placeholder-neutral-600 focus:outline-none"
                         />
                     </div>
                 </div>
 
                 {/* Username */}
                 <div>
-                    <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-2">
+                    <label className="block text-[10px] font-bold text-n-text-2 uppercase tracking-wider mb-2">
                         Nom d'utilisateur
                     </label>
-                    <div className="flex items-center gap-3 bg-[#151515] border border-neutral-800 focus-within:border-neutral-600 rounded-xl px-4 py-3 transition-colors">
-                        <AtSign size={14} className="text-neutral-500 flex-shrink-0" />
+                    <div className="flex items-center gap-3 bg-n-surface border border-n-border focus-within:border-neutral-600 rounded-xl px-4 py-3 transition-colors">
+                        <AtSign size={14} className="text-n-text-2 flex-shrink-0" />
                         <input
                             type="text"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             placeholder="ton_username"
-                            className="flex-1 bg-transparent text-sm text-white placeholder-neutral-600 focus:outline-none"
+                            className="flex-1 bg-transparent text-sm text-n-text placeholder-neutral-600 focus:outline-none"
                         />
                     </div>
                 </div>
@@ -146,7 +146,7 @@ export default function ProfilePage() {
                 <button
                     onClick={handleSave}
                     disabled={saving}
-                    className="flex items-center justify-center gap-2 bg-gradient-to-r from-[#AB0063] to-[#D50093] text-white font-bold py-3 px-6 rounded-xl hover:opacity-90 transition-all disabled:opacity-50 w-fit"
+                    className="flex items-center justify-center gap-2 bg-n-cta text-n-cta-text hover:bg-n-cta-hover font-bold py-3 px-6 rounded-xl transition-colors disabled:opacity-50 w-fit"
                 >
                     <Save size={16} />
                     {saved ? "Sauvegardé ✓" : saving ? "Sauvegarde..." : "Sauvegarder"}

@@ -47,22 +47,22 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
     const pathname = usePathname();
 
     return (
-        <div className="flex h-full min-h-0 font-arimo text-white">
+        <div className="flex h-full min-h-0 font-arimo text-n-text">
             {/* Sidebar */}
-            <aside className="w-56 border-r border-neutral-800/60 flex-shrink-0 flex flex-col py-6 px-3 overflow-y-auto">
+            <aside className="w-56 border-r border-n-border/60 flex-shrink-0 flex flex-col py-6 px-3 overflow-y-auto">
                 <Link
                     href="/dashboard"
-                    className="flex items-center gap-2 text-xs text-neutral-500 hover:text-white transition-colors mb-6 px-2"
+                    className="flex items-center gap-2 text-xs text-n-text-2 hover:text-n-text transition-colors mb-6 px-2"
                 >
                     <ArrowLeft size={14} />
                     <span>Retour</span>
                 </Link>
 
-                <h2 className="font-syne font-bold text-white text-sm px-2 mb-4">Paramètres</h2>
+                <h2 className="font-serif font-bold text-n-text text-sm px-2 mb-4">Paramètres</h2>
 
                 {sections.map((section) => (
                     <div key={section.title} className="mb-4">
-                        <p className="text-[9px] font-bold text-neutral-600 uppercase tracking-widest px-2 mb-1">
+                        <p className="text-[9px] font-bold text-n-text-3 uppercase tracking-widest px-2 mb-1">
                             {section.title}
                         </p>
                         {section.items.map((item) => {
@@ -72,16 +72,16 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
                                     key={item.href}
                                     href={item.active ? item.href : "#"}
                                     className={`flex items-center gap-2.5 px-2 py-2 rounded-lg text-xs transition-colors ${isActive
-                                        ? "bg-[#D90097]/10 text-[#D90097]"
+                                        ? "bg-n-accent/10 text-n-accent"
                                         : item.active
-                                            ? "text-neutral-400 hover:text-white hover:bg-neutral-900/40"
+                                            ? "text-n-text-2 hover:text-n-text hover:bg-n-hover/40"
                                             : "text-neutral-700 cursor-not-allowed"
                                         }`}
                                 >
                                     <item.icon size={13} />
                                     <span>{item.label}</span>
                                     {!item.active && (
-                                        <span className="ml-auto text-[8px] bg-neutral-800/80 text-neutral-600 px-1 py-0.5 rounded font-bold uppercase">
+                                        <span className="ml-auto text-[8px] bg-n-hover/80 text-n-text-3 px-1 py-0.5 rounded font-bold uppercase">
                                             Bientôt
                                         </span>
                                     )}

@@ -15,7 +15,7 @@ const initialFormat: LyricsFormat = {
 	strike: false,
 	underline: false,
 	align: "left",
-	textColor: "#F3F4F6",
+	textColor: "var(--nara-text-primary)",
 	textOpacity: 100,
 	showTrackPanel: true,
 	showInspectorTools: true,

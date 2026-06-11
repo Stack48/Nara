@@ -70,7 +70,7 @@ export const Projects = () => {
     };
 
     return (
-        <div className="w-full font-arimo text-white pb-10 min-h-[600px]">
+        <div className="w-full font-arimo text-n-text pb-10 min-h-[600px]">
             <LibraryHeader
                 title="My Projects"
                 itemCount={sortedProjectList.length}
@@ -89,7 +89,7 @@ export const Projects = () => {
             {loading ? (
                 viewMode === "grid" ? <SkeletonGrid type="project" /> : <SkeletonList />
             ) : sortedProjectList.length === 0 && searchQuery ? (
-                <div className="flex flex-col items-center justify-center py-20 text-neutral-500 border border-neutral-800/80 rounded-2xl bg-[#151515] border-dashed">
+                <div className="flex flex-col items-center justify-center py-20 text-n-text-2 border border-n-border/80 rounded-2xl bg-n-surface border-dashed">
                     <p>No projects found matching "{searchQuery}".</p>
                 </div>
             ) : viewMode === "grid" ? (
@@ -116,11 +116,11 @@ export const Projects = () => {
                 /* --- VUE LISTE --- */
                 <div className="w-full">
                     {/* En-tête du tableau */}
-                    <div className="grid grid-cols-12 gap-4 pb-4 mb-2 text-xs font-medium text-neutral-500 border-b border-neutral-800">
+                    <div className="grid grid-cols-12 gap-4 pb-4 mb-2 text-xs font-medium text-n-text-2 border-b border-n-border">
                         <button
                             type="button"
                             onClick={() => handleHeaderSort("alphabetical")}
-                            className="col-span-6 pl-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                            className="col-span-6 pl-2 flex items-center gap-1 hover:text-n-text transition-colors text-left font-medium"
                         >
                             <span>Name</span>
                             {sortBy === "alphabetical" && (
@@ -130,7 +130,7 @@ export const Projects = () => {
                         <button
                             type="button"
                             onClick={() => handleHeaderSort("modified")}
-                            className="col-span-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                            className="col-span-2 flex items-center gap-1 hover:text-n-text transition-colors text-left font-medium"
                         >
                             <span>Last modified</span>
                             {sortBy === "modified" && (
@@ -140,7 +140,7 @@ export const Projects = () => {
                         <button
                             type="button"
                             onClick={() => handleHeaderSort("created")}
-                            className="col-span-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                            className="col-span-2 flex items-center gap-1 hover:text-n-text transition-colors text-left font-medium"
                         >
                             <span>Created</span>
                             {sortBy === "created" && (

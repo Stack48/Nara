@@ -137,7 +137,7 @@ export const Layout = ({ children }: LayoutProps) => {
 
     return (
         <SelectionProvider>
-            <div className="flex h-screen bg-black text-white font-arimo overflow-hidden">
+            <div className="flex h-screen bg-n-bg text-n-text font-arimo overflow-hidden">
                 {/* sidebar */}
                 <Sidebar
                     collapsed={collapsed}
@@ -146,7 +146,7 @@ export const Layout = ({ children }: LayoutProps) => {
                 />
 
                 {/* main content */}
-                <main className="flex-1 p-8 bg-[#0a0a0a] overflow-y-auto flex flex-col relative transition-all duration-300 min-w-0">
+                <main className="flex-1 p-8 bg-n-bg overflow-y-auto flex flex-col relative transition-all duration-500 ease-in-out min-w-0">
                     <PageHeader />
                     {children}
                     <SelectionBanner />
