@@ -39,3 +39,6 @@ yarn-error.log*
 *.tsbuildinfo
 
 # prisma
+
+# Sentry Config File
+.env.sentry-build-plugin
