@@ -93,6 +93,7 @@ export default function InscriptionPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
+
     try {
       await confirmEmail(username, confirmCode);
     } catch (err: unknown) {
@@ -105,9 +106,22 @@ export default function InscriptionPage() {
     }
 
     try {
+      // Auto sign-in après confirmation
+      const { signIn } = await import("aws-amplify/auth");
+      await signIn({ username, password });
+    } catch (err: unknown) {
+      const code = (err as any)?.name;
+      // Ignore si déjà connecté
+      if (code !== "UserAlreadyAuthenticatedException") {
+        console.error("Auto sign-in failed:", err);
+      }
+    }
+
+    try {
+      const { getCurrentUser } = await import("aws-amplify/auth");
       const { userId } = await getCurrentUser();
       await syncUserToDB(userId, email, name, username);
-      router.push("/dashboard");
+      window.location.href = "/dashboard";
     } catch (err) {
       setError(getAuthError(err));
     } finally {
@@ -315,7 +329,7 @@ export default function InscriptionPage() {
 
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
                   <p className="text-[12px] text-gray-400">
-                    Déjà un compte ? <Link href="/connexion" className="text-[#D90097] font-semibold hover:underline decoration-[#D90097]/50 underline-offset-4">Se connecter</Link>
+                    Déjà un compte ? <Link href="/login" className="text-[#D90097] font-semibold hover:underline decoration-[#D90097]/50 underline-offset-4">Se connecter</Link>
                   </p>
                   <button
                     type="submit"

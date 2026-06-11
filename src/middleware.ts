@@ -8,7 +8,7 @@ const { runWithAmplifyServerContext } = createServerRunner({
 });
 
 const protectedRoutes = [/*"/dashboard", "/projects", */"/studio"];
-const authRoutes = ["/connexion", "/inscription"];
+const authRoutes = ["/login", "/signup"];
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
@@ -35,7 +35,7 @@ export async function middleware(request: NextRequest) {
     });
 
     if (isProtected && !isAuthenticated) {
-        return NextResponse.redirect(new URL("/connexion", request.url));
+        return NextResponse.redirect(new URL("/login", request.url));
     }
 
     if (isAuthRoute && isAuthenticated) {

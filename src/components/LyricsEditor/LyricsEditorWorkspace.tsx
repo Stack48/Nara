@@ -1,6 +1,7 @@
 "use client";
 
 import "@/lib/amplify";
+import { io as socketIO, Socket } from "socket.io-client";
 
 import type { JSONContent } from "@tiptap/core";
 import {
@@ -2426,6 +2427,70 @@ export default function LyricsEditorWorkspace({
 		useState<RemotePresenceBySessionId>({});
 	const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
 	const presenceSessionIdRef = useRef<string>(createPresenceSessionId());
+	const socketRef = useRef<Socket | null>(null);
+
+	useEffect(() => {
+		if (!lyricsId) return;
+
+		const connectSocket = async () => {
+			try {
+				const { getCurrentUser } = await import("aws-amplify/auth");
+				const user = await getCurrentUser();
+
+				const socket = socketIO(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000", {
+					auth: { cognitoId: user.userId },
+					transports: ["websocket", "polling"],
+				});
+
+				socketRef.current = socket;
+
+				socket.on("connect", () => {
+					console.log("✅ Socket connecté");
+					socket.emit("join:project", {
+						projectId: lyricsId,
+						name: user.username ?? "Anonyme",
+					});
+					socket.emit("yjs:sync", { lyricsId });
+				});
+
+				// Reçoit l'état initial Yjs
+				socket.on("yjs:state", (data: { lyricsId: string; state: string }) => {
+					console.log("📄 Yjs state reçu");
+				});
+
+				// Reçoit les updates Yjs des autres
+				socket.on("yjs:update", (data: { lyricsId: string; update: string }) => {
+					console.log("🔄 Yjs update reçu");
+				});
+
+				// Présence
+				socket.on("user:joined", (presence: any) => {
+					console.log("👤 User joined:", presence.name);
+				});
+
+				socket.on("user:left", (data: { userId: string }) => {
+					console.log("👤 User left:", data.userId);
+				});
+
+				socket.on("presence:list", (members: any[]) => {
+					console.log("👥 Members:", members.length);
+				});
+
+			} catch (err) {
+				console.error("Socket connection error:", err);
+			}
+		};
+
+		connectSocket();
+
+		return () => {
+			if (socketRef.current) {
+				socketRef.current.emit("leave:project", { projectId: lyricsId });
+				socketRef.current.disconnect();
+				socketRef.current = null;
+			}
+		};
+	}, [lyricsId]);
 
 	useEffect((): (() => void) | undefined => {
 		if (!openOptionsMenuSectionId && !openAddMenuSectionId) {

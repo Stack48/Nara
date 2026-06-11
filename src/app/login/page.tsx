@@ -166,7 +166,7 @@ export default function ConnexionPage() {
 
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
               <p className="text-[12px] text-gray-400">
-                Pas encore de compte ? <Link href="/inscription" className="text-[#D90097] font-semibold hover:underline decoration-[#D90097]/50 underline-offset-4">Inscrivez vous.</Link>
+                Pas encore de compte ? <Link href="/signup" className="text-[#D90097] font-semibold hover:underline decoration-[#D90097]/50 underline-offset-4">Inscrivez vous.</Link>
               </p>
               <button
                 type="submit"
