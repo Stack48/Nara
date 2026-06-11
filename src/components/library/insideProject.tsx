@@ -4,20 +4,25 @@ import { useState, useRef, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ChevronUp, ChevronDown, FolderOpen, Edit3 } from "lucide-react";
-import { useSongs, Song, renameSong, getSongOrder, saveSongOrder } from "@/lib/songStore";
 import { getProjectTitle, useProjects } from "@/lib/projectStore";
 import { MenuContext } from "@/context/MenuContext";
 import { useLibrarySortAndFilter } from "@/hooks/useLibrarySortAndFilter";
 import { LibraryHeader } from "./LibraryHeader";
 import { SongCard } from "./songCard";
 import { useSelection } from "@/context/SelectionContext";
+import { useApiProjects } from "@/hooks/useApiProjects";
+import { Song, renameSong, getSongOrder, saveSongOrder } from "@/lib/songStore";
+import { useApiProjectSongs } from "@/hooks/useApiProjectSongs";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
     const params = useParams();
     const projectId = (params?.id as string) || "Project";
-    // Resolve title dynamically from store, fallback to slug
-    const displayTitle =
-        getProjectTitle(projectId) || projectId.replace(/_/g, " ");
+    const { projects, loading: projectsLoading } = useApiProjects();
+    const currentProject = projects.find((p) => p.id === projectId);
+    
+    // Resolve title dynamically from API, fallback to slug
+    const displayTitle = currentProject?.title || projectId.replace(/_/g, " ");
     const [filterValue, setFilterValue] = useState<string>("all");
 
     // Modal & Context Menu states
@@ -29,7 +34,7 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
 
     const { selectedIds, handleSelect } = useSelection();
 
-    const songs = useSongs();
+    const { songs, loading: songsLoading } = useApiProjectSongs(projectId);
 
     // Custom song ordering state
     const [songsListWithPositions, setSongsListWithPositions] = useState<Song[]>([]);
@@ -38,6 +43,14 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
     const [dragOverType, setDragOverType] = useState<"insert-before" | "insert-after" | "swap" | null>(null);
+
+    const [orderTrigger, setOrderTrigger] = useState(0);
+
+    useEffect(() => {
+        const handler = () => setOrderTrigger((t) => t + 1);
+        window.addEventListener("song-project-updated", handler);
+        return () => window.removeEventListener("song-project-updated", handler);
+    }, []);
 
     useEffect(() => {
         const projectSongs = songs.filter(
@@ -74,7 +87,7 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
         });
 
         setSongsListWithPositions(mapped);
-    }, [songs, projectId]);
+    }, [songs, projectId, orderTrigger]);
 
     const {
         viewMode,
@@ -105,7 +118,7 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
         if (draggedIndex === null) return;
 
         const rect = e.currentTarget.getBoundingClientRect();
-        
+
         let type: "insert-before" | "insert-after" | "swap" = "swap";
 
         if (viewMode === "grid") {
@@ -172,12 +185,12 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
             }
 
             const [removed] = newDisplayedIds.splice(draggedIndex, 1);
-            
+
             // Adjust destIndex if we removed an item before it
             if (draggedIndex < destIndex) {
                 destIndex -= 1;
             }
-            
+
             newDisplayedIds.splice(destIndex, 0, removed);
         } else {
             // Dragged and dropped on itself without change
@@ -219,8 +232,37 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
     const breadcrumbLabel = isShared ? "Shared with me" : "My Projects";
     const breadcrumbLink = isShared ? "/shared" : "/projects";
 
-    const projects = useProjects();
-    const currentProject = projects.find((p) => p.id === projectId);
+    if (projectsLoading || songsLoading) {
+        return (
+            <div className="w-full font-arimo text-white pb-10">
+                <div className="flex items-center gap-2 mb-6">
+                    <Skeleton className="w-24 h-4" />
+                    <span className="text-neutral-600">&gt;</span>
+                    <Skeleton className="w-32 h-4" />
+                </div>
+                <div className="bg-gradient-to-r from-[#121212] to-[#181818] border border-neutral-800/80 rounded-3xl p-6 mb-8 flex flex-col md:flex-row gap-6 items-start md:items-center">
+                    <Skeleton className="w-32 h-32 md:w-36 md:h-36 rounded-2xl shrink-0" />
+                    <div className="flex-1 flex flex-col w-full">
+                        <Skeleton className="w-16 h-5 mb-2.5 rounded" />
+                        <Skeleton className="w-64 h-10 mb-2" />
+                        <Skeleton className="w-full max-w-2xl h-16 mb-4" />
+                        <div className="border-t border-neutral-900 pt-3.5 mt-4">
+                            <Skeleton className="w-48 h-4" />
+                        </div>
+                    </div>
+                </div>
+                <div className="flex justify-between items-center mb-6">
+                    <Skeleton className="w-32 h-8" />
+                    <Skeleton className="w-64 h-10 rounded-xl" />
+                </div>
+                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                        <Skeleton key={i} className="h-[200px] rounded-2xl" />
+                    ))}
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="w-full font-arimo text-white pb-10">
@@ -245,7 +287,7 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
                 <div className="relative w-32 h-32 md:w-36 md:h-36 rounded-2xl overflow-hidden border border-neutral-800 shadow-2xl shrink-0 bg-neutral-900 flex items-center justify-center">
                     {currentProject?.image ? (
                         <img
-                            src={typeof currentProject.image === "object" ? currentProject.image.src : currentProject.image}
+                            src={typeof currentProject.image === "string" ? currentProject.image : currentProject.image?.src}
                             alt={displayTitle}
                             className="w-full h-full object-cover"
                         />

@@ -28,7 +28,7 @@ jest.mock("@/server/s3.service", () => ({
     deleteFile: jest.fn().mockResolvedValue({}),
 }));
 
-jest.mock("@/middleware/rbac.middleware", () => ({
+jest.mock("@/lib/rbac", () => ({
     unauthorized: jest.fn(() => Response.json({ error: "Non authentifié" }, { status: 401 })),
 }));
 

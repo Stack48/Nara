@@ -3,7 +3,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useSelection } from "@/context/SelectionContext";
-import { useProjects, renameProject, setProjectDeleted } from "@/lib/projectStore";
+import { renameProject, setProjectDeleted } from "@/lib/projectStore";
+import { useApiProjects } from "@/hooks/useApiProjects";
 import { renameSong, setSongDeleted } from "@/lib/songStore";
 import { RenameModal } from "../modals/RenameModal";
 import {
@@ -38,7 +39,7 @@ export const SelectionBanner = () => {
     const isDeletedView = pathname === "/deleted";
     const isSharedView = pathname === "/shared" || pathname.startsWith("/shared/");
 
-    const allProjects = useProjects();
+    const { projects: allProjects } = useApiProjects();
     const activeProjects = allProjects.filter((p) => !p.isDeleted);
 
     const [hoveredAction, setHoveredAction] = useState<string>("");

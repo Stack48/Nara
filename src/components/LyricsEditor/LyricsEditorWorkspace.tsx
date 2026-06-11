@@ -1,5 +1,8 @@
 "use client";
 
+import "@/lib/amplify";
+import { io as socketIO, Socket } from "socket.io-client";
+
 import type { JSONContent } from "@tiptap/core";
 import {
 	Check,
@@ -146,6 +149,8 @@ type CaretPlacement = "start" | "end";
 type LyricsEditorWorkspaceProps = {
 	format: LyricsFormat;
 	onFormatChange: (patch: Partial<LyricsFormat>) => void;
+	lyricsId?: string;
+	projectId?: string;
 };
 
 type SectionKindPickerProps = {
@@ -828,73 +833,22 @@ function renumberDocument(
 }
 
 function createInitialDocument(): TipTapLyricsDocument {
-	return {
-		id: "my-way",
-		title: "My Way",
-		updatedAt: null,
-		sections: renumberDocument([
-			{
-				accentColor: getSectionAccentColor(0),
-				activeAlternativeId: null,
-				alternatives: [],
-				id: "intro",
-				kind: "intro",
-				title: "INTRO",
-				lines: [
-					createLine("intro", "Sed ut perspiciatis unde omnis"),
-					createLine("intro", "Doloremque laudantium,"),
-					createLine(
-						"intro",
-						"Iste natus error sit voluptatem accusantium",
-					),
-					createLine(
-						"intro",
-						"Totam rem aperiam, eaque ipsa veritatis",
-					),
-				],
-			},
-			{
-				accentColor: getSectionAccentColor(1),
-				activeAlternativeId: null,
-				alternatives: [],
-				id: "couplet-1",
-				kind: "couplet",
-				title: "COUPLET 1",
-				lines: [
-					createLine("couplet", "Sed ut perspiciatis unde omnis"),
-					createLine("couplet", "Doloremque laudantium,"),
-					createLine(
-						"couplet",
-						"Iste natus error sit voluptatem accusantium",
-					),
-					createLine(
-						"couplet",
-						"Totam rem aperiam, eaque ipsa veritatis",
-					),
-				],
-			},
-			{
-				accentColor: getSectionAccentColor(2),
-				activeAlternativeId: null,
-				alternatives: [],
-				id: "refrain",
-				kind: "refrain",
-				title: "REFRAIN",
-				lines: [
-					createLine("refrain", "Sed ut perspiciatis unde omnis"),
-					createLine("refrain", "Doloremque laudantium,"),
-					createLine(
-						"refrain",
-						"Iste natus error sit voluptatem accusantium",
-					),
-					createLine(
-						"refrain",
-						"Totam rem aperiam, eaque ipsa veritatis",
-					),
-				],
-			},
-		]),
-	};
+    return {
+        id: "new",
+        title: "Sans titre",
+        updatedAt: null,
+        sections: renumberDocument([
+            {
+                accentColor: getSectionAccentColor(0),
+                activeAlternativeId: null,
+                alternatives: [],
+                id: "couplet-1",
+                kind: "couplet",
+                title: "COUPLET",
+                lines: [createLine("couplet")],
+            },
+        ]),
+    };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -2391,6 +2345,8 @@ function SectionKindPicker({
 export default function LyricsEditorWorkspace({
 	format,
 	onFormatChange,
+	lyricsId,
+	projectId,
 }: LyricsEditorWorkspaceProps): ReactElement {
 	const [document, setDocument] = useState<TipTapLyricsDocument>(
 		createInitialDocument,
@@ -2471,7 +2427,72 @@ export default function LyricsEditorWorkspace({
 	);
 	const [remotePresencesBySessionId, setRemotePresencesBySessionId] =
 		useState<RemotePresenceBySessionId>({});
+	const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
 	const presenceSessionIdRef = useRef<string>(createPresenceSessionId());
+	const socketRef = useRef<Socket | null>(null);
+
+	useEffect(() => {
+		if (!lyricsId) return;
+
+		const connectSocket = async () => {
+			try {
+				const { getCurrentUser } = await import("aws-amplify/auth");
+				const user = await getCurrentUser();
+
+				const socket = socketIO(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000", {
+					auth: { cognitoId: user.userId },
+					transports: ["websocket", "polling"],
+				});
+
+				socketRef.current = socket;
+
+				socket.on("connect", () => {
+					console.log("✅ Socket connecté");
+					socket.emit("join:project", {
+						projectId: lyricsId,
+						name: user.username ?? "Anonyme",
+					});
+					socket.emit("yjs:sync", { lyricsId });
+				});
+
+				// Reçoit l'état initial Yjs
+				socket.on("yjs:state", (data: { lyricsId: string; state: string }) => {
+					console.log("📄 Yjs state reçu");
+				});
+
+				// Reçoit les updates Yjs des autres
+				socket.on("yjs:update", (data: { lyricsId: string; update: string }) => {
+					console.log("🔄 Yjs update reçu");
+				});
+
+				// Présence
+				socket.on("user:joined", (presence: any) => {
+					console.log("👤 User joined:", presence.name);
+				});
+
+				socket.on("user:left", (data: { userId: string }) => {
+					console.log("👤 User left:", data.userId);
+				});
+
+				socket.on("presence:list", (members: any[]) => {
+					console.log("👥 Members:", members.length);
+				});
+
+			} catch (err) {
+				console.error("Socket connection error:", err);
+			}
+		};
+
+		connectSocket();
+
+		return () => {
+			if (socketRef.current) {
+				socketRef.current.emit("leave:project", { projectId: lyricsId });
+				socketRef.current.disconnect();
+				socketRef.current = null;
+			}
+		};
+	}, [lyricsId]);
 
 	useEffect((): (() => void) | undefined => {
 		if (!openOptionsMenuSectionId && !openAddMenuSectionId) {
@@ -2643,24 +2664,37 @@ export default function LyricsEditorWorkspace({
 	const applyRemoteDocumentPayload = useCallback((): void => {}, []);
 
 	useEffect((): void => {
-		const storage = getClientStorage();
-		const storedDocument = parseStoredDocument(
-			storage?.getItem(storageKey) ?? null,
-		);
-		const storedLineComments = parseStoredLineComments(
-			storage?.getItem(commentsStorageKey) ?? null,
-		);
+		const loadDocument = async () => {
+			if (lyricsId) {
+				try {
+					const { getCurrentUser } = await import("aws-amplify/auth");
+					const user = await getCurrentUser();
+					const res = await fetch(`/api/lyrics/${lyricsId}`, {
+						headers: { "x-cognito-id": user.userId },
+					});
+					if (res.ok) {
+						const data = await res.json();
+						const parsedDoc = parseStoredDocument(JSON.stringify(data.content));
+						if (parsedDoc) {
+							console.log("Setting document:", parsedDoc);
+							setDocument(parsedDoc);
+						} else {
+							setDocument({
+								...createInitialDocument(),
+								id: data.id,
+								title: data.title,
+							});
+						}
+					}
+				} catch (err) {
+					console.error("Erreur chargement lyrics:", err);
+				}
+			}
+			hasLoadedStorageRef.current = true;
+		};
 
-		if (storedDocument) {
-			setDocument(storedDocument);
-		}
-
-		if (storedLineComments) {
-			setLineCommentsById(storedLineComments);
-		}
-
-		hasLoadedStorageRef.current = true;
-	}, []);
+		loadDocument();
+	}, [lyricsId]);
 
 	useEffect((): void => {
 		if (!hasLoadedStorageRef.current) {
@@ -3046,35 +3080,55 @@ export default function LyricsEditorWorkspace({
 	]);
 
 	function handleAddLineComment(lineId: string, body: string): void {
-		const nextComment: LineComment = {
-			author: "Nilu",
-			body,
-			id: createId(`comment-${lineId}`),
-			initial: "N",
-			time: "maintenant",
-		};
+		if (!lyricsId || !projectId) return;
 
-		setLineCommentsById(
-			(currentCommentsById: LineCommentsById): LineCommentsById => ({
-				...currentCommentsById,
-				[lineId]: [...(currentCommentsById[lineId] ?? []), nextComment],
-			}),
-		);
+		import("aws-amplify/auth").then(({ getCurrentUser }) => {
+			getCurrentUser().then((user) => {
+				fetch(`/api/projects/${projectId}/lyrics/${lyricsId}/comments`, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						"x-cognito-id": user.userId,
+					},
+					body: JSON.stringify({ content: body, lyricsId }),
+				})
+				.then(res => res.json())
+				.then(comment => {
+					const nextComment: LineComment = {
+						author: comment.author?.name ?? comment.author?.username ?? "Moi",
+						username: comment.author?.username,
+						avatarUrl: comment.author?.avatarUrl,
+						body: comment.content,
+						id: comment.id,
+						initial: ((comment.author?.name || comment.author?.username) ?? "M")[0].toUpperCase(),
+						time: "maintenant",
+					};
 
-		updateDocument({
-			...document,
-			sections: document.sections.map(
-				(section: TipTapLyricSection): TipTapLyricSection =>
-					setVisibleSectionLines(
-						section,
-						getVisibleSectionLines(section).map(
-							(line: TipTapLyricLine): TipTapLyricLine =>
-								line.id === lineId
-									? { ...line, comments: line.comments + 1 }
-									: line,
+					setLineCommentsById(
+						(currentCommentsById: LineCommentsById): LineCommentsById => ({
+							...currentCommentsById,
+							[lineId]: [...(currentCommentsById[lineId] ?? []), nextComment],
+						}),
+					);
+
+					updateDocument({
+						...document,
+						sections: document.sections.map(
+							(section: TipTapLyricSection): TipTapLyricSection =>
+								setVisibleSectionLines(
+									section,
+									getVisibleSectionLines(section).map(
+										(line: TipTapLyricLine): TipTapLyricLine =>
+											line.id === lineId
+												? { ...line, comments: line.comments + 1 }
+												: line,
+									),
+								),
 						),
-					),
-			),
+					});
+				})
+				.catch(err => console.error("Comment error:", err));
+			});
 		});
 	}
 
@@ -3088,6 +3142,7 @@ export default function LyricsEditorWorkspace({
 	function handleAddSectionComment(sectionId: string, body: string): void {
 		const nextComment: LineComment = {
 			author: "Nilu",
+			username: "nilu",
 			body,
 			id: createId(`section-comment-${sectionId}`),
 			initial: "N",
@@ -3104,7 +3159,7 @@ export default function LyricsEditorWorkspace({
 		);
 	}
 
-	function handleSave(isCheckpoint: boolean = false): void {
+	async function handleSave(isCheckpoint: boolean = false): Promise<void> {
 		const storage = getClientStorage();
 		const savedDocument: TipTapLyricsDocument = {
 			...document,
@@ -3118,21 +3173,22 @@ export default function LyricsEditorWorkspace({
 		setSaveState("saved");
 		window.setTimeout((): void => setSaveState("idle"), 1400);
 
-		// Sauvegarde en arrière-plan (BDD)
-		const payload: any = {
-			projectId: "demo-project", // À remplacer par l'ID réel via router/props
-			content: savedDocument,
-		};
-
-		if (isCheckpoint) {
-			payload.name = `Version du ${new Date().toLocaleString("fr-FR")}`;
+		if (lyricsId) {
+			const { getCurrentUser } = await import("aws-amplify/auth");
+			try {
+				const user = await getCurrentUser();
+				await fetch(`/api/lyrics/${lyricsId}`, {
+					method: "PATCH",
+					headers: {
+						"Content-Type": "application/json",
+						"x-cognito-id": user.userId,
+					},
+					body: JSON.stringify({ content: savedDocument }),
+				});
+			} catch (err) {
+				console.error("Save to API failed:", err);
+			}
 		}
-
-		fetch("/api/projects/save", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify(payload),
-		}).catch((err) => console.error("Save failed", err));
 	}
 
 	// Auto-save toutes les 5 secondes en cas de modifications non sauvegardées
@@ -3143,6 +3199,8 @@ export default function LyricsEditorWorkspace({
 		}, 5000);
 		return () => clearTimeout(timer);
 	}, [document, isDirty]);
+
+	console.log("Current document sections:", document.sections.length);
 
 	function handleToggle(key: EditorToggleKey): void {
 		setToggles((currentToggles: EditorToggle[]): EditorToggle[] =>
@@ -4436,9 +4494,49 @@ export default function LyricsEditorWorkspace({
 							}`}
 						>
 							<div className="flex items-center gap-3">
-								<h1 className="whitespace-nowrap text-[15px] font-bold text-[#F3F4F6]">
-									{document.title}
-								</h1>
+								{isEditingTitle ? (
+									<input
+										type="text"
+										value={document.title}
+										autoFocus
+										onChange={(e) => {
+											setDocument({ ...document, title: e.target.value });
+										}}
+										onBlur={async () => {
+											setIsEditingTitle(false);
+											if (!lyricsId) return;
+											try {
+												const { getCurrentUser } = await import("aws-amplify/auth");
+												const user = await getCurrentUser();
+												await fetch(`/api/songs/${lyricsId}/rename`, {
+													method: "PATCH",
+													headers: {
+														"Content-Type": "application/json",
+														"x-cognito-id": user.userId,
+													},
+													body: JSON.stringify({ title: document.title }),
+												});
+												window.dispatchEvent(new CustomEvent("nara-data-updated"));
+											} catch (err) {
+												console.error("Rename error:", err);
+											}
+										}}
+										onKeyDown={(e) => {
+											if (e.key === "Enter") {
+												e.currentTarget.blur();
+											}
+										}}
+										className="whitespace-nowrap text-[15px] font-bold text-[#F3F4F6] bg-transparent border-none outline-none focus:border-b focus:border-neutral-600 cursor-text w-auto"
+									/>
+								) : (
+									<h1 
+										className="whitespace-nowrap text-[15px] font-bold text-[#F3F4F6] cursor-text hover:text-white transition-colors"
+										onDoubleClick={() => setIsEditingTitle(true)}
+										title="Double-cliquez pour renommer"
+									>
+										{document.title}
+									</h1>
+								)}
 								<button
 									type="button"
 									onClick={() => handleSave(true)}

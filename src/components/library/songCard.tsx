@@ -83,12 +83,37 @@ export const SongCard = ({
     const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const { togglePlay, isPlaying } = useAudioClick(song?.audioSrc || "", 30);
 
+    const handleCreateSong = async () => {
+        console.log("Creating song...");
+        try {
+            const { getCurrentUser } = await import("aws-amplify/auth");
+            const user = await getCurrentUser();
+            console.log("User:", user.userId);
+            const res = await fetch("/api/songs/new", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-cognito-id": user.userId,
+                },
+                body: JSON.stringify({ 
+                    title: "Sans titre",
+                    projectId: projectId || null,
+                }),
+            });
+            if (!res.ok) throw new Error("Erreur création");
+            const data = await res.json();
+            router.push(`/write/${data.id}`);
+        } catch (err) {
+            console.error("Create song error:", err);
+        }
+    };
+
     if (isCreatePlaceholder) {
         if (viewMode === "grid") {
             return (
-                <Link
-                    href="/songs/new"
-                    className="bg-[#151515]/30 border border-dashed border-neutral-800 hover:border-[#D90097]/60 hover:bg-[#121212]/50 transition-all duration-300 rounded-2xl p-3 flex flex-col sm:flex-row gap-4 group cursor-pointer animate-in fade-in relative items-center text-left"
+                <button
+                    onClick={handleCreateSong}
+                    className="w-full bg-[#151515]/30 border border-dashed border-neutral-800 hover:border-[#D90097]/60 hover:bg-[#121212]/50 transition-all duration-300 rounded-2xl p-3 flex flex-col sm:flex-row gap-4 group cursor-pointer animate-in fade-in relative items-center text-left"
                 >
                     {/* Cover Image Container Placeholder */}
                     <div className="w-full aspect-square sm:w-32 sm:h-32 rounded-xl border border-dashed border-neutral-800/80 group-hover:border-[#D90097]/40 flex items-center justify-center flex-shrink-0 bg-[#171717]/50 transition-colors">
@@ -106,14 +131,14 @@ export const SongCard = ({
                             Create a standalone track or add to project
                         </p>
                     </div>
-                </Link>
+                </button>
             );
         }
 
         // List View
         return (
-            <Link
-                href="/songs/new"
+            <button
+                onClick={handleCreateSong}
                 className="w-full grid grid-cols-12 gap-4 items-center p-3 rounded-xl border border-dashed border-neutral-800/80 hover:border-[#D90097]/60 hover:bg-[#121212]/50 transition-all duration-300 group cursor-pointer text-left mb-2"
             >
                 <div className="col-span-12 flex items-center gap-4 pl-1">
@@ -127,7 +152,7 @@ export const SongCard = ({
                         New Song
                     </span>
                 </div>
-            </Link>
+            </button>
         );
     }
 
@@ -254,7 +279,7 @@ export const SongCard = ({
             clickTimeoutRef.current = null;
         }
 
-        router.push(`/songs/${song.id}`);
+        router.push(`/write/${song.id}`);
     };
 
     // Grid View

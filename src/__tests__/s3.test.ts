@@ -29,7 +29,7 @@ jest.mock("@/lib/prisma", () => ({
     },
 }));
 
-jest.mock("@/middleware/rbac.middleware", () => ({
+jest.mock("@/lib/rbac", () => ({
     requireRole: jest.fn(),
     forbidden: jest.fn((msg) => Response.json({ error: msg }, { status: 403 })),
     unauthorized: jest.fn(() => Response.json({ error: "Non authentifié" }, { status: 401 })),
@@ -109,7 +109,7 @@ describe("S3 Drive — Fichiers", () => {
 
     // ✅ RBAC — LECTURE_SEULE peut lire
     it("LECTURE_SEULE peut accéder aux fichiers", async () => {
-        const { requireRole } = require("@/middleware/rbac.middleware");
+        const { requireRole } = require("@/lib/rbac");
         (requireRole as jest.Mock).mockResolvedValue({ authorized: true, role: "LECTURE_SEULE" });
 
         const { authorized } = await requireRole("cognitoId", "projectId", "LECTURE_SEULE");
@@ -118,7 +118,7 @@ describe("S3 Drive — Fichiers", () => {
 
     // ✅ RBAC — PAROLIER ne peut pas supprimer
     it("PAROLIER ne peut pas supprimer un fichier", async () => {
-        const { requireRole } = require("@/middleware/rbac.middleware");
+        const { requireRole } = require("@/lib/rbac");
         (requireRole as jest.Mock).mockResolvedValue({ authorized: false });
 
         const { authorized } = await requireRole("cognitoId", "projectId", "LEAD_PAROLIER");

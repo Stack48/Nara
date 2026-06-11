@@ -29,7 +29,7 @@ import {
     Project,
     createProject,
 } from "@/lib/projectStore";
-import { useProjects } from "@/lib/projectStore";
+import { useApiProjects } from "@/hooks/useApiProjects";
 import { useRouter } from "next/navigation";
 
 interface MenuContextProps {
@@ -61,7 +61,7 @@ export const MenuContext = ({
     onRestore,
     onPermanentDelete,
 }: MenuContextProps) => {
-    const allProjects = useProjects();
+    const { projects: allProjects } = useApiProjects();
     const activeProjects = allProjects.filter((p) => !p.isDeleted);
     const menuRef = useRef<HTMLDivElement>(null);
     const [submenuOpen, setSubmenuOpen] = useState(false);
@@ -125,7 +125,7 @@ export const MenuContext = ({
     const handleOpen = () => {
         onClose();
         if (itemType === "song") {
-            router.push(`/songs/${id}`);
+            router.push(`/write/${id}`);
         } else {
             router.push(`/projects/${id}`);
         }
@@ -146,21 +146,29 @@ export const MenuContext = ({
         }
     };
 
-    const handleFavorite = () => {
+    const handleFavorite = async () => {
         onClose();
-        if (itemType === "song") {
-            toggleSongFavorite(id);
-        } else {
-            toggleProjectFavorite(id);
+        try {
+            const { getCurrentUser } = await import("aws-amplify/auth");
+            const user = await getCurrentUser();
+            const endpoint = itemType === "song"
+                ? `/api/songs/${id}/favorite`
+                : `/api/projects/${id}/favorite`;
+
+            console.log("🔥 calling:", endpoint, "cognitoId:", user.userId, "id:", id);
+
+            const res = await fetch(endpoint, {
+                method: "PATCH",
+                headers: { "x-cognito-id": user.userId },
+            });
+
+            const data = await res.json();
+            console.log("🔥 response:", res.status, data);
+
+            window.dispatchEvent(new CustomEvent("nara-data-updated"));
+        } catch (err) {
+            console.error("Favorite error:", err);
         }
-        const action = isFavorite
-            ? "Removed from Favorites"
-            : "Added to Favorites";
-        window.dispatchEvent(
-            new CustomEvent("show-nara-toast", {
-                detail: { message: `${action}!` },
-            }),
-        );
     };
 
     const handleDuplicate = () => {
@@ -224,18 +232,27 @@ export const MenuContext = ({
         );
     };
 
-    const handleDeleteToTrash = () => {
+    const handleDeleteToTrash = async () => {
         onClose();
-        if (itemType === "song") {
-            setSongDeleted(id, true);
-        } else {
-            setProjectDeleted(id, true);
-        }
-        window.dispatchEvent(
-            new CustomEvent("show-nara-toast", {
+        try {
+            const { getCurrentUser } = await import("aws-amplify/auth");
+            const user = await getCurrentUser();
+            const endpoint = itemType === "song"
+                ? `/api/songs/${id}/delete`
+                : `/api/projects/${id}/delete`;
+
+            await fetch(endpoint, {
+                method: "PATCH",
+                headers: { "x-cognito-id": user.userId },
+            });
+
+            window.dispatchEvent(new CustomEvent("show-nara-toast", {
                 detail: { message: `"${title}" moved to Trash.` },
-            }),
-        );
+            }));
+            window.dispatchEvent(new CustomEvent("nara-data-updated"));
+        } catch (err) {
+            console.error("Delete error:", err);
+        }
     };
 
     const handleMoveToProject = (pid: string, ptitle: string) => {

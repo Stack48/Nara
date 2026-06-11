@@ -11,6 +11,9 @@ import { SongCard } from "./songCard";
 import { MenuContext } from "@/context/MenuContext";
 import { RenameModal } from "../modals/RenameModal";
 import { useSelection } from "@/context/SelectionContext";
+import { useApiSongs } from "@/hooks/useApiSongs";
+import { useApiProjects } from "@/hooks/useApiProjects";
+import { SkeletonGrid, SkeletonList } from "@/components/ui/SkeletonCard";
 
 import {
     useLibrarySortAndFilter,
@@ -45,15 +48,17 @@ export const Favorites = () => {
 
     const { selectedIds, handleSelect } = useSelection();
 
-    const allSongs = useSongs();
+    const { songs: allSongs, loading: loadingSongs } = useApiSongs();
     const favoritesSongs = allSongs.filter(
         (song) => song.isFavorite && !song.isDeleted,
     );
 
-    const allProjects = useProjects();
+    const { projects: allProjects, loading: loadingProjects } = useApiProjects();
     const favoritesProjects = allProjects.filter(
         (project) => project.isFavorite && !project.isDeleted,
     );
+    
+    const loading = loadingSongs || loadingProjects;
 
     const handleHeaderSort = (field: typeof sortBy) => {
         if (sortBy === field) {
@@ -132,7 +137,7 @@ export const Favorites = () => {
     const combinedViewItems = [...filteredProjects, ...filteredSongs];
 
     return (
-        <div className="w-full font-arimo text-white pb-10">
+        <div className="w-full font-arimo text-white pb-10 min-h-[600px]">
             <LibraryHeader
                 title="Favorites"
                 itemCount={totalFavoritesCount}
@@ -156,7 +161,26 @@ export const Favorites = () => {
                 setFilterValue={setFilterValue}
             />
 
-            {totalFavoritesCount === 0 ? (
+            {loading ? (
+                <div className="flex flex-col gap-8 w-full">
+                    {(filterValue === "all" || filterValue === "projects") && (
+                        <div>
+                            <h2 className="text-sm font-bold uppercase tracking-wider text-neutral-500 mb-4 font-syne">
+                                Projects
+                            </h2>
+                            {viewMode === "grid" ? <SkeletonGrid type="project" count={5} /> : <SkeletonList count={3} />}
+                        </div>
+                    )}
+                    {(filterValue === "all" || filterValue === "songs") && (
+                        <div>
+                            <h2 className="text-sm font-bold uppercase tracking-wider text-neutral-500 mb-4 font-syne">
+                                Songs
+                            </h2>
+                            {viewMode === "grid" ? <SkeletonGrid type="song" count={4} /> : <SkeletonList count={4} />}
+                        </div>
+                    )}
+                </div>
+            ) : totalFavoritesCount === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 text-neutral-500 border border-neutral-800/80 rounded-2xl bg-[#151515] border-dashed">
                     <p>No favorites found.</p>
                 </div>
@@ -239,7 +263,7 @@ export const Favorites = () => {
                                                         isLast={
                                                             index ===
                                                             filteredProjects.length -
-                                                                1
+                                                            1
                                                         }
                                                         isSelected={selectedIds.includes(project.id)}
                                                         onSelect={(e) => handleSelect(project.id, "project", project, e, combinedViewItems)}
@@ -297,7 +321,7 @@ export const Favorites = () => {
                                                         isLast={
                                                             index ===
                                                             filteredSongs.length -
-                                                                1
+                                                            1
                                                         }
                                                         isSelected={selectedIds.includes(song.id)}
                                                         onSelect={(e) => handleSelect(song.id, "song", song, e, combinedViewItems)}
@@ -358,15 +382,25 @@ export const Favorites = () => {
                     label="Song Title"
                     placeholder="Enter song title"
                     initialValue={renameSongModal.initialTitle}
-                    onSave={(newValue) => {
-                        renameSong(renameSongModal.songId, newValue);
-                        window.dispatchEvent(
-                            new CustomEvent("show-nara-toast", {
-                                detail: {
-                                    message: `Song renamed to "${newValue}"`,
+                    onSave={async (newValue) => {
+                        try {
+                            const { getCurrentUser } = await import("aws-amplify/auth");
+                            const user = await getCurrentUser();
+                            await fetch(`/api/songs/${renameSongModal.songId}/rename`, {
+                                method: "PATCH",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "x-cognito-id": user.userId,
                                 },
-                            }),
-                        );
+                                body: JSON.stringify({ title: newValue }),
+                            });
+                            window.dispatchEvent(new CustomEvent("show-nara-toast", {
+                                detail: { message: `Song renamed to "${newValue}"` },
+                            }));
+                            window.dispatchEvent(new CustomEvent("nara-data-updated"));
+                        } catch (err) {
+                            console.error("Rename error:", err);
+                        }
                     }}
                 />
             )}
@@ -379,15 +413,25 @@ export const Favorites = () => {
                     label="Project Name"
                     placeholder="Enter project name"
                     initialValue={renameProjectModal.initialTitle}
-                    onSave={(newValue) => {
-                        renameProject(renameProjectModal.projectId, newValue);
-                        window.dispatchEvent(
-                            new CustomEvent("show-nara-toast", {
-                                detail: {
-                                    message: `Project renamed to "${newValue}"`,
+                    onSave={async (newValue) => {
+                        try {
+                            const { getCurrentUser } = await import("aws-amplify/auth");
+                            const user = await getCurrentUser();
+                            await fetch(`/api/projects/${renameProjectModal.projectId}/rename`, {
+                                method: "PATCH",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "x-cognito-id": user.userId,
                                 },
-                            }),
-                        );
+                                body: JSON.stringify({ name: newValue }),
+                            });
+                            window.dispatchEvent(new CustomEvent("show-nara-toast", {
+                                detail: { message: `Project renamed to "${newValue}"` },
+                            }));
+                            window.dispatchEvent(new CustomEvent("nara-data-updated"));
+                        } catch (err) {
+                            console.error("Rename error:", err);
+                        }
                     }}
                 />
             )}
