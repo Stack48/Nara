@@ -125,7 +125,7 @@ export const MenuContext = ({
     const handleOpen = () => {
         onClose();
         if (itemType === "song") {
-            router.push(`/songs/${id}`);
+            router.push(`/write/${id}`);
         } else {
             router.push(`/projects/${id}`);
         }

@@ -254,7 +254,7 @@ export const SongCard = ({
             clickTimeoutRef.current = null;
         }
 
-        router.push(`/songs/${song.id}`);
+        router.push(`/write/${song.id}`);
     };
 
     // Grid View
