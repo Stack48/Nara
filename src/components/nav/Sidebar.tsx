@@ -17,8 +17,9 @@ import {
     Music,
 } from "lucide-react";
 
-import { useSongs, setSongProject } from "@/lib/songStore";
-import { useProjects } from "@/lib/projectStore";
+import { setSongProject } from "@/lib/songStore";
+import { useApiProjects } from "@/hooks/useApiProjects";
+import { useApiSongs } from "@/hooks/useApiSongs";
 import avisProfil from "@/assets/user/haslem.png";
 
 interface SidebarProps {
@@ -35,7 +36,7 @@ export const Sidebar = ({
     const pathname = usePathname();
     const router = useRouter();
 
-    const songs = useSongs();
+    const { songs } = useApiSongs();
 
     const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const projectsDragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -104,7 +105,7 @@ export const Sidebar = ({
         };
     }, []);
 
-    const allProjects = useProjects();
+    const { projects: allProjects } = useApiProjects();
     const projects = allProjects
         .filter((p) => !p.isDeleted && !p.isShared)
         .sort((a, b) => a.title.localeCompare(b.title));
@@ -468,7 +469,7 @@ export const Sidebar = ({
                                                         (track) => (
                                                             <Link
                                                                 key={track.id}
-                                                                href={`/songs/${track.id}`}
+                                                                href={`/write/${track.id}`}
                                                                 className="flex items-center h-7 px-2 text-[11px] text-neutral-500 hover:text-[#D90097] rounded-md transition-colors whitespace-nowrap overflow-hidden text-ellipsis"
                                                             >
                                                                 <Music
