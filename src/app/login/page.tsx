@@ -23,7 +23,7 @@ export default function ConnexionPage() {
     setError("");
     try {
       await login(email, password);
-      
+
       try {
         const { getCurrentUser, fetchUserAttributes } = await import("aws-amplify/auth");
         const { syncUserToDB } = await import("@/hooks/useAuth");
@@ -39,10 +39,10 @@ export default function ConnexionPage() {
         console.error("Failed to sync user during login:", syncErr);
       }
 
-      router.push("/dashboard");
+      window.location.href = "/dashboard";
     } catch (err: unknown) {
       if (isAlreadyAuthenticated(err)) {
-        router.push("/dashboard");
+        window.location.href = "/dashboard";
       } else {
         setError(getAuthError(err));
       }

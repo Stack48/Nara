@@ -1,13 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerRunner } from "@aws-amplify/adapter-nextjs";
 import { fetchAuthSession } from "aws-amplify/auth/server";
-import { amplifyConfig } from "@/lib/amplify";
+import { runWithAmplifyServerContext } from "@/lib/amplify";
 
-const { runWithAmplifyServerContext } = createServerRunner({
-    config: amplifyConfig,
-});
-
-const protectedRoutes = [/*"/dashboard", "/projects", */"/studio"];
+const protectedRoutes = ["/dashboard", "/projects", "/studio", "/songs"];
 const authRoutes = ["/login", "/signup"];
 
 export async function middleware(request: NextRequest) {
