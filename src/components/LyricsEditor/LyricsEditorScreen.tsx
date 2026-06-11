@@ -28,9 +28,10 @@ const initialFormat: LyricsFormat = {
 
 interface LyricsEditorScreenProps {
 	lyricsId?: string;
+	projectId?: string;
 }
 
-export default function LyricsEditorScreen({ lyricsId }: LyricsEditorScreenProps): ReactElement {
+export default function LyricsEditorScreen({ lyricsId, projectId }: LyricsEditorScreenProps): ReactElement {
 	const [format, setFormat] = useState<LyricsFormat>(initialFormat);
 
 	useEffect((): (() => void) => {
@@ -73,6 +74,7 @@ export default function LyricsEditorScreen({ lyricsId }: LyricsEditorScreenProps
 				format={format}
 				onFormatChange={handleFormatChange}
 				lyricsId={lyricsId}
+				projectId={projectId}
 			/>
 		</section>
 	);

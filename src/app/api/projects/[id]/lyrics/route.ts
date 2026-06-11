@@ -28,6 +28,7 @@ export async function GET(
     const lyrics = await prisma.lyrics.findMany({
         where: { projectId: params.id },
         include: {
+            project: { select: { id: true, name: true, status: true, imageUrl: true } },
             author: { select: { id: true, name: true, username: true } },
             suggestions: {
                 where: { status: "PENDING" },

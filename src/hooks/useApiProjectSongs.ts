@@ -11,11 +11,13 @@ type ApiLyrics = {
     content: unknown;
     order: number;
     sectionType: string;
+    state: string;
     projectId: string;
     authorId: string;
     createdAt: string;
     updatedAt: string;
-    project: { id: string; name: string; status: string };
+    imageUrl?: string | null;
+    project: { id: string; name: string; status: string; imageUrl?: string | null };
     author: { id: string; name: string | null };
 };
 
@@ -25,7 +27,7 @@ const mapApiLyricsToSong = (l: ApiLyrics, projectName: string): Song => {
         title: l.title,
         projectId: l.projectId,
         projectName,
-        state: l.sectionType,
+        state: l.state === "IN_PROGRESS" ? "En cours" : l.state === "COMPLETED" ? "Terminé" : l.state === "REVIEW" ? "En revue" : "Draft",
         lastModified: new Date(l.updatedAt).toLocaleDateString("fr-FR"),
         lastModifiedDate: new Date(l.updatedAt),
         created: new Date(l.createdAt).toLocaleDateString("fr-FR"),
@@ -37,7 +39,7 @@ const mapApiLyricsToSong = (l: ApiLyrics, projectName: string): Song => {
         isShared: false,
         owner: "",
         origin: "project",
-        image: null,
+        image: l.imageUrl || l.project?.imageUrl || null,
         audioSrc: "",
         position: l.order,
     };

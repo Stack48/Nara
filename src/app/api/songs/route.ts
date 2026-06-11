@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
             },
             include: {
                 project: {
-                    select: { id: true, name: true, status: true },
+                    select: { id: true, name: true, status: true, imageUrl: true },
                 },
                 author: {
                     select: { id: true, name: true },

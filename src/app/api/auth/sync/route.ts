@@ -22,7 +22,11 @@ export async function POST(request: NextRequest) {
             if (user) {
                 user = await prisma.user.update({
                     where: { email: safeEmail },
-                    data: { cognitoId, name: safeName, username: safeUsername },
+                    data: { 
+                        cognitoId, 
+                        ...(user.name ? {} : { name: safeName }),
+                        ...(user.username ? {} : { username: safeUsername })
+                    },
                 });
             } else {
                 user = await prisma.user.create({
@@ -32,7 +36,11 @@ export async function POST(request: NextRequest) {
         } else {
             user = await prisma.user.update({
                 where: { cognitoId },
-                data: { email: safeEmail, name: safeName, username: safeUsername },
+                data: { 
+                    email: safeEmail,
+                    ...(user.name ? {} : { name: safeName }),
+                    ...(user.username ? {} : { username: safeUsername })
+                },
             });
         }
 

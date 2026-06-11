@@ -13,11 +13,12 @@ import { useSelection } from "@/context/SelectionContext";
 import { useApiProjects } from "@/hooks/useApiProjects";
 import { Song, renameSong, getSongOrder, saveSongOrder } from "@/lib/songStore";
 import { useApiProjectSongs } from "@/hooks/useApiProjectSongs";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
     const params = useParams();
     const projectId = (params?.id as string) || "Project";
-    const { projects } = useApiProjects();
+    const { projects, loading: projectsLoading } = useApiProjects();
     const currentProject = projects.find((p) => p.id === projectId);
     
     // Resolve title dynamically from API, fallback to slug
@@ -33,7 +34,7 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
 
     const { selectedIds, handleSelect } = useSelection();
 
-    const { songs } = useApiProjectSongs(projectId);
+    const { songs, loading: songsLoading } = useApiProjectSongs(projectId);
 
     // Custom song ordering state
     const [songsListWithPositions, setSongsListWithPositions] = useState<Song[]>([]);
@@ -42,6 +43,14 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
     const [dragOverType, setDragOverType] = useState<"insert-before" | "insert-after" | "swap" | null>(null);
+
+    const [orderTrigger, setOrderTrigger] = useState(0);
+
+    useEffect(() => {
+        const handler = () => setOrderTrigger((t) => t + 1);
+        window.addEventListener("song-project-updated", handler);
+        return () => window.removeEventListener("song-project-updated", handler);
+    }, []);
 
     useEffect(() => {
         const projectSongs = songs.filter(
@@ -78,7 +87,7 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
         });
 
         setSongsListWithPositions(mapped);
-    }, [songs, projectId]);
+    }, [songs, projectId, orderTrigger]);
 
     const {
         viewMode,
@@ -222,6 +231,38 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
 
     const breadcrumbLabel = isShared ? "Shared with me" : "My Projects";
     const breadcrumbLink = isShared ? "/shared" : "/projects";
+
+    if (projectsLoading || songsLoading) {
+        return (
+            <div className="w-full font-arimo text-white pb-10">
+                <div className="flex items-center gap-2 mb-6">
+                    <Skeleton className="w-24 h-4" />
+                    <span className="text-neutral-600">&gt;</span>
+                    <Skeleton className="w-32 h-4" />
+                </div>
+                <div className="bg-gradient-to-r from-[#121212] to-[#181818] border border-neutral-800/80 rounded-3xl p-6 mb-8 flex flex-col md:flex-row gap-6 items-start md:items-center">
+                    <Skeleton className="w-32 h-32 md:w-36 md:h-36 rounded-2xl shrink-0" />
+                    <div className="flex-1 flex flex-col w-full">
+                        <Skeleton className="w-16 h-5 mb-2.5 rounded" />
+                        <Skeleton className="w-64 h-10 mb-2" />
+                        <Skeleton className="w-full max-w-2xl h-16 mb-4" />
+                        <div className="border-t border-neutral-900 pt-3.5 mt-4">
+                            <Skeleton className="w-48 h-4" />
+                        </div>
+                    </div>
+                </div>
+                <div className="flex justify-between items-center mb-6">
+                    <Skeleton className="w-32 h-8" />
+                    <Skeleton className="w-64 h-10 rounded-xl" />
+                </div>
+                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                        <Skeleton key={i} className="h-[200px] rounded-2xl" />
+                    ))}
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="w-full font-arimo text-white pb-10">

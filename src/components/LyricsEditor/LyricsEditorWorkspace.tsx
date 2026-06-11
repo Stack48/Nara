@@ -150,6 +150,7 @@ type LyricsEditorWorkspaceProps = {
 	format: LyricsFormat;
 	onFormatChange: (patch: Partial<LyricsFormat>) => void;
 	lyricsId?: string;
+	projectId?: string;
 };
 
 type SectionKindPickerProps = {
@@ -2345,6 +2346,7 @@ export default function LyricsEditorWorkspace({
 	format,
 	onFormatChange,
 	lyricsId,
+	projectId,
 }: LyricsEditorWorkspaceProps): ReactElement {
 	const [document, setDocument] = useState<TipTapLyricsDocument>(
 		createInitialDocument,
@@ -3078,35 +3080,55 @@ export default function LyricsEditorWorkspace({
 	]);
 
 	function handleAddLineComment(lineId: string, body: string): void {
-		const nextComment: LineComment = {
-			author: "Nilu",
-			body,
-			id: createId(`comment-${lineId}`),
-			initial: "N",
-			time: "maintenant",
-		};
+		if (!lyricsId || !projectId) return;
 
-		setLineCommentsById(
-			(currentCommentsById: LineCommentsById): LineCommentsById => ({
-				...currentCommentsById,
-				[lineId]: [...(currentCommentsById[lineId] ?? []), nextComment],
-			}),
-		);
+		import("aws-amplify/auth").then(({ getCurrentUser }) => {
+			getCurrentUser().then((user) => {
+				fetch(`/api/projects/${projectId}/lyrics/${lyricsId}/comments`, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						"x-cognito-id": user.userId,
+					},
+					body: JSON.stringify({ content: body, lyricsId }),
+				})
+				.then(res => res.json())
+				.then(comment => {
+					const nextComment: LineComment = {
+						author: comment.author?.name ?? comment.author?.username ?? "Moi",
+						username: comment.author?.username,
+						avatarUrl: comment.author?.avatarUrl,
+						body: comment.content,
+						id: comment.id,
+						initial: ((comment.author?.name || comment.author?.username) ?? "M")[0].toUpperCase(),
+						time: "maintenant",
+					};
 
-		updateDocument({
-			...document,
-			sections: document.sections.map(
-				(section: TipTapLyricSection): TipTapLyricSection =>
-					setVisibleSectionLines(
-						section,
-						getVisibleSectionLines(section).map(
-							(line: TipTapLyricLine): TipTapLyricLine =>
-								line.id === lineId
-									? { ...line, comments: line.comments + 1 }
-									: line,
+					setLineCommentsById(
+						(currentCommentsById: LineCommentsById): LineCommentsById => ({
+							...currentCommentsById,
+							[lineId]: [...(currentCommentsById[lineId] ?? []), nextComment],
+						}),
+					);
+
+					updateDocument({
+						...document,
+						sections: document.sections.map(
+							(section: TipTapLyricSection): TipTapLyricSection =>
+								setVisibleSectionLines(
+									section,
+									getVisibleSectionLines(section).map(
+										(line: TipTapLyricLine): TipTapLyricLine =>
+											line.id === lineId
+												? { ...line, comments: line.comments + 1 }
+												: line,
+									),
+								),
 						),
-					),
-			),
+					});
+				})
+				.catch(err => console.error("Comment error:", err));
+			});
 		});
 	}
 
@@ -3120,6 +3142,7 @@ export default function LyricsEditorWorkspace({
 	function handleAddSectionComment(sectionId: string, body: string): void {
 		const nextComment: LineComment = {
 			author: "Nilu",
+			username: "nilu",
 			body,
 			id: createId(`section-comment-${sectionId}`),
 			initial: "N",

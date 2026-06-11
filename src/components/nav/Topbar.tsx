@@ -47,7 +47,9 @@ const menuSections = [
 
 export const Topbar = () => {
     const [menuOpen, setMenuOpen] = useState(false);
-    const [userEmail, setUserEmail] = useState<string>("");
+    const [userName, setUserName] = useState<string>("");
+    const [userHandle, setUserHandle] = useState<string>("");
+    const [userAvatar, setUserAvatar] = useState<string>("");
     const menuRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
 
@@ -55,7 +57,18 @@ export const Topbar = () => {
         const fetchUser = async () => {
             try {
                 const user = await getCurrentUser();
-                setUserEmail(user.signInDetails?.loginId ?? "");
+                const { fetchUserAttributes } = await import("aws-amplify/auth");
+                const attrs = await fetchUserAttributes();
+                setUserName(attrs.name || attrs.preferred_username || attrs.email?.split("@")[0] || user.signInDetails?.loginId?.split("@")[0] || "User");
+                setUserHandle(attrs.preferred_username || "");
+                setUserAvatar(attrs.picture || "");
+
+                const res = await fetch("/api/users/me", { headers: { "x-cognito-id": user.userId } });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.avatarUrl) setUserAvatar(data.avatarUrl);
+                    if (data.name) setUserName(data.name);
+                }
             } catch { }
         };
         fetchUser();
@@ -100,9 +113,13 @@ export const Topbar = () => {
                         onClick={() => setMenuOpen(!menuOpen)}
                         className="w-9 h-9 overflow-hidden rounded-full border border-neutral-800 flex-shrink-0 hover:opacity-80 transition-opacity flex items-center justify-center bg-gradient-to-br from-[#AB0063] to-[#D50093]"
                     >
-                        <span className="text-white text-xs font-bold">
-                            {userEmail?.[0]?.toUpperCase() ?? "N"}
-                        </span>
+                        {userAvatar ? (
+                            <img src={userAvatar} alt="Avatar" className="w-full h-full object-cover" />
+                        ) : (
+                            <span className="text-white text-xs font-bold uppercase">
+                                {userName[0]}
+                            </span>
+                        )}
                     </button>
 
                     {menuOpen && (
@@ -111,12 +128,19 @@ export const Topbar = () => {
                             {/* Header user */}
                             <div className="px-4 py-3 border-b border-neutral-800/60 bg-neutral-900/30">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#AB0063] to-[#D50093] flex items-center justify-center text-white text-xs font-bold">
-                                        {userEmail?.[0]?.toUpperCase() ?? "N"}
+                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#AB0063] to-[#D50093] flex items-center justify-center text-white text-xs font-bold uppercase overflow-hidden shrink-0">
+                                        {userAvatar ? (
+                                            <img src={userAvatar} alt="Avatar" className="w-full h-full object-cover" />
+                                        ) : (
+                                            userName[0]
+                                        )}
                                     </div>
                                     <div>
-                                        <p className="text-xs font-bold text-white truncate max-w-[160px]">{userEmail || "Mon compte"}</p>
-                                        <span className="text-[9px] bg-neutral-800 text-neutral-400 px-1.5 py-0.5 rounded font-bold uppercase">
+                                        <p className="text-xs font-bold text-white truncate max-w-[160px]">{userName}</p>
+                                        {userHandle && userHandle !== userName && (
+                                            <p className="text-[10px] text-neutral-500 font-medium truncate max-w-[160px]">@{userHandle}</p>
+                                        )}
+                                        <span className="text-[9px] bg-neutral-800 text-neutral-400 px-1.5 py-0.5 rounded font-bold uppercase mt-1 inline-block">
                                             Gratuit
                                         </span>
                                     </div>

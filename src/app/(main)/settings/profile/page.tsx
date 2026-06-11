@@ -11,6 +11,7 @@ export default function ProfilePage() {
     const [name, setName] = useState("");
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
+    const [avatarUrl, setAvatarUrl] = useState("");
     const [cognitoId, setCognitoId] = useState("");
     const [saved, setSaved] = useState(false);
 
@@ -29,6 +30,7 @@ export default function ProfilePage() {
                     const data = await res.json();
                     setName(data.name ?? "");
                     setUsername(data.username ?? "");
+                    setAvatarUrl(data.avatarUrl ?? "");
                 }
             } catch (err) {
                 console.error(err);
@@ -72,16 +74,20 @@ export default function ProfilePage() {
             {/* Avatar */}
             <div className="flex items-center gap-6 mb-10">
                 <div className="relative">
-                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#AB0063] to-[#D50093] flex items-center justify-center text-white text-3xl font-bold">
-                        {email?.[0]?.toUpperCase() ?? "N"}
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#AB0063] to-[#D50093] flex items-center justify-center text-white text-3xl font-bold uppercase overflow-hidden">
+                        {avatarUrl ? (
+                            <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                        ) : (
+                            (name || username || email)?.[0] ?? "N"
+                        )}
                     </div>
                     <button className="absolute bottom-0 right-0 w-7 h-7 bg-neutral-800 border border-neutral-700 rounded-full flex items-center justify-center hover:bg-neutral-700 transition-colors">
                         <Camera size={12} className="text-neutral-300" />
                     </button>
                 </div>
                 <div>
-                    <p className="font-bold text-white">{name || email}</p>
-                    <p className="text-xs text-neutral-500 mt-0.5">{email}</p>
+                    <p className="font-bold text-white">{name || username || email}</p>
+                    <p className="text-xs text-neutral-500 mt-0.5">@{username || email?.split("@")[0]}</p>
                     <span className="text-[9px] bg-neutral-800 text-neutral-400 px-2 py-0.5 rounded font-bold uppercase mt-1 inline-block">
                         Plan Gratuit
                     </span>
