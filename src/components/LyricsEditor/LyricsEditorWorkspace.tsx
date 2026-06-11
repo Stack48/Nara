@@ -2859,7 +2859,9 @@ export default function LyricsEditorWorkspace({
 		});
 	}
 
-	function getFocusSelectionLineRanges(selection: FocusFormatSelection): Array<{
+	function getFocusSelectionLineRanges(
+		selection: FocusFormatSelection,
+	): Array<{
 		from: number;
 		line: TipTapLyricLine;
 		section: TipTapLyricSection;
@@ -2989,7 +2991,10 @@ export default function LyricsEditorWorkspace({
 			previous.textColor !== format.textColor ||
 			previous.textOpacity !== format.textOpacity
 		) {
-			patches.push({ key: "color", value: getLyricsTextColorCss(format) });
+			patches.push({
+				key: "color",
+				value: getLyricsTextColorCss(format),
+			});
 		}
 
 		if (patches.length === 0) {
@@ -3079,9 +3084,8 @@ export default function LyricsEditorWorkspace({
 	}
 
 	function handleToggleSectionComment(sectionId: string): void {
-		setOpenCommentSectionId(
-			(current: string | null): string | null =>
-				current === sectionId ? null : sectionId,
+		setOpenCommentSectionId((current: string | null): string | null =>
+			current === sectionId ? null : sectionId,
 		);
 	}
 
@@ -3878,9 +3882,7 @@ export default function LyricsEditorWorkspace({
 		);
 	}
 
-	function handleTrackMarkerCreate(
-		payload: TrackMarkerCreatePayload,
-	): void {
+	function handleTrackMarkerCreate(payload: TrackMarkerCreatePayload): void {
 		const positionPercent = Math.round(payload.positionPercent * 10) / 10;
 		const seconds = (trackDurationSeconds * positionPercent) / 100;
 
@@ -4439,21 +4441,9 @@ export default function LyricsEditorWorkspace({
 								<h1 className="whitespace-nowrap text-[15px] font-bold text-[#F3F4F6]">
 									{document.title}
 								</h1>
-								<button
-									type="button"
-									onClick={() => handleSave(true)}
-									className="inline-flex h-6 items-center gap-1.5 rounded-[4px] border border-[#2C2C32] px-2 text-[10px] font-semibold text-[#F3F4F6] transition-colors hover:border-[#4A4A52] hover:bg-[#202027]"
-								>
-									<Save size={12} strokeWidth={1.8} />
-									{saveState === "saved"
-										? "Sauvegarde"
-										: "Sauvegarder"}
-								</button>
-								{isDirty && (
-									<span className="text-[10px] font-medium text-[#A1A1AA]">
-										Modifie
-									</span>
-								)}
+								<p className="text-[12px] font-regular text-[#f3f4f685]">
+									album
+								</p>
 							</div>
 
 							<div className="flex flex-wrap items-center justify-end gap-4">
