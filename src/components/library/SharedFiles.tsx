@@ -9,6 +9,7 @@ import { useSelection } from "@/context/SelectionContext";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { useApiProjects } from "@/hooks/useApiProjects";
 import { useApiSongs } from "@/hooks/useApiSongs";
+import { SkeletonGrid, SkeletonList } from "@/components/ui/SkeletonCard";
 import {
     SortByOption,
     SortOrderOption,
@@ -47,15 +48,17 @@ export const SharedFiles = () => {
 
     const { selectedIds, handleSelect } = useSelection();
 
-    const { songs: allSongs } = useApiSongs();
+    const { songs: allSongs, loading: loadingSongs } = useApiSongs();
     const sharedList = allSongs.filter(
         (song) => song.isShared && !song.isDeleted,
     );
 
-    const { projects: allProjects } = useApiProjects();
+    const { projects: allProjects, loading: loadingProjects } = useApiProjects();
     const sharedProjectsList = allProjects.filter(
         (proj) => proj.isShared && !proj.isDeleted,
     );
+    
+    const loading = loadingSongs || loadingProjects;
 
     const handleHeaderSort = (field: typeof sortBy) => {
         if (sortBy === field) {
@@ -116,7 +119,7 @@ export const SharedFiles = () => {
     const combinedViewItems = [...filteredSharedProjects, ...filteredShared];
 
     return (
-        <div className="w-full font-arimo text-white pb-10">
+        <div className="w-full font-arimo text-white pb-10 min-h-[600px]">
             <LibraryHeader
                 title="Shared with me"
                 itemCount={totalSharedCount}
@@ -145,7 +148,9 @@ export const SharedFiles = () => {
                 setFilterValue={setFilterValue}
             />
 
-            {totalSharedCount === 0 ? (
+            {loading ? (
+                viewMode === "grid" ? <SkeletonGrid type="song" /> : <SkeletonList />
+            ) : totalSharedCount === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 text-neutral-500 border border-neutral-800/80 rounded-2xl bg-[#151515] border-dashed">
                     <p>No shared files found.</p>
                 </div>

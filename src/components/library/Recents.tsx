@@ -13,6 +13,7 @@ import { RenameModal } from "../modals/RenameModal";
 import { useSelection } from "@/context/SelectionContext";
 import { useApiProjects } from "@/hooks/useApiProjects";
 import { useApiSongs } from "@/hooks/useApiSongs";
+import { SkeletonGrid, SkeletonList } from "@/components/ui/SkeletonCard";
 
 import {
     useLibrarySortAndFilter,
@@ -47,11 +48,13 @@ export const Recents = () => {
 
     const { selectedIds, handleSelect } = useSelection();
 
-    const { songs: allSongs } = useApiSongs();
+    const { songs: allSongs, loading: loadingSongs } = useApiSongs();
     const activeSongs = allSongs.filter((song) => !song.isDeleted);
 
-    const { projects: allProjects } = useApiProjects();
+    const { projects: allProjects, loading: loadingProjects } = useApiProjects();
     const activeProjects = allProjects.filter((project) => !project.isDeleted);
+    
+    const loading = loadingSongs || loadingProjects;
 
     const handleHeaderSort = (field: typeof sortBy) => {
         if (sortBy === field) {
@@ -130,7 +133,7 @@ export const Recents = () => {
     const combinedViewItems = [...filteredProjects, ...filteredSongs];
 
     return (
-        <div className="w-full font-arimo text-white pb-10">
+        <div className="w-full font-arimo text-white pb-10 min-h-[600px]">
             <LibraryHeader
                 title="Recents"
                 itemCount={totalRecentsCount}
@@ -154,7 +157,26 @@ export const Recents = () => {
                 setFilterValue={setFilterValue}
             />
 
-            {totalRecentsCount === 0 ? (
+            {loading ? (
+                <div className="flex flex-col gap-8 w-full">
+                    {(filterValue === "all" || filterValue === "projects") && (
+                        <div>
+                            <h2 className="text-sm font-bold uppercase tracking-wider text-neutral-500 mb-4 font-syne">
+                                Projects
+                            </h2>
+                            {viewMode === "grid" ? <SkeletonGrid type="project" count={5} /> : <SkeletonList count={3} />}
+                        </div>
+                    )}
+                    {(filterValue === "all" || filterValue === "songs") && (
+                        <div>
+                            <h2 className="text-sm font-bold uppercase tracking-wider text-neutral-500 mb-4 font-syne">
+                                Songs
+                            </h2>
+                            {viewMode === "grid" ? <SkeletonGrid type="song" count={4} /> : <SkeletonList count={4} />}
+                        </div>
+                    )}
+                </div>
+            ) : totalRecentsCount === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 text-neutral-500 border border-neutral-800/80 rounded-2xl bg-[#151515] border-dashed">
                     <p>No recent activity found.</p>
                 </div>

@@ -62,9 +62,12 @@ export const useApiProjects = (): {
                 setLoading(true);
                 const user = await getCurrentUser();
                 console.log("cognitoId:", user.userId);
-                const res = await fetch("/api/projects", {
-                    headers: { "x-cognito-id": user.userId },
-                });
+                const [res] = await Promise.all([
+                    fetch("/api/projects", {
+                        headers: { "x-cognito-id": user.userId },
+                    }),
+                    new Promise(resolve => setTimeout(resolve, 600))
+                ]);
                 if (res.status === 404) {
                     const { fetchUserAttributes } = await import("aws-amplify/auth");
                     const attrs = await fetchUserAttributes();

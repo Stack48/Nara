@@ -8,6 +8,7 @@ import { RenameModal } from "../modals/RenameModal";
 import { useLibrarySortAndFilter } from "@/hooks/useLibrarySortAndFilter";
 import { LibraryHeader } from "./LibraryHeader";
 import { useApiSongs } from "@/hooks/useApiSongs";
+import { SkeletonGrid, SkeletonList } from "@/components/ui/SkeletonCard";
 import { SongCard } from "./songCard";
 import { useSelection } from "@/context/SelectionContext";
 
@@ -40,7 +41,7 @@ export const Songs = () => {
         return "In a project";
     };
 
-    const { songs: allSongs } = useApiSongs();
+    const { songs: allSongs, loading } = useApiSongs();
 
     // Pre-filtrer par "origin" et supprimer les deleted
     const preFilteredSongs = allSongs.filter((song) => {
@@ -101,7 +102,7 @@ export const Songs = () => {
     };
 
     return (
-        <div className="w-full font-arimo text-white pb-10">
+        <div className="w-full font-arimo text-white pb-10 min-h-[600px]">
             <LibraryHeader
                 title="All songs"
                 itemCount={sortedSongsList.length}
@@ -164,7 +165,9 @@ export const Songs = () => {
             </LibraryHeader>
 
             {/* CONDITION D'AFFICHAGE SELON LE VIEWMODE */}
-            {sortedSongsList.length === 0 && searchQuery ? (
+            {loading ? (
+                viewMode === "grid" ? <SkeletonGrid type="song" /> : <SkeletonList />
+            ) : sortedSongsList.length === 0 && searchQuery ? (
                 <div className="flex flex-col items-center justify-center py-20 text-neutral-500 border border-neutral-800/80 rounded-2xl bg-[#151515] border-dashed">
                     <p>No songs found matching "{searchQuery}".</p>
                 </div>

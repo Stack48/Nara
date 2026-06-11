@@ -60,9 +60,12 @@ export const useApiSongs = (): {
             try {
                 setLoading(true);
                 const user = await getCurrentUser();
-                const res = await fetch("/api/songs", {
-                    headers: { "x-cognito-id": user.userId },
-                });
+                const [res] = await Promise.all([
+                    fetch("/api/songs", {
+                        headers: { "x-cognito-id": user.userId },
+                    }),
+                    new Promise(resolve => setTimeout(resolve, 600))
+                ]);
                 if (res.status === 404) {
                     const { fetchUserAttributes } = await import("aws-amplify/auth");
                     const attrs = await fetchUserAttributes();

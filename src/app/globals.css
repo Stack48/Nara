@@ -235,3 +235,12 @@ body {
 	background-color: var(--nara-control-active) !important;
 	box-shadow: inset 0 0 0 1px var(--nara-control-active-border);
 }
+
+@keyframes skeleton-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+.skeleton-pulse {
+    animation: skeleton-pulse 1.8s ease-in-out infinite;
+}

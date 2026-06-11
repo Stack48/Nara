@@ -17,6 +17,7 @@ import { ProjectCard } from "./projectCard";
 import { SongCard } from "./songCard";
 import { useApiSongs } from "@/hooks/useApiSongs";
 import { useApiProjects } from "@/hooks/useApiProjects";
+import { SkeletonGrid, SkeletonList } from "@/components/ui/SkeletonCard";
 
 export const Deleted = () => {
     const [viewMode, setViewModeState] = useState<"grid" | "list">("grid");
@@ -50,11 +51,13 @@ export const Deleted = () => {
 
     const { selectedIds, handleSelect } = useSelection();
 
-    const { songs: allSongs } = useApiSongs();
+    const { songs: allSongs, loading: loadingSongs } = useApiSongs();
     const deletedSongs = allSongs.filter((song) => song.isDeleted);
 
-    const { projects: allProjects } = useApiProjects();
+    const { projects: allProjects, loading: loadingProjects } = useApiProjects();
     const deletedProjects = allProjects.filter((proj) => proj.isDeleted);
+    
+    const loading = loadingSongs || loadingProjects;
 
     const handleSongRestore = async (songId: string, songTitle: string) => {
         try {
@@ -169,7 +172,7 @@ export const Deleted = () => {
     const combinedViewItems = [...filteredProjects, ...filteredSongs];
 
     return (
-        <div className="w-full font-arimo text-white pb-10">
+        <div className="w-full font-arimo text-white pb-10 min-h-[600px]">
             <LibraryHeader
                 title="Deleted files"
                 itemCount={totalDeletedCount}
@@ -198,7 +201,26 @@ export const Deleted = () => {
                 setFilterValue={setFilterValue}
             />
 
-            {totalDeletedCount === 0 ? (
+            {loading ? (
+                <div className="flex flex-col gap-8 w-full">
+                    {(filterValue === "all" || filterValue === "projects") && (
+                        <div>
+                            <h2 className="text-sm font-bold uppercase tracking-wider text-neutral-500 mb-4 font-syne">
+                                Projects
+                            </h2>
+                            {viewMode === "grid" ? <SkeletonGrid type="project" count={5} /> : <SkeletonList count={3} />}
+                        </div>
+                    )}
+                    {(filterValue === "all" || filterValue === "songs") && (
+                        <div>
+                            <h2 className="text-sm font-bold uppercase tracking-wider text-neutral-500 mb-4 font-syne">
+                                Songs
+                            </h2>
+                            {viewMode === "grid" ? <SkeletonGrid type="song" count={4} /> : <SkeletonList count={4} />}
+                        </div>
+                    )}
+                </div>
+            ) : totalDeletedCount === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 text-neutral-500 border border-neutral-800/80 rounded-2xl bg-[#151515] border-dashed">
                     <p>Trash is empty.</p>
                 </div>

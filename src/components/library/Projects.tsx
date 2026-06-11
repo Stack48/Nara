@@ -10,6 +10,7 @@ import { ProjectCard } from "./projectCard";
 import { useSelection } from "@/context/SelectionContext";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { useApiProjects } from "@/hooks/useApiProjects";
+import { SkeletonGrid, SkeletonList } from "@/components/ui/SkeletonCard";
 
 export const Projects = () => {
     // États pour le menu contextuel et renommage
@@ -69,7 +70,7 @@ export const Projects = () => {
     };
 
     return (
-        <div className="w-full font-arimo text-white pb-10">
+        <div className="w-full font-arimo text-white pb-10 min-h-[600px]">
             <LibraryHeader
                 title="My Projects"
                 itemCount={sortedProjectList.length}
@@ -84,13 +85,10 @@ export const Projects = () => {
                 viewMode={viewMode}
                 setViewMode={setViewMode}
             />
-            {loading && (
-                <div className="flex items-center justify-center py-20 text-neutral-500 text-sm">
-                    Chargement...
-                </div>
-            )}
             {/* CONDITION D'AFFICHAGE SELON LE VIEWMODE */}
-            {sortedProjectList.length === 0 && searchQuery ? (
+            {loading ? (
+                viewMode === "grid" ? <SkeletonGrid type="project" /> : <SkeletonList />
+            ) : sortedProjectList.length === 0 && searchQuery ? (
                 <div className="flex flex-col items-center justify-center py-20 text-neutral-500 border border-neutral-800/80 rounded-2xl bg-[#151515] border-dashed">
                     <p>No projects found matching "{searchQuery}".</p>
                 </div>
