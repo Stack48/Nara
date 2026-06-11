@@ -13,8 +13,13 @@ export async function POST(req: NextRequest) {
 
     // In a real app, you would fetch the user's email from the database
     // For now, let's assume we have the user
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { id: userId },
+          { cognitoId: userId }
+        ]
+      },
       include: { subscription: true },
     });
 

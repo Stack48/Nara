@@ -11,8 +11,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { id: userId },
+          { cognitoId: userId }
+        ]
+      },
       include: { subscription: true },
     });
 
