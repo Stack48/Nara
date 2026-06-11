@@ -1,32 +1,51 @@
-# HANDOFF — Nara · Back-end Dictionnaire & Éditeur Lyrics
+# HANDOFF — Nara · État global du projet
+
+> 🧭 [← docs/](./README.md) · [roadmap](./roadmap-trello.md)
 
 > Dernière mise à jour : 2026-06-11 par Claude Code
-> Branche : `lyrics-editor_BackEnd` · Documents liés : [prd-dictionnaire-communautaire.md](./prd-dictionnaire-communautaire.md) · [roadmap-trello.md](./roadmap-trello.md) (board complet, 48 tickets)
+> Branche : `lyrics-editor_BackEnd`
+>
+> **Documents liés** :
+> - [roadmap-trello.md](./roadmap-trello.md) — board complet, 48 tickets
+> - PRD par domaine : [auth & permissions](./prd/auth-permissions.md) · [projets/lyrics/versions](./prd/projets-lyrics-versions.md) · [collaboration temps réel](./prd/collaboration-temps-reel.md) · [drive S3](./prd/drive-fichiers-s3.md) · [sécurité & RGPD](./prd/securite-rgpd.md) · [audio & markers](./prd/audio-markers.md) · [outils linguistiques](./prd/outils-linguistiques.md) · [dictionnaire communautaire](./prd/dictionnaire-communautaire.md)
 
 ## 1. Mission en cours
 
-Implémenter le back-end du **dictionnaire communautaire** (tickets Trello 43-BE API CRUD + votes, 48-BE interface admin/modération), après une grosse passe de fixes sur l'éditeur lyrics front (28-FE, 30-FE, 35-FE) et la réparation complète de l'historique de migrations Prisma.
+Finaliser le **back-end du dictionnaire communautaire** (43-BE / 48-BE) et l'affinage de l'éditeur lyrics front (28-FE, 30-FE, 35-FE). Le reste du back-end est déjà construit (voir §2).
+
+> ⚠️ **Le Trello est périmé** : presque tous les tickets back-end marqués « En cours » sont en réalité **implémentés** dans le code (controllers + routes + tests Jest). Ne pas repartir de zéro — lire le PRD du domaine concerné avant de toucher quoi que ce soit.
 
 ## 2. État actuel
 
-### Fait ✅
+### État réel par domaine (vs Trello)
+
+| Domaine | Tickets | Code | PRD | Statut réel |
+|---|---|---|---|---|
+| Auth & permissions | 13/14-BE, 26/31-FE | `lib/rbac.ts`, `middleware/rbac.middleware.ts`, `server/members`, `server/auth` | [prd](./prd/auth-permissions.md) | ✅ build (Cognito **simulé** via header `x-cognito-id`) |
+| Projets / Lyrics / Versions | 15/16/17-BE, 28/29-FE | `server/projects`, `server/lyrics-version*`, routes lyrics | [prd](./prd/projets-lyrics-versions.md) | ✅ back · 🔄 éditeur front |
+| Collaboration temps réel | 18-BE, 33-FE | `server/collaboration/*`, `server/socket.server.ts`, `redis.client.ts` | [prd](./prd/collaboration-temps-reel.md) | ✅ serveur · 🔄 UI curseurs (33-FE) |
+| Drive S3 | 19-BE, 32-FE | `server/s3.service.ts`, routes files | [prd](./prd/drive-fichiers-s3.md) | ✅ |
+| Sécurité & RGPD | 20-BE | `server/crypto.service.ts`, `rgpd.service.ts`, `audit.service.ts`, `rateLimitAuth.ts` | [prd](./prd/securite-rgpd.md) | ✅ (pentest/SOC2 hors scope) |
+| Audio & markers | 21-BE, 35-FE | `server/bridge-audio.service.ts`, routes markers/label-copy | [prd](./prd/audio-markers.md) | ✅ back · 🔄 player front |
+| Outils linguistiques | 30-FE | `lib/lexique.ts`, `lib/dicolink.ts`, `hooks/useLinguistic.ts` | [prd](./prd/outils-linguistiques.md) | ✅ (refactor filtres 🔄) |
+| Dictionnaire communautaire | 43/44/45/46/47/48 | `server/dictionary/controller.ts`, routes dictionary + admin | [prd](./prd/dictionnaire-communautaire.md) | 🔄 en cours (43/48 entamés) |
+
+### Fait récemment ✅
 - **Migrations Prisma réparées** : historique squashé en 2 migrations propres (`20260611085034_baseline` + `20260611095811_extend_word_suggestion`). `prisma migrate status` et `migrate dev` passent.
-- **Schéma** : `WordSuggestion` étendu (`category`, `language`, `authorId`) + nouveau modèle `WordVote` (1 vote/user via `@@unique([wordId, userId])`). Appliqué en DB.
-- **API dictionnaire** : routes `GET/POST /api/dictionary`, `GET/PUT /api/dictionary/[id]`, `POST /api/dictionary/[id]/vote` + routes admin `GET /api/admin/dictionary`, `PUT /api/admin/dictionary/[id]`, `GET /api/admin/dictionary/stats`. Logique dans `src/server/dictionary/controller.ts`.
-- **Validation Zod** : `src/schemas/dictionary.schema.ts` (CreateWord, UpdateWord, Vote).
-- **RBAC** : `src/middleware/rbac.middleware.ts` (mapping rôles FR→EN).
-- **Front éditeur** : fixes z-index/drag&drop/duplicate section, formatage focus-mode (gras/italique/souligné/barré/couleur), filtres syllabes+catégorie sur tous les panneaux linguistiques, hit-zone des markers TrackPlayer + annotation clic-droit.
-- **`.env`** : `DATABASE_URL` réel + `REDIS_HOST/PORT` ajoutés.
+- **Schéma dictionnaire** : `WordSuggestion` étendu (`category`, `language`, `authorId`) + modèle `WordVote` (1 vote/user via `@@unique([wordId, userId])`). Appliqué en DB.
+- **API dictionnaire** : routes publiques + admin (CRUD, vote, stats, modération) — logique dans `src/server/dictionary/controller.ts`.
+- **Front éditeur** : fixes z-index/drag&drop/duplicate section, formatage focus-mode, filtres syllabes+catégorie sur tous les panneaux, hit-zone markers TrackPlayer + annotation clic-droit.
+- **8 PRD + roadmap** créés dans `docs/` (ce HANDOFF + les liens en tête).
 
 ### En cours 🔄
-- Vérification end-to-end des routes dictionnaire (EF-1 → EF-11 du PRD) — code écrit, pas encore testé systématiquement.
-- Refactor `src/components/lyricsEditor/LyricsInspector.tsx` : passage de `rhymeFilters` à `filtersByPanel` générique — **INCOMPLET**, le call-site de `LyricsInspectorPanelCard` utilise encore les anciens noms de props.
+- Vérification end-to-end des routes dictionnaire (EF-1 → EF-11 du PRD dictionnaire).
+- Refactor `src/components/lyricsEditor/LyricsInspector.tsx` : `rhymeFilters` → `filtersByPanel` générique — **INCOMPLET**, le call-site de `LyricsInspectorPanelCard` utilise encore les anciens noms de props.
 
-### Reste à faire ⬜
-1. **Tester les routes dictionnaire** contre le PRD (EF-1 → EF-11) : pagination, filtres, vote unique/remplacement, seuil auto-verified, 403 sur routes admin pour non-admin.
-2. **Implémenter le seuil auto-verified** (EF-6, défaut 10) s'il n'est pas déjà dans `controller.ts` — vérifier.
-3. **Terminer le refactor LyricsInspector** (props `panelId`-based sur la card).
-4. 16-BE : CRUD Lyrics & Sections (modèles déjà en base, routes à faire).
+### Reste à faire ⬜ (prochaine action en premier)
+1. **Corriger le dossier de route malformé** `src/app/api/projects/[id]/lyrics/{lyricsId]/` (accolade `{` au lieu de `[`) → route lyrics-by-id + suggestions probablement morte. Renommer en `[lyricsId]`.
+2. **Tester les routes dictionnaire** contre le PRD (pagination, filtres, vote unique/remplacement, seuil auto-verified, 403 admin pour non-admin).
+3. **Vérifier le seuil auto-verified** (EF-6, défaut 10) dans `dictionary/controller.ts`.
+4. **Terminer le refactor LyricsInspector** (props `panelId`-based sur la card).
 5. 44-BE : crawling bases externes (indépendant, après 43-BE).
 
 ## 3. Décisions prises — et POURQUOI
@@ -85,6 +104,9 @@ npx prisma studio                # inspecter la base
 - **Drag & drop HTML5** : Chrome annule le drag si l'élément source est masqué pendant `dragstart` → `setDraggedLineIdx` est différé avec `setTimeout(0)`. Ne pas "simplifier" ça.
 - **TipTap content legacy** : certaines lignes sont stockées `{type:"text"}` au lieu de `{type:"doc"}` — `getParagraphTextNodes` normalise, toujours passer par lui.
 - **`.env` contient une vraie clé `DICOLINK_API_KEY`** — ne pas committer `.env`.
+- **Dossier de route malformé** : `src/app/api/projects/[id]/lyrics/{lyricsId]/` utilise une accolade `{` au lieu d'un crochet `[`. Next.js ne le reconnaît pas comme segment dynamique → la route (et sa sous-route `suggestions`) est probablement inopérante. À renommer en `[lyricsId]`.
+- **`ENCRYPTION_KEY` obligatoire** : `crypto.service.ts` lève une exception si absente de `.env`. La définir en local sinon les routes touchant au chiffrement plantent.
+- **Auth simulée** : l'identité passe par l'en-tête `x-cognito-id` (pas de vérification JWT réelle). Toute route protégée le lit via `getCognitoId`. Ne pas confondre avec une vraie session Cognito.
 
 ## 7. Conventions inter-agents
 

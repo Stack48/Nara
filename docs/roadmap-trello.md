@@ -1,5 +1,7 @@
 # Roadmap Nara — Board Trello complet
 
+> 🧭 [← docs/](./README.md) · [HANDOFF](./HANDOFF.md)
+
 > Source : export Trello `wKlY5QxO - nara.json` · Référence pour tous les agents (Claude Code, Antigravity) et le rapport de stage.
 > Méthode : Agile, sprints S1→S6. Personas : **Léa** (parolière lead), **Marcus** (parolier), **Romain** (studio/audio), **Admin**.
 > Statuts : ✅ Terminé · 🔄 En cours · ⬜ À faire

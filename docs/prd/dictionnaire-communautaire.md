@@ -1,5 +1,7 @@
 # PRD — Dictionnaire Communautaire Nara
 
+> 🧭 [← docs/](../README.md) · [HANDOFF](../HANDOFF.md) · [roadmap](../roadmap-trello.md)
+
 > Tickets Trello : 43-BE, 44-BE, 45-FE, 46-FE, 47-FE, 48-BE · Sprints S4–S5
 > Statut : en cours d'implémentation (back-end largement entamé, voir `docs/HANDOFF.md`)
 
