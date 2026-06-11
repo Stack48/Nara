@@ -18,7 +18,11 @@ export default function PricingPage() {
 
   const handleCheckout = async (planType: string) => {
     if (!userId) {
-      alert("Veuillez vous connecter pour vous abonner.");
+      window.dispatchEvent(
+        new CustomEvent("show-nara-toast", {
+          detail: { message: "Veuillez vous connecter pour vous abonner.", position: "center" }
+        })
+      );
       return;
     }
     
