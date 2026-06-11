@@ -1,9 +1,87 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { X, Edit, AlertCircle } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { X, Edit, AlertCircle, ChevronDown, Check } from "lucide-react";
 import { fetchAuthSession } from "aws-amplify/auth";
 import { WordSuggestion } from "./WordCard";
+
+type CustomSelectOption = {
+  label: string;
+  value: string;
+};
+
+function CustomSelect({
+  options,
+  value,
+  onChange,
+}: {
+  options: CustomSelectOption[];
+  value: string;
+  onChange: (value: any) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    function handleOutside(event: Event) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [isOpen]);
+
+  const selectedLabel = options.find((o) => o.value === value)?.label ?? value;
+
+  return (
+    <div ref={containerRef} className="relative w-full">
+      <button
+        type="button"
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="flex h-10 w-full items-center justify-between gap-2 rounded-xl border border-neutral-800 bg-neutral-900 px-4 text-sm font-medium text-white outline-none transition-all hover:bg-neutral-850 hover:border-neutral-700 focus:border-[#D90097] cursor-pointer"
+      >
+        <span className="truncate">{selectedLabel}</span>
+        <ChevronDown
+          size={14}
+          className={`shrink-0 text-neutral-500 transition-transform duration-200 ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+
+      {isOpen && (
+        <div
+          className="absolute right-0 left-0 top-[calc(100%+6px)] z-[120] overflow-y-auto rounded-xl border border-neutral-800 bg-neutral-950 py-1 shadow-2xl backdrop-blur-md"
+          style={{ maxHeight: "200px" }}
+        >
+          {options.map((option) => {
+            const isSelected = option.value === value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => {
+                  onChange(option.value);
+                  setIsOpen(false);
+                }}
+                className={`flex w-full items-center justify-between px-4 py-2.5 text-left text-sm transition-colors cursor-pointer ${
+                  isSelected
+                    ? "bg-[#D90097]/15 text-[#D90097] font-semibold"
+                    : "text-neutral-300 hover:bg-neutral-900"
+                }`}
+              >
+                <span className="truncate">{option.label}</span>
+                {isSelected && <Check size={14} className="shrink-0 text-[#D90097]" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface EditModerationModalProps {
   isOpen: boolean;
@@ -148,16 +226,16 @@ export const EditModerationModal = ({
               <label className="block text-xs font-semibold text-neutral-400 mb-1.5 uppercase tracking-wide">
                 Catégorie
               </label>
-              <select
+              <CustomSelect
                 value={category}
-                onChange={(e: any) => setCategory(e.target.value)}
-                className="w-full bg-neutral-900 border border-neutral-800 focus:border-[#D90097] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none transition-colors"
-              >
-                <option value="standard">Standard</option>
-                <option value="argot">Argot / Jargon</option>
-                <option value="genre_musical">Genre Musical</option>
-                <option value="geographie">Origine Géo</option>
-              </select>
+                onChange={(val) => setCategory(val)}
+                options={[
+                  { label: "Standard", value: "standard" },
+                  { label: "Argot / Jargon", value: "argot" },
+                  { label: "Genre Musical", value: "genre_musical" },
+                  { label: "Origine Géo", value: "geographie" },
+                ]}
+              />
             </div>
 
             <div>

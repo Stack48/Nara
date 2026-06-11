@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status") || "PENDING"; // File de modération par défaut sur PENDING
     const category = searchParams.get("category") || undefined;
     const search = searchParams.get("search") || undefined;
+    const sortBy = searchParams.get("sortBy") || undefined;
 
     const result = await DictionaryController.findAll({
       page,
@@ -33,6 +34,7 @@ export async function GET(request: NextRequest) {
       status,
       category,
       search,
+      sortBy,
     });
     return NextResponse.json(result);
   } catch (e) {

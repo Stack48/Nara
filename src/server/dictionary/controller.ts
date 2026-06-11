@@ -37,10 +37,11 @@ export const DictionaryController = {
     status?: string;
     category?: string;
     search?: string;
+    sortBy?: string;
   }) {
     const page = Math.max(1, parseInt(String(queryParams.page || 1), 10));
     const limit = Math.max(1, Math.min(100, parseInt(String(queryParams.limit || 10), 10)));
-    const { status, category, search } = queryParams;
+    const { status, category, search, sortBy } = queryParams;
 
     const where: any = {};
 
@@ -60,27 +61,59 @@ export const DictionaryController = {
       ];
     }
 
-    const [totalCount, suggestions] = await Promise.all([
-      prisma.wordSuggestion.count({ where }),
-      prisma.wordSuggestion.findMany({
+    let totalCount = 0;
+    let items = [];
+
+    if (sortBy === "votes_desc") {
+      const all = await prisma.wordSuggestion.findMany({
         where,
-        skip: (page - 1) * limit,
-        take: limit,
-        orderBy: { createdAt: "desc" },
         include: {
           author: { select: { id: true, name: true, username: true } },
           votes: { select: { value: true, userId: true } },
         },
-      }),
-    ]);
+      });
 
-    const items = suggestions.map((s) => {
-      const voteSum = s.votes.reduce((sum, v) => sum + v.value, 0);
-      return {
-        ...s,
-        voteSum,
-      };
-    });
+      const allMapped = all.map((s) => {
+        const voteSum = s.votes.reduce((sum, v) => sum + v.value, 0);
+        return {
+          ...s,
+          voteSum,
+        };
+      });
+
+      allMapped.sort((a, b) => {
+        if (b.voteSum !== a.voteSum) {
+          return b.voteSum - a.voteSum;
+        }
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+
+      totalCount = allMapped.length;
+      items = allMapped.slice((page - 1) * limit, page * limit);
+    } else {
+      const [count, suggestions] = await Promise.all([
+        prisma.wordSuggestion.count({ where }),
+        prisma.wordSuggestion.findMany({
+          where,
+          skip: (page - 1) * limit,
+          take: limit,
+          orderBy: { createdAt: "desc" },
+          include: {
+            author: { select: { id: true, name: true, username: true } },
+            votes: { select: { value: true, userId: true } },
+          },
+        }),
+      ]);
+
+      totalCount = count;
+      items = suggestions.map((s) => {
+        const voteSum = s.votes.reduce((sum, v) => sum + v.value, 0);
+        return {
+          ...s,
+          voteSum,
+        };
+      });
+    }
 
     const totalPages = Math.ceil(totalCount / limit);
 

@@ -113,6 +113,7 @@ export default function AdminDictionaryPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [category, setCategory] = useState("");
+  const [sortBy, setSortBy] = useState<string>("date_desc");
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const limit = 10;
@@ -169,6 +170,7 @@ export default function AdminDictionaryPage() {
       params.append("status", statusFilter);
       if (category) params.append("category", category);
       if (debouncedSearch) params.append("search", debouncedSearch);
+      if (sortBy) params.append("sortBy", sortBy);
 
       const queueRes = await fetch(`/api/admin/dictionary?${params.toString()}`, {
         headers: { "x-cognito-id": cognitoId },
@@ -183,7 +185,7 @@ export default function AdminDictionaryPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, category, statusFilter, debouncedSearch]);
+  }, [page, category, statusFilter, debouncedSearch, sortBy]);
 
   useEffect(() => {
     fetchStatsAndQueue();
@@ -344,6 +346,18 @@ export default function AdminDictionaryPage() {
               { label: "Origine Géo", value: "geographie" },
             ]}
           />
+
+          <CustomSelect
+            value={sortBy}
+            onChange={(val) => {
+              setSortBy(val);
+              setPage(1);
+            }}
+            options={[
+              { label: "Plus récents", value: "date_desc" },
+              { label: "Plus populaires", value: "votes_desc" },
+            ]}
+          />
         </div>
       </div>
 
@@ -376,6 +390,7 @@ export default function AdminDictionaryPage() {
               <thead>
                 <tr className="border-b border-neutral-800 bg-neutral-900/60 text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">
                   <th className="px-6 py-4">Mot</th>
+                  <th className="px-6 py-4 text-center">Votes</th>
                   <th className="px-6 py-4">Catégorie / Langue</th>
                   <th className="px-6 py-4">Définition & Exemples</th>
                   <th className="px-6 py-4">Proposé par</th>
@@ -387,6 +402,18 @@ export default function AdminDictionaryPage() {
                   <tr key={item.id} className="hover:bg-neutral-800/20 transition-colors">
                     <td className="px-6 py-4 font-bold text-white whitespace-nowrap">
                       {item.word}
+                    </td>
+
+                    <td className="px-6 py-4 text-center whitespace-nowrap">
+                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                        item.voteSum > 0
+                          ? "text-emerald-400 bg-emerald-500/10 border border-emerald-500/20"
+                          : item.voteSum < 0
+                          ? "text-rose-450 bg-rose-500/10 border border-rose-500/20"
+                          : "text-neutral-400 bg-neutral-800/40 border border-neutral-800/60"
+                      }`}>
+                        {item.voteSum}
+                      </span>
                     </td>
                     
                     <td className="px-6 py-4 whitespace-nowrap">
