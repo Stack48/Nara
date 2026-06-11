@@ -200,15 +200,25 @@ export const Projects = () => {
                     label="Project Name"
                     placeholder="Enter project name"
                     initialValue={renameModal.initialTitle}
-                    onSave={(newValue) => {
-                        renameProject(renameModal.projectId, newValue);
-                        window.dispatchEvent(
-                            new CustomEvent("show-nara-toast", {
-                                detail: {
-                                    message: `Project renamed to "${newValue}"`,
+                    onSave={async (newValue) => {
+                        try {
+                            const { getCurrentUser } = await import("aws-amplify/auth");
+                            const user = await getCurrentUser();
+                            await fetch(`/api/projects/${renameModal.projectId}/rename`, {
+                                method: "PATCH",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "x-cognito-id": user.userId,
                                 },
-                            }),
-                        );
+                                body: JSON.stringify({ name: newValue }),
+                            });
+                            window.dispatchEvent(new CustomEvent("show-nara-toast", {
+                                detail: { message: `Project renamed to "${newValue}"` },
+                            }));
+                            window.dispatchEvent(new CustomEvent("nara-data-updated"));
+                        } catch (err) {
+                            console.error("Rename error:", err);
+                        }
                     }}
                 />
             )}

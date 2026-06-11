@@ -279,15 +279,25 @@ export const Songs = () => {
                     label="Song Title"
                     placeholder="Enter song title"
                     initialValue={renameModal.initialTitle}
-                    onSave={(newValue) => {
-                        renameSong(renameModal.songId, newValue);
-                        window.dispatchEvent(
-                            new CustomEvent("show-nara-toast", {
-                                detail: {
-                                    message: `Song renamed to "${newValue}"`,
+                    onSave={async (newValue) => {
+                        try {
+                            const { getCurrentUser } = await import("aws-amplify/auth");
+                            const user = await getCurrentUser();
+                            await fetch(`/api/songs/${renameModal.songId}/rename`, {
+                                method: "PATCH",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "x-cognito-id": user.userId,
                                 },
-                            }),
-                        );
+                                body: JSON.stringify({ title: newValue }),
+                            });
+                            window.dispatchEvent(new CustomEvent("show-nara-toast", {
+                                detail: { message: `Song renamed to "${newValue}"` },
+                            }));
+                            window.dispatchEvent(new CustomEvent("nara-data-updated"));
+                        } catch (err) {
+                            console.error("Rename error:", err);
+                        }
                     }}
                 />
             )}
