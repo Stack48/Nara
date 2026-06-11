@@ -2635,7 +2635,8 @@ export default function LyricsEditorWorkspace({
 			trackMarkerPositionsBySectionId,
 		],
 	);
-	const shouldRenderInspectorTools: boolean = format.showInspectorTools;
+	const shouldRenderInspectorTools: boolean =
+		format.showInspectorTools || format.showDictionary;
 	const shouldRenderTrackPanel: boolean = format.showTrackPanel;
 	const workspaceGridTemplateClass = "xl:grid-cols-[minmax(0,1fr)]";
 	const publishPresenceFromRefs = useCallback((): void => {}, []);
@@ -5861,6 +5862,10 @@ export default function LyricsEditorWorkspace({
 							lookupRequest={inspectorLookupRequest}
 							onLookupTermChange={handleLookupTermChange}
 							onVisibilityChange={setHasVisibleInspectorPanels}
+							showDictionary={format.showDictionary}
+							onShowDictionaryChange={(show) =>
+								onFormatChange({ showDictionary: show })
+							}
 						/>
 					</div>
 				</div>

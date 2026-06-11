@@ -10,6 +10,7 @@ import {
 	Sparkles,
 	X,
 	Check,
+	BookOpen,
 	type LucideIcon,
 } from "lucide-react";
 import {
@@ -22,12 +23,14 @@ import {
 } from "react";
 import { useLinguistic } from "@/hooks/useLinguistic";
 import { useRef } from "react";
+import LyricsDictionary from "./LyricsDictionary";
 
 export type LyricsInspectorPanelId =
 	| "rhymes"
 	| "synonyms"
 	| "antonyms"
-	| "lexical";
+	| "lexical"
+	| "dictionary";
 
 export type LyricsInspectorField = {
 	label: string;
@@ -73,6 +76,8 @@ export type LyricsInspectorProps = {
 	onLookupTermChange?: (term: string) => void;
 	panels?: LyricsInspectorPanel[];
 	onVisibilityChange?: (hasVisiblePanels: boolean) => void;
+	showDictionary?: boolean;
+	onShowDictionaryChange?: (show: boolean) => void;
 };
 
 export const defaultLyricsInspectorPanels: LyricsInspectorPanel[] = [
@@ -122,15 +127,24 @@ export const defaultLyricsInspectorPanels: LyricsInspectorPanel[] = [
 		],
 		chips: ["Annihiler", "annuler", "biffer"],
 	},
+	{
+		id: "dictionary",
+		title: "Dictionnaire",
+		icon: BookOpen,
+		fields: [],
+		chips: [],
+	},
 ];
 
 function createInitialVisiblePanelIds(
 	panels: LyricsInspectorPanel[],
 ): Set<LyricsInspectorPanelId> {
 	return new Set<LyricsInspectorPanelId>(
-		panels.map(
-			(panel: LyricsInspectorPanel): LyricsInspectorPanelId => panel.id,
-		),
+		panels
+			.filter((panel) => panel.id !== "dictionary")
+			.map(
+				(panel: LyricsInspectorPanel): LyricsInspectorPanelId => panel.id,
+			),
 	);
 }
 
@@ -581,6 +595,8 @@ export function LyricsInspector({
 	onLookupTermChange,
 	panels = defaultLyricsInspectorPanels,
 	onVisibilityChange,
+	showDictionary,
+	onShowDictionaryChange,
 }: LyricsInspectorProps): ReactElement {
 	const [visiblePanelIds, setVisiblePanelIds] = useState<
 		Set<LyricsInspectorPanelId>
@@ -588,6 +604,22 @@ export function LyricsInspector({
 	const [fieldValues, setFieldValues] = useState<Record<string, string>>(() =>
 		createInitialFieldValues(panels),
 	);
+
+	const [dictionarySearchTerm, setDictionarySearchTerm] = useState<string>("");
+
+	useEffect(() => {
+		if (showDictionary !== undefined) {
+			setVisiblePanelIds((prev) => {
+				const next = new Set(prev);
+				if (showDictionary) {
+					next.add("dictionary");
+				} else {
+					next.delete("dictionary");
+				}
+				return next;
+			});
+		}
+	}, [showDictionary]);
 
 	const [failedLookups, setFailedLookups] = useState<Record<string, number>>(
 		{},
@@ -612,6 +644,7 @@ export function LyricsInspector({
 			synonyms: synonymsHook,
 			antonyms: antonymsHook,
 			lexical: lexicalHook,
+			dictionary: null,
 		}),
 		[rhymesHook, synonymsHook, antonymsHook, lexicalHook],
 	);
@@ -624,6 +657,7 @@ export function LyricsInspector({
 		synonyms: { syllables: null, category: null },
 		antonyms: { syllables: null, category: null },
 		lexical: { syllables: null, category: null },
+		dictionary: { syllables: null, category: null },
 	});
 
 	const [filtersByPanel, setFiltersByPanel] = useState<
@@ -927,6 +961,7 @@ export function LyricsInspector({
 				synonymsHook.search(term);
 				antonymsHook.search(term);
 				lexicalHook.search(term);
+				setDictionarySearchTerm(term);
 			} else {
 				if (lookupRequest.target === "rhymes") rhymesHook.search(term);
 				if (lookupRequest.target === "synonyms")
@@ -935,6 +970,8 @@ export function LyricsInspector({
 					antonymsHook.search(term);
 				if (lookupRequest.target === "lexical")
 					lexicalHook.search(term);
+				if (lookupRequest.target === "dictionary")
+					setDictionarySearchTerm(term);
 			}
 		}
 	}, [lookupRequest, panels]);
@@ -960,6 +997,9 @@ export function LyricsInspector({
 	}, [focusRequest]);
 
 	function handleTogglePanel(panelId: LyricsInspectorPanelId): void {
+		const isCurrentlyVisible = visiblePanelIds.has(panelId);
+		const nextVal = !isCurrentlyVisible;
+
 		setVisiblePanelIds(
 			(
 				currentPanelIds: Set<LyricsInspectorPanelId>,
@@ -968,7 +1008,7 @@ export function LyricsInspector({
 					currentPanelIds,
 				);
 
-				if (nextPanelIds.has(panelId)) {
+				if (isCurrentlyVisible) {
 					nextPanelIds.delete(panelId);
 				} else {
 					nextPanelIds.add(panelId);
@@ -977,6 +1017,10 @@ export function LyricsInspector({
 				return nextPanelIds;
 			},
 		);
+
+		if (panelId === "dictionary") {
+			onShowDictionaryChange?.(nextVal);
+		}
 	}
 
 	function handleFieldChange(
@@ -1014,20 +1058,31 @@ export function LyricsInspector({
 						}}
 					>
 						{visiblePanels.map(
-							(panel): ReactElement => (
-								<LyricsInspectorPanelCard
-									key={panel.id}
-									fieldValues={fieldValues}
-									onFieldChange={handleFieldChange}
-									onSearch={handleSearch}
-									onChipClick={handleChipClick}
-									panel={panel}
-									rhymeFilters={filtersByPanel.rhymes}
-									onRhymeFilterChange={(next) =>
-										handleFilterChange(panel.id, next)
-									}
-								/>
-							),
+							(panel): ReactElement => {
+								if (panel.id === "dictionary") {
+									return (
+										<LyricsDictionary
+											key={panel.id}
+											searchTermFromProps={dictionarySearchTerm}
+											onClose={() => handleTogglePanel("dictionary")}
+										/>
+									);
+								}
+								return (
+									<LyricsInspectorPanelCard
+										key={panel.id}
+										fieldValues={fieldValues}
+										onFieldChange={handleFieldChange}
+										onSearch={handleSearch}
+										onChipClick={handleChipClick}
+										panel={panel}
+										rhymeFilters={filtersByPanel.rhymes}
+										onRhymeFilterChange={(next) =>
+											handleFilterChange(panel.id, next)
+										}
+									/>
+								);
+							},
 						)}
 					</div>
 				</div>
