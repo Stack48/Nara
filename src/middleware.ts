@@ -2,7 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { fetchAuthSession } from "aws-amplify/auth/server";
 import { runWithAmplifyServerContext } from "@/lib/amplify";
 
-const protectedRoutes = ["/dashboard", "/projects", "/studio", "/songs"];
+const protectedRoutes = [
+    "/dashboard",
+    "/projects",
+    "/songs",
+    "/recents",
+    "/favorites",
+    "/deleted",
+    "/shared",
+    "/write",
+    "/settings",
+];
 const authRoutes = ["/login", "/signup"];
 
 export async function middleware(request: NextRequest) {
