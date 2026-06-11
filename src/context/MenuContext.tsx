@@ -29,7 +29,7 @@ import {
     Project,
     createProject,
 } from "@/lib/projectStore";
-import { useProjects } from "@/lib/projectStore";
+import { useApiProjects } from "@/hooks/useApiProjects";
 import { useRouter } from "next/navigation";
 
 interface MenuContextProps {
@@ -61,7 +61,7 @@ export const MenuContext = ({
     onRestore,
     onPermanentDelete,
 }: MenuContextProps) => {
-    const allProjects = useProjects();
+    const { projects: allProjects } = useApiProjects();
     const activeProjects = allProjects.filter((p) => !p.isDeleted);
     const menuRef = useRef<HTMLDivElement>(null);
     const [submenuOpen, setSubmenuOpen] = useState(false);
