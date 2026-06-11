@@ -283,9 +283,8 @@ export const Dashboard = () => {
 
                 {/* BLOC 2 : COMMENTS */}
                 <div className="lg:col-span-3 bg-[#151515] rounded-2xl p-6 border border-neutral-800 flex flex-col min-h-0">
-                    <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center mb-6">
                         <h3 className="font-syne text-xs font-bold tracking-widest uppercase">Recent Comments</h3>
-                        <Link href="#" className="text-xs text-neutral-300 hover:text-white transition-colors">Voir tout</Link>
                     </div>
                     <div className="flex flex-col gap-4 overflow-y-auto flex-1 min-h-0 pr-2 custom-scrollbar">
                         {recentComments.length === 0 ? (
