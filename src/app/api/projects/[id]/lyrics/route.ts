@@ -22,7 +22,7 @@ export async function GET(
     const cognitoId = getCognitoId(request);
     if (!cognitoId) return unauthorized();
 
-    const { authorized } = await requireRole(cognitoId, params.id, "LECTURE_SEULE");
+    const { authorized } = await requireRole(cognitoId, params.id, "READONLY");
     if (!authorized) return forbidden();
 
     const lyrics = await prisma.lyrics.findMany({

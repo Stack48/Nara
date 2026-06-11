@@ -2424,6 +2424,7 @@ export default function LyricsEditorWorkspace({
 	);
 	const [remotePresencesBySessionId, setRemotePresencesBySessionId] =
 		useState<RemotePresenceBySessionId>({});
+	const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
 	const presenceSessionIdRef = useRef<string>(createPresenceSessionId());
 
 	useEffect((): (() => void) | undefined => {
@@ -4405,9 +4406,49 @@ export default function LyricsEditorWorkspace({
 							}`}
 						>
 							<div className="flex items-center gap-3">
-								<h1 className="whitespace-nowrap text-[15px] font-bold text-[#F3F4F6]">
-									{document.title}
-								</h1>
+								{isEditingTitle ? (
+									<input
+										type="text"
+										value={document.title}
+										autoFocus
+										onChange={(e) => {
+											setDocument({ ...document, title: e.target.value });
+										}}
+										onBlur={async () => {
+											setIsEditingTitle(false);
+											if (!lyricsId) return;
+											try {
+												const { getCurrentUser } = await import("aws-amplify/auth");
+												const user = await getCurrentUser();
+												await fetch(`/api/songs/${lyricsId}/rename`, {
+													method: "PATCH",
+													headers: {
+														"Content-Type": "application/json",
+														"x-cognito-id": user.userId,
+													},
+													body: JSON.stringify({ title: document.title }),
+												});
+												window.dispatchEvent(new CustomEvent("nara-data-updated"));
+											} catch (err) {
+												console.error("Rename error:", err);
+											}
+										}}
+										onKeyDown={(e) => {
+											if (e.key === "Enter") {
+												e.currentTarget.blur();
+											}
+										}}
+										className="whitespace-nowrap text-[15px] font-bold text-[#F3F4F6] bg-transparent border-none outline-none focus:border-b focus:border-neutral-600 cursor-text w-auto"
+									/>
+								) : (
+									<h1 
+										className="whitespace-nowrap text-[15px] font-bold text-[#F3F4F6] cursor-text hover:text-white transition-colors"
+										onDoubleClick={() => setIsEditingTitle(true)}
+										title="Double-cliquez pour renommer"
+									>
+										{document.title}
+									</h1>
+								)}
 								<button
 									type="button"
 									onClick={() => handleSave(true)}
