@@ -19,6 +19,7 @@ type ApiProject = {
     owner: { id: string; name: string | null; email: string };
     members: { role: string; user: { id: string; name: string | null } }[];
     _count?: { lyrics: number };
+    imageUrl?: string | null;
 };
 
 const mapApiProjectToProject = (p: ApiProject): Project => {
@@ -34,7 +35,7 @@ const mapApiProjectToProject = (p: ApiProject): Project => {
         lastModifiedDate: new Date(p.updatedAt),
         createdDate: new Date(p.createdAt),
         imageKey: "",
-        image: null,
+        image: p.imageUrl ?? null,
         isFavorite: p.isFavorite ?? false,
         isDeleted: p.isDeleted ?? false,
         isShared: false,

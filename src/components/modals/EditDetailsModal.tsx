@@ -131,13 +131,34 @@ export const EditDetailsModal = ({
         setImage(presetImg);
     };
 
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
+        if (!file) return;
+
+        try {
+            const { getCurrentUser } = await import("aws-amplify/auth");
+            const user = await getCurrentUser();
+
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("type", type);
+            formData.append("id", itemId || "temp");
+
+            const res = await fetch("/api/upload/cover", {
+                method: "POST",
+                headers: { "x-cognito-id": user.userId },
+                body: formData,
+            });
+
+            if (!res.ok) throw new Error("Upload failed");
+            const data = await res.json();
+            setImage(data.imageUrl);
+            window.dispatchEvent(new CustomEvent("nara-data-updated"));
+        } catch (err) {
+            console.error("Upload error:", err);
+            // Fallback: lire en base64 localement
             const reader = new FileReader();
-            reader.onloadend = () => {
-                setImage(reader.result as string);
-            };
+            reader.onloadend = () => setImage(reader.result as string);
             reader.readAsDataURL(file);
         }
     };

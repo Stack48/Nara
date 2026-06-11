@@ -17,9 +17,11 @@ import { useApiProjectSongs } from "@/hooks/useApiProjectSongs";
 export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
     const params = useParams();
     const projectId = (params?.id as string) || "Project";
-    // Resolve title dynamically from store, fallback to slug
-    const displayTitle =
-        getProjectTitle(projectId) || projectId.replace(/_/g, " ");
+    const { projects } = useApiProjects();
+    const currentProject = projects.find((p) => p.id === projectId);
+    
+    // Resolve title dynamically from API, fallback to slug
+    const displayTitle = currentProject?.title || projectId.replace(/_/g, " ");
     const [filterValue, setFilterValue] = useState<string>("all");
 
     // Modal & Context Menu states
@@ -221,9 +223,6 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
     const breadcrumbLabel = isShared ? "Shared with me" : "My Projects";
     const breadcrumbLink = isShared ? "/shared" : "/projects";
 
-    const { projects } = useApiProjects();
-    const currentProject = projects.find((p) => p.id === projectId);
-
     return (
         <div className="w-full font-arimo text-white pb-10">
             {/* Breadcrumbs */}
@@ -247,7 +246,7 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
                 <div className="relative w-32 h-32 md:w-36 md:h-36 rounded-2xl overflow-hidden border border-neutral-800 shadow-2xl shrink-0 bg-neutral-900 flex items-center justify-center">
                     {currentProject?.image ? (
                         <img
-                            src={typeof currentProject.image === "object" ? currentProject.image.src : currentProject.image}
+                            src={typeof currentProject.image === "string" ? currentProject.image : currentProject.image?.src}
                             alt={displayTitle}
                             className="w-full h-full object-cover"
                         />
