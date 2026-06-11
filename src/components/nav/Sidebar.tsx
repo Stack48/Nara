@@ -15,6 +15,12 @@ import {
     Clock,
     Heart,
     Music,
+    Bell,
+    Pencil,
+    ChevronRight,
+    Settings,
+    LogOut,
+    LayoutTemplate,
 } from "lucide-react";
 
 import { setSongProject } from "@/lib/songStore";
@@ -42,6 +48,65 @@ export const Sidebar = ({
     const projectsDragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const hoverProjectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const hoverProjectIdRef = useRef<string | null>(null);
+
+    const [userName, setUserName] = useState<string>("");
+    const [userEmail, setUserEmail] = useState<string>("");
+    const [userAvatar, setUserAvatar] = useState<string>("");
+    const [hasUnreadComments, setHasUnreadComments] = useState(false);
+    const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+    const profileMenuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+                setProfileMenuOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const { getCurrentUser, fetchUserAttributes } = await import("aws-amplify/auth");
+                const user = await getCurrentUser();
+                const attrs = await fetchUserAttributes();
+                
+                const email = attrs.email || user.signInDetails?.loginId || "";
+                setUserEmail(email);
+                setUserName(attrs.name || attrs.preferred_username || email.split("@")[0] || "User");
+                setUserAvatar(attrs.picture || "");
+
+                const [res, commentsRes] = await Promise.all([
+                    fetch("/api/users/me", { headers: { "x-cognito-id": user.userId } }),
+                    fetch("/api/comments/recent", { headers: { "x-cognito-id": user.userId } })
+                ]);
+
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.avatarUrl) setUserAvatar(data.avatarUrl);
+                    if (data.name) setUserName(data.name);
+                }
+                
+                if (commentsRes.ok) {
+                    const comments = await commentsRes.json();
+                    setHasUnreadComments(comments.length > 0);
+                }
+            } catch { }
+        };
+        fetchUser();
+    }, []);
+
+    const handleLogout = async () => {
+        try {
+            const { signOut } = await import("aws-amplify/auth");
+            await signOut();
+            router.push("/login");
+        } catch (error) {
+            console.error("Error signing out: ", error);
+        }
+    };
 
     useEffect(() => {
         return () => {
@@ -196,7 +261,7 @@ export const Sidebar = ({
             onDragLeave={handleDragLeaveSidebar}
             onDrop={handleDragLeaveSidebar}
             className={`relative flex flex-col h-screen bg-black border-r border-neutral-800/60 transition-all duration-300 z-50 flex-shrink-0 ${
-                collapsed ? "w-16" : "w-60"
+                collapsed ? "w-[56px]" : "w-[220px]"
             }`}
         >
             {/* HEADER SIDEBAR (Logo) */}
@@ -513,7 +578,130 @@ export const Sidebar = ({
                     ))}
                 </div>
             </div>
+            {/* BOTTOM PROFILE SECTION */}
+            <div ref={profileMenuRef} className="relative border-t border-neutral-800/60 p-3 shrink-0 flex items-center justify-between">
+                <button 
+                    onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+                    className={`flex-1 flex items-center ${collapsed ? "justify-center p-1" : "justify-between p-2 -ml-2 mr-1"} hover:bg-neutral-900 rounded-xl transition-colors min-w-0 cursor-pointer`}
+                >
+                    <div className={`flex items-center gap-3 ${collapsed ? "justify-center" : ""} min-w-0`}>
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#AB0063] to-[#D50093] flex items-center justify-center text-white text-sm font-bold uppercase overflow-hidden shrink-0">
+                            {userAvatar ? (
+                                <img src={userAvatar} alt="Avatar" className="w-full h-full object-cover" />
+                            ) : (
+                                userName ? userName[0] : "U"
+                            )}
+                        </div>
+                        {!collapsed && (
+                            <div className="flex flex-col min-w-0 text-left">
+                                <span className="text-[14px] font-bold text-white truncate max-w-[100px]">{userName}</span>
+                                <span className="text-[12px] text-neutral-400 truncate mt-0.5">Pro Plan</span>
+                            </div>
+                        )}
+                    </div>
+                </button>
 
+                {!collapsed && (
+                    <button className="w-9 h-9 flex items-center justify-center text-neutral-500 hover:text-white hover:bg-neutral-900 rounded-xl transition-colors shrink-0 relative cursor-pointer">
+                        <Bell size={18} />
+                        {hasUnreadComments && (
+                            <div className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-red-600 rounded-full" />
+                        )}
+                    </button>
+                )}
+
+                {/* Dropdown Menu */}
+                {profileMenuOpen && !collapsed && (
+                    <div className="absolute bottom-[calc(100%+8px)] left-3 w-[220px] bg-[#111111] border border-neutral-800 rounded-xl shadow-2xl z-[100] flex flex-col py-1 animate-in fade-in slide-in-from-bottom-2 duration-150">
+                        
+                        {/* Profile Header */}
+                        <div className="flex flex-col items-center justify-center p-4 border-b border-neutral-800/60 mb-1">
+                            <Link 
+                                href="/settings/profile" 
+                                onClick={() => setProfileMenuOpen(false)}
+                                className="relative group mb-2 cursor-pointer"
+                            >
+                                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#AB0063] to-[#D50093] flex items-center justify-center text-white text-xl font-bold uppercase overflow-hidden ring-2 ring-transparent group-hover:ring-[#D90097] transition-all">
+                                    {userAvatar ? (
+                                        <img src={userAvatar} alt="Avatar" className="w-full h-full object-cover" />
+                                    ) : (
+                                        userName ? userName[0] : "U"
+                                    )}
+                                </div>
+                                <div className="absolute bottom-0 right-0 w-5 h-5 bg-neutral-800 border-2 border-[#111111] rounded-full flex items-center justify-center text-neutral-300 group-hover:bg-[#D90097] group-hover:text-white transition-colors">
+                                    <Pencil size={10} />
+                                </div>
+                            </Link>
+                            <span className="text-sm font-bold text-white truncate max-w-full">{userName}</span>
+                            <span className="text-xs text-neutral-500 truncate max-w-full">{userEmail}</span>
+                        </div>
+
+                        {/* Theme with submenu */}
+                        <div className="relative group/theme">
+                            <button className="w-full flex items-center justify-between px-3 py-2 text-sm text-neutral-300 hover:text-white hover:bg-white/5 transition-colors cursor-default">
+                                <div className="flex items-center gap-3">
+                                    <LayoutTemplate size={15} className="text-neutral-400" />
+                                    <span>Theme</span>
+                                </div>
+                                <ChevronRight size={14} className="text-neutral-500" />
+                            </button>
+                            
+                            {/* Submenu */}
+                            <div className="absolute left-full top-0 ml-1 w-32 bg-[#111111] border border-neutral-800 rounded-xl shadow-2xl z-[101] flex flex-col py-1 opacity-0 pointer-events-none group-hover/theme:opacity-100 group-hover/theme:pointer-events-auto transition-opacity duration-150">
+                                <button 
+                                    onClick={() => {
+                                        document.documentElement.classList.remove("dark");
+                                        localStorage.setItem("theme", "light");
+                                        setProfileMenuOpen(false);
+                                    }} 
+                                    className="w-full flex items-center px-4 py-2 text-sm text-neutral-300 hover:text-white hover:bg-white/5 transition-colors text-left cursor-pointer"
+                                >
+                                    Light
+                                </button>
+                                <button 
+                                    onClick={() => {
+                                        document.documentElement.classList.add("dark");
+                                        localStorage.setItem("theme", "dark");
+                                        setProfileMenuOpen(false);
+                                    }} 
+                                    className="w-full flex items-center px-4 py-2 text-sm text-neutral-300 hover:text-white hover:bg-white/5 transition-colors text-left cursor-pointer"
+                                >
+                                    Dark
+                                </button>
+                                <button 
+                                    onClick={() => {
+                                        const isSystemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+                                        document.documentElement.classList.toggle("dark", isSystemDark);
+                                        localStorage.removeItem("theme");
+                                        setProfileMenuOpen(false);
+                                    }} 
+                                    className="w-full flex items-center px-4 py-2 text-sm text-neutral-300 hover:text-white hover:bg-white/5 transition-colors text-left cursor-pointer"
+                                >
+                                    Machine
+                                </button>
+                            </div>
+                        </div>
+                        <Link 
+                            href="/settings/profile" 
+                            onClick={() => setProfileMenuOpen(false)} 
+                            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-neutral-300 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+                        >
+                            <Settings size={15} className="text-neutral-400" />
+                            <span>Settings</span>
+                        </Link>
+                        
+                        <div className="border-t border-neutral-800/60 my-1 mx-2" />
+                        
+                        <button 
+                            onClick={handleLogout} 
+                            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+                        >
+                            <LogOut size={15} className="text-red-500/70" />
+                            <span>Log out</span>
+                        </button>
+                    </div>
+                )}
+            </div>
 
             {/* Warning Confirmation Modal for Drag & Drop */}
             {confirmModal && (
