@@ -63,6 +63,26 @@ export const useApiSongs = (): {
                 const res = await fetch("/api/songs", {
                     headers: { "x-cognito-id": user.userId },
                 });
+                if (res.status === 404) {
+                    const { fetchUserAttributes } = await import("aws-amplify/auth");
+                    const attrs = await fetchUserAttributes();
+                    await fetch("/api/auth/sync", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            cognitoId: user.userId,
+                            email: attrs.email,
+                            name: attrs.name || attrs.email?.split("@")[0],
+                            username: attrs.preferred_username || attrs.email?.split("@")[0]
+                        })
+                    });
+                    const retryRes = await fetch("/api/songs", { headers: { "x-cognito-id": user.userId } });
+                    if (retryRes.ok) {
+                        const retryData = await retryRes.json();
+                        setSongs(retryData.map(mapApiLyricsToSong));
+                        return;
+                    }
+                }
                 if (!res.ok) throw new Error("Erreur API");
                 const data: ApiLyrics[] = await res.json();
                 setSongs(data.map(mapApiLyricsToSong));

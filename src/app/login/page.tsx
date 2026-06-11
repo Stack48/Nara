@@ -23,6 +23,22 @@ export default function ConnexionPage() {
     setError("");
     try {
       await login(email, password);
+      
+      try {
+        const { getCurrentUser, fetchUserAttributes } = await import("aws-amplify/auth");
+        const { syncUserToDB } = await import("@/hooks/useAuth");
+        const user = await getCurrentUser();
+        const attrs = await fetchUserAttributes();
+        await syncUserToDB(
+          user.userId,
+          attrs.email ?? email,
+          attrs.name ?? email.split('@')[0],
+          attrs.preferred_username ?? email.split('@')[0]
+        );
+      } catch (syncErr) {
+        console.error("Failed to sync user during login:", syncErr);
+      }
+
       router.push("/dashboard");
     } catch (err: unknown) {
       if (isAlreadyAuthenticated(err)) {

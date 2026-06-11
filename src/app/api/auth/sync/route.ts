@@ -5,14 +5,18 @@ export async function POST(request: NextRequest) {
     try {
         const { cognitoId, email, name, username } = await request.json();
 
-        if (!cognitoId || !email) {
+        const safeEmail = email || `${cognitoId}@nara.local`;
+        const safeName = name || safeEmail.split('@')[0];
+        const safeUsername = username || safeEmail.split('@')[0];
+
+        if (!cognitoId) {
             return NextResponse.json({ error: "Données manquantes" }, { status: 400 });
         }
 
         const user = await prisma.user.upsert({
             where: { cognitoId },
-            update: { email, name, username },
-            create: { cognitoId, email, name, username },
+            update: { email: safeEmail, name: safeName, username: safeUsername },
+            create: { cognitoId, email: safeEmail, name: safeName, username: safeUsername },
         });
 
         return NextResponse.json(user);

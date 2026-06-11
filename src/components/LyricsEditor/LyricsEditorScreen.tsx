@@ -19,14 +19,18 @@ const initialFormat: LyricsFormat = {
 	textOpacity: 100,
 	showTrackPanel: true,
 	showInspectorTools: true,
-	focusMode: true, // Default to true in V2!
-	hideAppChrome: true, // Default to hide sidebar navigation in Focus Mode V2!
+	focusMode: true,
+	hideAppChrome: true,
 	rhymes: false,
 	annotation: false,
 	syllables: false,
 };
 
-export default function LyricsEditorScreen(): ReactElement {
+interface LyricsEditorScreenProps {
+	lyricsId?: string;
+}
+
+export default function LyricsEditorScreen({ lyricsId }: LyricsEditorScreenProps): ReactElement {
 	const [format, setFormat] = useState<LyricsFormat>(initialFormat);
 
 	useEffect((): (() => void) => {
@@ -69,6 +73,7 @@ export default function LyricsEditorScreen(): ReactElement {
 			<LyricsEditorWorkspace
 				format={format}
 				onFormatChange={handleFormatChange}
+				lyricsId={lyricsId}
 			/>
 		</section>
 	);

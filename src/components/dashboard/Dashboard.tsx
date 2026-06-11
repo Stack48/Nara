@@ -48,6 +48,28 @@ export const Dashboard = () => {
                         "x-cognito-id": user.userId,
                     },
                 });
+                if (res.status === 404) {
+                    const { fetchUserAttributes } = await import("aws-amplify/auth");
+                    const attrs = await fetchUserAttributes();
+                    await fetch("/api/auth/sync", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            cognitoId: user.userId,
+                            email: attrs.email,
+                            name: attrs.name || attrs.email?.split("@")[0],
+                            username: attrs.preferred_username || attrs.email?.split("@")[0]
+                        })
+                    });
+                    
+                    const retryRes = await fetch("/api/projects", { headers: { "x-cognito-id": user.userId } });
+                    if (retryRes.ok) {
+                        const data = await retryRes.json();
+                        setProjects(data.slice(0, 4));
+                        return;
+                    }
+                }
+
                 if (!res.ok) throw new Error("Erreur API");
                 const data = await res.json();
                 setProjects(data.slice(0, 4));
@@ -69,6 +91,26 @@ export const Dashboard = () => {
                 const res = await fetch("/api/comments/recent", {
                     headers: { "x-cognito-id": user.userId },
                 });
+                if (res.status === 404) {
+                    const { fetchUserAttributes } = await import("aws-amplify/auth");
+                    const attrs = await fetchUserAttributes();
+                    await fetch("/api/auth/sync", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            cognitoId: user.userId,
+                            email: attrs.email,
+                            name: attrs.name || attrs.email?.split("@")[0],
+                            username: attrs.preferred_username || attrs.email?.split("@")[0]
+                        })
+                    });
+                    const retryRes = await fetch("/api/comments/recent", { headers: { "x-cognito-id": user.userId } });
+                    if (retryRes.ok) {
+                        const retryData = await retryRes.json();
+                        setRecentComments(retryData);
+                        return;
+                    }
+                }
                 if (!res.ok) throw new Error("Erreur API");
                 const data = await res.json();
                 setRecentComments(data);

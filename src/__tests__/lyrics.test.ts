@@ -18,13 +18,13 @@ jest.mock("@/lib/prisma", () => ({
     },
 }));
 
-jest.mock("@/middleware/rbac.middleware", () => ({
+jest.mock("@/lib/rbac", () => ({
     requireRole: jest.fn(),
     forbidden: jest.fn((msg) => Response.json({ error: msg }, { status: 403 })),
     unauthorized: jest.fn(() => Response.json({ error: "Non authentifié" }, { status: 401 })),
 }));
 
-import { requireRole } from "@/middleware/rbac.middleware";
+import { requireRole } from "@/lib/rbac";
 
 describe("Lyrics API", () => {
 

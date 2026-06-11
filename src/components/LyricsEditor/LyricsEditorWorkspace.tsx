@@ -1,5 +1,7 @@
 "use client";
 
+import "@/lib/amplify";
+
 import type { JSONContent } from "@tiptap/core";
 import {
 	Check,
@@ -146,6 +148,7 @@ type CaretPlacement = "start" | "end";
 type LyricsEditorWorkspaceProps = {
 	format: LyricsFormat;
 	onFormatChange: (patch: Partial<LyricsFormat>) => void;
+	lyricsId?: string;
 };
 
 type SectionKindPickerProps = {
@@ -2391,6 +2394,7 @@ function SectionKindPicker({
 export default function LyricsEditorWorkspace({
 	format,
 	onFormatChange,
+	lyricsId,
 }: LyricsEditorWorkspaceProps): ReactElement {
 	const [document, setDocument] = useState<TipTapLyricsDocument>(
 		createInitialDocument,
@@ -2643,24 +2647,44 @@ export default function LyricsEditorWorkspace({
 	const applyRemoteDocumentPayload = useCallback((): void => {}, []);
 
 	useEffect((): void => {
-		const storage = getClientStorage();
-		const storedDocument = parseStoredDocument(
-			storage?.getItem(storageKey) ?? null,
-		);
-		const storedLineComments = parseStoredLineComments(
-			storage?.getItem(commentsStorageKey) ?? null,
-		);
+		const loadDocument = async () => {
+			// Charger depuis localStorage d'abord (fallback)
+			const storage = getClientStorage();
+			const storedDocument = parseStoredDocument(
+				storage?.getItem(storageKey) ?? null,
+			);
+			const storedLineComments = parseStoredLineComments(
+				storage?.getItem(commentsStorageKey) ?? null,
+			);
 
-		if (storedDocument) {
-			setDocument(storedDocument);
-		}
+			if (storedDocument) setDocument(storedDocument);
+			if (storedLineComments) setLineCommentsById(storedLineComments);
 
-		if (storedLineComments) {
-			setLineCommentsById(storedLineComments);
-		}
+			// Si on a un lyricsId, charger depuis l'API
+			if (lyricsId) {
+				try {
+					const { getCurrentUser } = await import("aws-amplify/auth");
+					const user = await getCurrentUser();
+					const res = await fetch(`/api/lyrics/${lyricsId}`, {
+						headers: { "x-cognito-id": user.userId },
+					});
+					if (res.ok) {
+						const data = await res.json();
+						const parsedDoc = parseStoredDocument(JSON.stringify(data.content));
+						if (parsedDoc) {
+							setDocument({ ...parsedDoc, id: data.id, title: data.title });
+						}
+					}
+				} catch (err) {
+					console.error("Erreur chargement lyrics:", err);
+				}
+			}
 
-		hasLoadedStorageRef.current = true;
-	}, []);
+			hasLoadedStorageRef.current = true;
+		};
+
+		loadDocument();
+	}, [lyricsId]);
 
 	useEffect((): void => {
 		if (!hasLoadedStorageRef.current) {
@@ -3104,7 +3128,7 @@ export default function LyricsEditorWorkspace({
 		);
 	}
 
-	function handleSave(isCheckpoint: boolean = false): void {
+	async function handleSave(isCheckpoint: boolean = false): Promise<void> {
 		const storage = getClientStorage();
 		const savedDocument: TipTapLyricsDocument = {
 			...document,
@@ -3118,21 +3142,22 @@ export default function LyricsEditorWorkspace({
 		setSaveState("saved");
 		window.setTimeout((): void => setSaveState("idle"), 1400);
 
-		// Sauvegarde en arrière-plan (BDD)
-		const payload: any = {
-			projectId: "demo-project", // À remplacer par l'ID réel via router/props
-			content: savedDocument,
-		};
-
-		if (isCheckpoint) {
-			payload.name = `Version du ${new Date().toLocaleString("fr-FR")}`;
+		if (lyricsId) {
+			const { getCurrentUser } = await import("aws-amplify/auth");
+			try {
+				const user = await getCurrentUser();
+				await fetch(`/api/lyrics/${lyricsId}`, {
+					method: "PATCH",
+					headers: {
+						"Content-Type": "application/json",
+						"x-cognito-id": user.userId,
+					},
+					body: JSON.stringify({ content: savedDocument }),
+				});
+			} catch (err) {
+				console.error("Save to API failed:", err);
+			}
 		}
-
-		fetch("/api/projects/save", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify(payload),
-		}).catch((err) => console.error("Save failed", err));
 	}
 
 	// Auto-save toutes les 5 secondes en cas de modifications non sauvegardées

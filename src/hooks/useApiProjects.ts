@@ -60,9 +60,31 @@ export const useApiProjects = (): {
             try {
                 setLoading(true);
                 const user = await getCurrentUser();
+                console.log("cognitoId:", user.userId);
                 const res = await fetch("/api/projects", {
                     headers: { "x-cognito-id": user.userId },
                 });
+                if (res.status === 404) {
+                    const { fetchUserAttributes } = await import("aws-amplify/auth");
+                    const attrs = await fetchUserAttributes();
+                    await fetch("/api/auth/sync", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            cognitoId: user.userId,
+                            email: attrs.email,
+                            name: attrs.name || attrs.email?.split("@")[0],
+                            username: attrs.preferred_username || attrs.email?.split("@")[0]
+                        })
+                    });
+                    const retryRes = await fetch("/api/projects", { headers: { "x-cognito-id": user.userId } });
+                    if (retryRes.ok) {
+                        const retryData = await retryRes.json();
+                        setProjects(retryData.map(mapApiProjectToProject));
+                        return;
+                    }
+                }
+                
                 if (!res.ok) {
                     const errorBody = await res.json();
                     console.error("API error:", res.status, errorBody);
