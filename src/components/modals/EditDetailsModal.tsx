@@ -3,8 +3,10 @@
 import { useState, useEffect, useRef } from "react";
 import { X, Upload, Plus, Users, Edit3, FolderOpen } from "lucide-react";
 import Image from "next/image";
-import { useSongs, updateSongDetails } from "@/lib/songStore";
-import { useProjects, updateProjectDetails, createProject } from "@/lib/projectStore";
+import { updateSongDetails } from "@/lib/songStore";
+import { updateProjectDetails, createProject } from "@/lib/projectStore";
+import { useApiProjects } from "@/hooks/useApiProjects";
+import { useApiSongs } from "@/hooks/useApiSongs";
 
 // Cover images imports
 import vince from "@/assets/cover/vince.png";
@@ -72,8 +74,8 @@ export const EditDetailsModal = ({
     isCreate = false,
     onClose,
 }: EditDetailsModalProps) => {
-    const songs = useSongs();
-    const projects = useProjects();
+    const { songs } = useApiSongs();
+    const { projects } = useApiProjects();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Form states
