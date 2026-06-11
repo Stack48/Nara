@@ -28,7 +28,7 @@ const mapApiProjectToProject = (p: ApiProject): Project => {
         title: p.name,
         type: p.genre ?? "Album",
         songsCount: p._count?.lyrics ?? 0,
-        collabs: p.members?.length ?? 0,
+        collabs: p.members?.filter((m) => m.user.id !== p.ownerId).length ?? 0,
         state: p.status === "IN_PROGRESS" ? "En cours" : p.status === "COMPLETED" ? "Terminé" : "Draft",
         lastModified: new Date(p.updatedAt).toLocaleDateString("fr-FR"),
         created: new Date(p.createdAt).toLocaleDateString("fr-FR"),
@@ -41,7 +41,7 @@ const mapApiProjectToProject = (p: ApiProject): Project => {
         isShared: false,
         owner: p.owner?.name ?? "",
         description: p.description ?? "",
-        collaboratorsList: p.members?.map((m) => m.user.name ?? "").filter(Boolean) ?? [],
+        collaboratorsList: p.members?.filter((m) => m.user.id !== p.ownerId).map((m) => m.user.name ?? "").filter(Boolean) ?? [],
     };
 };
 

@@ -21,6 +21,9 @@ export async function getProjects(cognitoId: string) {
                     user: { select: { id: true, name: true, email: true } },
                 },
             },
+            _count: {
+                select: { lyrics: true }
+            },
         },
         orderBy: { createdAt: "desc" },
     });
@@ -69,6 +72,9 @@ export async function getProject(cognitoId: string, projectId: string) {
                 include: {
                     user: { select: { id: true, name: true, email: true } },
                 },
+            },
+            _count: {
+                select: { lyrics: true }
             },
         },
     });

@@ -269,9 +269,31 @@ export const EditDetailsModal = ({
         } else {
             details.type = projectType;
             updateProjectDetails(itemId!, details);
+            
+            try {
+                const { getCurrentUser } = await import("aws-amplify/auth");
+                const user = await getCurrentUser();
+                
+                await fetch(`/api/projects/${itemId}`, {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "x-cognito-id": user.userId,
+                    },
+                    body: JSON.stringify({
+                        name: title.trim(),
+                        description: description.trim(),
+                        genre: projectType,
+                    }),
+                });
+            } catch (err) {
+                console.error("Update project error:", err);
+            }
+
             window.dispatchEvent(new CustomEvent("show-nara-toast", {
                 detail: { message: `Project "${details.title}" updated successfully!` },
             }));
+            window.dispatchEvent(new CustomEvent("nara-data-updated"));
         }
         onClose();
     };
