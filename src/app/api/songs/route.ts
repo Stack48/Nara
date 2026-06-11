@@ -16,12 +16,22 @@ export async function GET(request: NextRequest) {
         // Récupère tous les lyrics des projets où l'user est membre ou owner
         const lyrics = await prisma.lyrics.findMany({
             where: {
-                project: {
-                    OR: [
-                        { ownerId: user.id },
-                        { members: { some: { userId: user.id } } },
-                    ],
-                },
+                OR: [
+                    // Songs liées à un projet où l'user est owner ou membre
+                    {
+                        project: {
+                            OR: [
+                                { ownerId: user.id },
+                                { members: { some: { userId: user.id } } },
+                            ],
+                        },
+                    },
+                    // Songs standalone (sans projet) de l'user
+                    {
+                        projectId: null,
+                        authorId: user.id,
+                    },
+                ],
             },
             include: {
                 project: {

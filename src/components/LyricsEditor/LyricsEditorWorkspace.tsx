@@ -831,73 +831,22 @@ function renumberDocument(
 }
 
 function createInitialDocument(): TipTapLyricsDocument {
-	return {
-		id: "my-way",
-		title: "My Way",
-		updatedAt: null,
-		sections: renumberDocument([
-			{
-				accentColor: getSectionAccentColor(0),
-				activeAlternativeId: null,
-				alternatives: [],
-				id: "intro",
-				kind: "intro",
-				title: "INTRO",
-				lines: [
-					createLine("intro", "Sed ut perspiciatis unde omnis"),
-					createLine("intro", "Doloremque laudantium,"),
-					createLine(
-						"intro",
-						"Iste natus error sit voluptatem accusantium",
-					),
-					createLine(
-						"intro",
-						"Totam rem aperiam, eaque ipsa veritatis",
-					),
-				],
-			},
-			{
-				accentColor: getSectionAccentColor(1),
-				activeAlternativeId: null,
-				alternatives: [],
-				id: "couplet-1",
-				kind: "couplet",
-				title: "COUPLET 1",
-				lines: [
-					createLine("couplet", "Sed ut perspiciatis unde omnis"),
-					createLine("couplet", "Doloremque laudantium,"),
-					createLine(
-						"couplet",
-						"Iste natus error sit voluptatem accusantium",
-					),
-					createLine(
-						"couplet",
-						"Totam rem aperiam, eaque ipsa veritatis",
-					),
-				],
-			},
-			{
-				accentColor: getSectionAccentColor(2),
-				activeAlternativeId: null,
-				alternatives: [],
-				id: "refrain",
-				kind: "refrain",
-				title: "REFRAIN",
-				lines: [
-					createLine("refrain", "Sed ut perspiciatis unde omnis"),
-					createLine("refrain", "Doloremque laudantium,"),
-					createLine(
-						"refrain",
-						"Iste natus error sit voluptatem accusantium",
-					),
-					createLine(
-						"refrain",
-						"Totam rem aperiam, eaque ipsa veritatis",
-					),
-				],
-			},
-		]),
-	};
+    return {
+        id: "new",
+        title: "Sans titre",
+        updatedAt: null,
+        sections: renumberDocument([
+            {
+                accentColor: getSectionAccentColor(0),
+                activeAlternativeId: null,
+                alternatives: [],
+                id: "couplet-1",
+                kind: "couplet",
+                title: "COUPLET",
+                lines: [createLine("couplet")],
+            },
+        ]),
+    };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -2648,19 +2597,6 @@ export default function LyricsEditorWorkspace({
 
 	useEffect((): void => {
 		const loadDocument = async () => {
-			// Charger depuis localStorage d'abord (fallback)
-			const storage = getClientStorage();
-			const storedDocument = parseStoredDocument(
-				storage?.getItem(storageKey) ?? null,
-			);
-			const storedLineComments = parseStoredLineComments(
-				storage?.getItem(commentsStorageKey) ?? null,
-			);
-
-			if (storedDocument) setDocument(storedDocument);
-			if (storedLineComments) setLineCommentsById(storedLineComments);
-
-			// Si on a un lyricsId, charger depuis l'API
 			if (lyricsId) {
 				try {
 					const { getCurrentUser } = await import("aws-amplify/auth");
@@ -2672,14 +2608,20 @@ export default function LyricsEditorWorkspace({
 						const data = await res.json();
 						const parsedDoc = parseStoredDocument(JSON.stringify(data.content));
 						if (parsedDoc) {
-							setDocument({ ...parsedDoc, id: data.id, title: data.title });
+							console.log("Setting document:", parsedDoc);
+							setDocument(parsedDoc);
+						} else {
+							setDocument({
+								...createInitialDocument(),
+								id: data.id,
+								title: data.title,
+							});
 						}
 					}
 				} catch (err) {
 					console.error("Erreur chargement lyrics:", err);
 				}
 			}
-
 			hasLoadedStorageRef.current = true;
 		};
 
@@ -3168,6 +3110,8 @@ export default function LyricsEditorWorkspace({
 		}, 5000);
 		return () => clearTimeout(timer);
 	}, [document, isDirty]);
+
+	console.log("Current document sections:", document.sections.length);
 
 	function handleToggle(key: EditorToggleKey): void {
 		setToggles((currentToggles: EditorToggle[]): EditorToggle[] =>

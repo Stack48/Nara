@@ -19,8 +19,8 @@ const initialFormat: LyricsFormat = {
 	textOpacity: 100,
 	showTrackPanel: true,
 	showInspectorTools: true,
-	focusMode: true,
-	hideAppChrome: true,
+	focusMode: false,
+	hideAppChrome: false,
 	rhymes: false,
 	annotation: false,
 	syllables: false,
@@ -57,7 +57,6 @@ export default function LyricsEditorScreen({ lyricsId }: LyricsEditorScreenProps
 			(currentFormat: LyricsFormat): LyricsFormat => ({
 				...currentFormat,
 				...patch,
-				focusMode: true,
 			}),
 		);
 	}
