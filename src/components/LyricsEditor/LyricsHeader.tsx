@@ -6,6 +6,7 @@ import {
 	AlignRight,
 	Badge,
 	Bold,
+	BookOpen,
 	Check,
 	ChevronDown,
 	Disc,
@@ -41,6 +42,7 @@ export type LyricsFormat = {
 	textOpacity: number;
 	showTrackPanel: boolean;
 	showInspectorTools: boolean;
+	showDictionary: boolean;
 	focusMode: boolean;
 	hideAppChrome: boolean;
 	rhymes: boolean;
@@ -1368,6 +1370,15 @@ export default function LyricsHeader({
 			onClick: () =>
 				onFormatChange({
 					showInspectorTools: !format.showInspectorTools,
+				}),
+		},
+		{
+			label: "Dictionnaire",
+			icon: BookOpen,
+			active: format.showDictionary,
+			onClick: () =>
+				onFormatChange({
+					showDictionary: !format.showDictionary,
 				}),
 		},
 		...(format.focusMode

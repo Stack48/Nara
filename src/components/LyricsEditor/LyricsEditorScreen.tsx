@@ -19,6 +19,7 @@ const initialFormat: LyricsFormat = {
 	textOpacity: 100,
 	showTrackPanel: true,
 	showInspectorTools: true,
+	showDictionary: false,
 	focusMode: true, // Default to true in V2!
 	hideAppChrome: true, // Default to hide sidebar navigation in Focus Mode V2!
 	rhymes: false,

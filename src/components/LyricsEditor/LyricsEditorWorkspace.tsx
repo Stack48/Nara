@@ -2635,7 +2635,8 @@ export default function LyricsEditorWorkspace({
 			trackMarkerPositionsBySectionId,
 		],
 	);
-	const shouldRenderInspectorTools: boolean = format.showInspectorTools;
+	const shouldRenderInspectorTools: boolean =
+		format.showInspectorTools || format.showDictionary;
 	const shouldRenderTrackPanel: boolean = format.showTrackPanel;
 	const workspaceGridTemplateClass = "xl:grid-cols-[minmax(0,1fr)]";
 	const publishPresenceFromRefs = useCallback((): void => {}, []);
@@ -2859,7 +2860,9 @@ export default function LyricsEditorWorkspace({
 		});
 	}
 
-	function getFocusSelectionLineRanges(selection: FocusFormatSelection): Array<{
+	function getFocusSelectionLineRanges(
+		selection: FocusFormatSelection,
+	): Array<{
 		from: number;
 		line: TipTapLyricLine;
 		section: TipTapLyricSection;
@@ -2989,7 +2992,10 @@ export default function LyricsEditorWorkspace({
 			previous.textColor !== format.textColor ||
 			previous.textOpacity !== format.textOpacity
 		) {
-			patches.push({ key: "color", value: getLyricsTextColorCss(format) });
+			patches.push({
+				key: "color",
+				value: getLyricsTextColorCss(format),
+			});
 		}
 
 		if (patches.length === 0) {
@@ -3079,9 +3085,8 @@ export default function LyricsEditorWorkspace({
 	}
 
 	function handleToggleSectionComment(sectionId: string): void {
-		setOpenCommentSectionId(
-			(current: string | null): string | null =>
-				current === sectionId ? null : sectionId,
+		setOpenCommentSectionId((current: string | null): string | null =>
+			current === sectionId ? null : sectionId,
 		);
 	}
 
@@ -3103,46 +3108,6 @@ export default function LyricsEditorWorkspace({
 			}),
 		);
 	}
-
-	function handleSave(isCheckpoint: boolean = false): void {
-		const storage = getClientStorage();
-		const savedDocument: TipTapLyricsDocument = {
-			...document,
-			updatedAt: new Date().toISOString(),
-		};
-
-		storage?.setItem(storageKey, JSON.stringify(savedDocument));
-		storage?.setItem(commentsStorageKey, JSON.stringify(lineCommentsById));
-		setDocument(savedDocument);
-		setIsDirty(false);
-		setSaveState("saved");
-		window.setTimeout((): void => setSaveState("idle"), 1400);
-
-		// Sauvegarde en arrière-plan (BDD)
-		const payload: any = {
-			projectId: "demo-project", // À remplacer par l'ID réel via router/props
-			content: savedDocument,
-		};
-
-		if (isCheckpoint) {
-			payload.name = `Version du ${new Date().toLocaleString("fr-FR")}`;
-		}
-
-		fetch("/api/projects/save", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify(payload),
-		}).catch((err) => console.error("Save failed", err));
-	}
-
-	// Auto-save toutes les 5 secondes en cas de modifications non sauvegardées
-	useEffect(() => {
-		if (!isDirty) return;
-		const timer = setTimeout(() => {
-			handleSave(false);
-		}, 5000);
-		return () => clearTimeout(timer);
-	}, [document, isDirty]);
 
 	function handleToggle(key: EditorToggleKey): void {
 		setToggles((currentToggles: EditorToggle[]): EditorToggle[] =>
@@ -3878,9 +3843,7 @@ export default function LyricsEditorWorkspace({
 		);
 	}
 
-	function handleTrackMarkerCreate(
-		payload: TrackMarkerCreatePayload,
-	): void {
+	function handleTrackMarkerCreate(payload: TrackMarkerCreatePayload): void {
 		const positionPercent = Math.round(payload.positionPercent * 10) / 10;
 		const seconds = (trackDurationSeconds * positionPercent) / 100;
 
@@ -4439,21 +4402,9 @@ export default function LyricsEditorWorkspace({
 								<h1 className="whitespace-nowrap text-[15px] font-bold text-[#F3F4F6]">
 									{document.title}
 								</h1>
-								<button
-									type="button"
-									onClick={() => handleSave(true)}
-									className="inline-flex h-6 items-center gap-1.5 rounded-[4px] border border-[#2C2C32] px-2 text-[10px] font-semibold text-[#F3F4F6] transition-colors hover:border-[#4A4A52] hover:bg-[#202027]"
-								>
-									<Save size={12} strokeWidth={1.8} />
-									{saveState === "saved"
-										? "Sauvegarde"
-										: "Sauvegarder"}
-								</button>
-								{isDirty && (
-									<span className="text-[10px] font-medium text-[#A1A1AA]">
-										Modifie
-									</span>
-								)}
+								<p className="text-[12px] font-bold text-[#F3F4F6]">
+									authors
+								</p>
 							</div>
 
 							<div className="flex flex-wrap items-center justify-end gap-4">
@@ -5861,6 +5812,10 @@ export default function LyricsEditorWorkspace({
 							lookupRequest={inspectorLookupRequest}
 							onLookupTermChange={handleLookupTermChange}
 							onVisibilityChange={setHasVisibleInspectorPanels}
+							showDictionary={format.showDictionary}
+							onShowDictionaryChange={(show) =>
+								onFormatChange({ showDictionary: show })
+							}
 						/>
 					</div>
 				</div>
