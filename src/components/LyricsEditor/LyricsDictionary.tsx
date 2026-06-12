@@ -37,10 +37,28 @@ interface WordSuggestion {
   votes?: Array<{ value: number; userId: string }>;
 }
 
+interface CrawledEntry {
+  id: string;
+  word: string;
+  definition: string | null;
+  language: string;
+  category: string | null;
+  partOfSpeech: string | null;
+  source: string;
+  sourceUrl: string | null;
+  status: string;
+}
+
 interface LyricsDictionaryProps {
   onClose: () => void;
   searchTermFromProps?: string;
 }
+
+const SOURCE_LABELS: Record<string, string> = {
+  wiktionary: "Wiktionnaire",
+  free_dictionary: "Free Dictionary",
+  datamuse: "Datamuse",
+};
 
 const CATEGORY_LABELS: Record<string, string> = {
   standard: "Standard",
@@ -62,6 +80,7 @@ export default function LyricsDictionary({
   }, [searchTermFromProps]);
   const [category, setCategory] = useState("");
   const [items, setItems] = useState<WordSuggestion[]>([]);
+  const [crawledItems, setCrawledItems] = useState<CrawledEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -89,10 +108,20 @@ export default function LyricsDictionary({
       if (category) params.append("category", category);
       if (searchTerm) params.append("search", searchTerm);
 
-      const res = await fetch(`/api/dictionary?${params.toString()}`);
+      const crawledPromise = searchTerm
+        ? fetch(`/api/dictionary/crawled?search=${encodeURIComponent(searchTerm)}`)
+            .then((r) => (r.ok ? r.json() : { items: [] }))
+            .catch(() => ({ items: [] }))
+        : Promise.resolve({ items: [] });
+
+      const [res, crawledData] = await Promise.all([
+        fetch(`/api/dictionary?${params.toString()}`),
+        crawledPromise,
+      ]);
       if (!res.ok) throw new Error("Erreur de chargement");
       const data = await res.json();
       setItems(data.items || []);
+      setCrawledItems(crawledData.items || []);
     } catch (err: any) {
       setError(err.message || "Erreur réseau");
     } finally {
@@ -397,12 +426,12 @@ export default function LyricsDictionary({
               </div>
             )}
 
-            {loading && items.length === 0 ? (
+            {loading && items.length === 0 && crawledItems.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-6 gap-1.5">
                 <Loader2 className="text-[#DA069A] animate-spin" size={16} />
                 <span className="text-[9px] text-neutral-500">Chargement...</span>
               </div>
-            ) : items.length === 0 ? (
+            ) : items.length === 0 && crawledItems.length === 0 ? (
               <div className="text-center py-8 text-neutral-500 text-[11px]">
                 Aucun mot trouvé dans la base.
               </div>
@@ -453,6 +482,49 @@ export default function LyricsDictionary({
                   </div>
                 </div>
               ))
+            )}
+
+            {/* Définitions crawlées (sources externes) */}
+            {crawledItems.length > 0 && (
+              <>
+                <div className="flex items-center gap-2 pt-2">
+                  <div className="h-px flex-1 bg-white/[0.06]" />
+                  <span className="text-[8px] font-bold uppercase tracking-wider text-white/30">
+                    Sources externes
+                  </span>
+                  <div className="h-px flex-1 bg-white/[0.06]" />
+                </div>
+
+                {crawledItems.map((entry) => (
+                  <div
+                    key={entry.id}
+                    className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-2.5 hover:border-white/[0.10] transition-all"
+                  >
+                    <div className="flex items-start justify-between gap-1.5 mb-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-semibold text-white text-[11px]">{entry.word}</span>
+                        {entry.partOfSpeech && (
+                          <span className="text-[7px] text-neutral-500 italic">
+                            {entry.partOfSpeech}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[7px] bg-sky-500/10 text-sky-400 border border-sky-500/20 px-1 rounded shrink-0">
+                        {SOURCE_LABELS[entry.source] ?? entry.source}
+                      </span>
+                    </div>
+
+                    <p className="text-[10px] text-neutral-300 leading-normal mb-1.5 line-clamp-4">
+                      {entry.definition}
+                    </p>
+
+                    <div className="flex items-center justify-between text-[8px] text-neutral-500 border-t border-white/[0.04] pt-1">
+                      <span>Non vérifié</span>
+                      <span className="uppercase">{entry.language}</span>
+                    </div>
+                  </div>
+                ))}
+              </>
             )}
           </div>
         </div>

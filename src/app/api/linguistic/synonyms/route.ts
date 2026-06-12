@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSynonyms } from '@/lib/dicolink';
 import { filterWordsByLexique } from '@/lib/lexique';
+import { getDatamuseSynonyms } from '@/lib/datamuse';
 
 export async function GET(req: NextRequest) {
   const params = req.nextUrl.searchParams;
@@ -20,6 +21,21 @@ export async function GET(req: NextRequest) {
       syllables: Number.isFinite(syllables) ? syllables : undefined,
       category: categoryParam || undefined,
     });
+
+    // Fallback: if DicoLink (FR) returned nothing, try Datamuse (EN)
+    if (filtered.results.length === 0) {
+      const datamuse = await getDatamuseSynonyms(word.trim());
+      if (datamuse.length > 0) {
+        return NextResponse.json({
+          word: word.trim(),
+          results: datamuse,
+          source: 'datamuse',
+          availableSyllables: [],
+          availableCategories: [],
+        });
+      }
+    }
+
     return NextResponse.json({ ...data, ...filtered });
   } catch (err) {
     console.error('[/api/linguistic/synonyms]', err);

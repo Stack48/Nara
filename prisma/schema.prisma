@@ -266,3 +266,66 @@ model WordVote {
 
   @@unique([wordId, userId]) // 1 vote/user
 }
+
+// --- Crawling dictionnaire (carte 44-BE) ---
+// Données crawlées depuis les sources externes. Séparé de WordSuggestion :
+// WordSuggestion = canal communautaire (word @unique global),
+// DictionaryEntry = staging multi-source (unique par normalized+language+source).
+
+model DictionaryEntry {
+  id           String   @id @default(cuid())
+  word         String
+  normalized   String
+  definition   String?
+  language     String
+  category     String?
+  partOfSpeech String?
+  source       String
+  sourceUrl    String?
+  status       String   @default("not_verified") // not_verified | verified
+  votes        Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([normalized, language, source])
+  @@index([normalized])
+  @@index([language])
+  @@index([source])
+  @@index([status])
+}
+
+model DictionaryRelation {
+  id         String   @id @default(cuid())
+  sourceWord String // mot seed normalisé
+  targetWord String // mot lié normalisé
+  relation   String // rhyme | related | synonym | antonym | translation
+  language   String
+  source     String
+  score      Float?
+  createdAt  DateTime @default(now())
+
+  @@unique([sourceWord, targetWord, relation, language, source])
+  @@index([sourceWord])
+  @@index([relation])
+}
+
+model CrawlLog {
+  id        String    @id @default(cuid())
+  source    String
+  status    String // running | success | partial | failed
+  inserted  Int       @default(0)
+  skipped   Int       @default(0)
+  failed    Int       @default(0)
+  message   String?
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+}
+
+model CrawlError {
+  id        String   @id @default(cuid())
+  source    String
+  word      String?
+  message   String
+  payload   Json?
+  createdAt DateTime @default(now())
+}

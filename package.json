@@ -15,7 +15,9 @@
 		"db:studio": "prisma studio",
 		"test": "jest",
 		"test:watch": "jest --watch",
-		"test:coverage": "jest --coverage"
+		"test:coverage": "jest --coverage",
+		"crawl:dictionary": "tsx src/server/crawl/scripts/run-dictionary-crawl.ts",
+		"crawl:dictionary:dry": "tsx src/server/crawl/scripts/run-dictionary-crawl.ts --dry"
 	},
 	"dependencies": {
 		"@aws-amplify/adapter-nextjs": "^1.7.3",
@@ -24,12 +26,12 @@
 		"@aws-sdk/client-secrets-manager": "^3.1056.0",
 		"@prisma/client": "^6.7.0",
 		"@socket.io/redis-adapter": "^8.3.0",
-		"aws-amplify": "^6.17.0",
 		"@tiptap/core": "^3.26.0",
 		"@tiptap/extension-placeholder": "^3.26.0",
 		"@tiptap/extension-text-style": "^3.26.0",
 		"@tiptap/react": "^3.26.0",
 		"@tiptap/starter-kit": "^3.26.0",
+		"aws-amplify": "^6.17.0",
 		"axios": "^1.15.1",
 		"bcryptjs": "^3.0.3",
 		"cookie": "^1.1.1",
@@ -68,6 +70,7 @@
 		"tailwindcss": "^4",
 		"ts-jest": "^29.4.11",
 		"ts-node": "^10.9.2",
+		"tsx": "^4.22.4",
 		"typescript": "^5"
 	}
 }
