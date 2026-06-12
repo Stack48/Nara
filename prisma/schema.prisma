@@ -29,21 +29,6 @@ enum SuggestionStatus {
   REJECTED
 }
 
-enum SectionType {
-  COUPLET
-  REFRAIN
-  PONT
-  INTRO
-  OUTRO
-  BRIDGE
-}
-
-enum SuggestionStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
 model User {
   id             String   @id @default(cuid())
   cognitoId      String   @unique @default("")
@@ -64,7 +49,8 @@ model User {
   rgpdConsent    RgpdConsent?
   markers        AudioMarker[]
   passwordResets PasswordResetRequest[]
-  lyricVersions LyricVersion[]
+  wordSuggestions WordSuggestion[]
+  wordVotes       WordVote[]
 }
 
 model Project {
@@ -95,17 +81,6 @@ model ProjectVersion {
 
   projectId   String
   project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-}
-
-model WordSuggestion {
-  id               String   @id @default(cuid())
-  word             String   @unique
-  description      String
-  synonyms         String?
-  antonyms         String?
-  isVerifiedByNara Boolean  @default(false)
-  status           String   @default("PENDING") // PENDING, APPROVED, REJECTED
-  createdAt        DateTime @default(now())
 }
 
 model ProjectMember {
@@ -152,10 +127,6 @@ model Lyrics {
   author      User         @relation(fields: [authorId], references: [id])
   suggestions Suggestion[]
   versions    LyricVersion[]
-  project     Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  author      User           @relation(fields: [authorId], references: [id])
-  suggestions Suggestion[]
-  versions    LyricVersion[]
   markers     AudioMarker[]
 }
 
@@ -182,4 +153,179 @@ model LyricVersion {
 
   lyrics    Lyrics @relation(fields: [lyricsId], references: [id], onDelete: Cascade)
   author    User   @relation(fields: [authorId], references: [id])
+}
+
+model File {
+  id           String   @id @default(cuid())
+  name         String
+  originalName String
+  mimeType     String
+  size         Int
+  s3Key        String   @unique
+  s3Bucket     String
+  projectId    String
+  uploadedBy   String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  project      Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploader     User          @relation(fields: [uploadedBy], references: [id])
+  markers      AudioMarker[]
+}
+
+model AudioMarker {
+  id        String   @id @default(cuid())
+  timecode  Float
+  label     String?
+  lyricsId  String
+  fileId    String
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lyrics    Lyrics   @relation(fields: [lyricsId], references: [id], onDelete: Cascade)
+  file      File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  creator   User     @relation(fields: [createdBy], references: [id])
+}
+
+model LabelCopy {
+  id            String    @id @default(cuid())
+  title         String
+  isrc          String?
+  composers     String[]
+  publishers    String[]
+  recordLabel   String?
+  releaseDate   DateTime?
+  projectId     String
+  bridgeAudioId String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  resource  String
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model RgpdConsent {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  accepted  Boolean
+  version   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PasswordResetRequest {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique @default(cuid())
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model WordSuggestion {
+  id               String   @id @default(cuid())
+  word             String   @unique
+  description      String
+  synonyms         String?
+  antonyms         String?
+  isVerifiedByNara Boolean  @default(false)
+  status           String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt        DateTime @default(now())
+
+  category         String?  // genre_musical | argot | geographie | standard
+  language         String?  // fr | en | verlan | creole...
+  authorId         String?  // qui l'a soumis
+
+  votes            WordVote[]
+  author           User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+}
+
+model WordVote {
+  id        String         @id @default(cuid())
+  wordId    String
+  userId    String
+  value     Int            // +1 ou -1
+  word      WordSuggestion @relation(fields: [wordId], references: [id], onDelete: Cascade)
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([wordId, userId]) // 1 vote/user
+}
+
+// --- Crawling dictionnaire (carte 44-BE) ---
+// Données crawlées depuis les sources externes. Séparé de WordSuggestion :
+// WordSuggestion = canal communautaire (word @unique global),
+// DictionaryEntry = staging multi-source (unique par normalized+language+source).
+
+model DictionaryEntry {
+  id           String   @id @default(cuid())
+  word         String
+  normalized   String
+  definition   String?
+  language     String
+  category     String?
+  partOfSpeech String?
+  source       String
+  sourceUrl    String?
+  status       String   @default("not_verified") // not_verified | verified
+  votes        Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([normalized, language, source])
+  @@index([normalized])
+  @@index([language])
+  @@index([source])
+  @@index([status])
+}
+
+model DictionaryRelation {
+  id         String   @id @default(cuid())
+  sourceWord String // mot seed normalisé
+  targetWord String // mot lié normalisé
+  relation   String // rhyme | related | synonym | antonym | translation
+  language   String
+  source     String
+  score      Float?
+  createdAt  DateTime @default(now())
+
+  @@unique([sourceWord, targetWord, relation, language, source])
+  @@index([sourceWord])
+  @@index([relation])
+}
+
+model CrawlLog {
+  id        String    @id @default(cuid())
+  source    String
+  status    String // running | success | partial | failed
+  inserted  Int       @default(0)
+  skipped   Int       @default(0)
+  failed    Int       @default(0)
+  message   String?
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+}
+
+model CrawlError {
+  id        String   @id @default(cuid())
+  source    String
+  word      String?
+  message   String
+  payload   Json?
+  createdAt DateTime @default(now())
 }

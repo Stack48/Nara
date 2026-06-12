@@ -15,7 +15,11 @@ import {
     Clock,
     Heart,
     Music,
+    BookOpen,
+    ShieldCheck,
 } from "lucide-react";
+
+import { fetchAuthSession } from "aws-amplify/auth";
 
 import { useSongs, setSongProject } from "@/lib/songStore";
 import { useProjects } from "@/lib/projectStore";
@@ -36,6 +40,30 @@ export const Sidebar = ({
     const router = useRouter();
 
     const songs = useSongs();
+    
+    const [isAdmin, setIsAdmin] = useState(false);
+
+    useEffect(() => {
+        const checkAdmin = async () => {
+            try {
+                const session = await fetchAuthSession();
+                const email = session.tokens?.idToken?.payload?.email;
+                const sub = session.userSub;
+                if (email === "lea@nara.com" || sub === "cognito-lea-001") {
+                    setIsAdmin(true);
+                } else {
+                    if (process.env.NODE_ENV === "development") {
+                        setIsAdmin(true);
+                    }
+                }
+            } catch (e) {
+                if (process.env.NODE_ENV === "development") {
+                    setIsAdmin(true);
+                }
+            }
+        };
+        checkAdmin();
+    }, []);
 
     const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const projectsDragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -491,6 +519,36 @@ export const Sidebar = ({
                             </span>
                         </Link>
                     ))}
+
+                    <hr className="border-neutral-800/60 my-1 mx-2 shrink-0" />
+
+                    <Link
+                        href="/dictionary"
+                        className={linkClass(
+                            pathname === "/dictionary" ||
+                                pathname.startsWith("/dictionary/"),
+                        )}
+                    >
+                        <BookOpen size={16} className="flex-shrink-0" />
+                        <span className={textVisibilityClass}>
+                            Dictionnaire
+                        </span>
+                    </Link>
+
+                    {isAdmin && (
+                        <Link
+                            href="/admin/dictionary"
+                            className={linkClass(
+                                pathname === "/admin/dictionary" ||
+                                    pathname.startsWith("/admin/dictionary/"),
+                            )}
+                        >
+                            <ShieldCheck size={16} className="flex-shrink-0 text-amber-500" />
+                            <span className={textVisibilityClass}>
+                                Modération
+                            </span>
+                        </Link>
+                    )}
                 </div>
             </div>
 
