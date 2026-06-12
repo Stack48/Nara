@@ -40,3 +40,7 @@ yarn-error.log*
 *.tsbuildinfo
 
 # prisma
+
+# linguistic dataset
+/src/data/lexique.tsv
+
