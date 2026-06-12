@@ -40,6 +40,9 @@ yarn-error.log*
 
 # prisma
 
+# Sentry Config File
+.env.sentry-build-plugin
+
 # linguistic dataset
 /src/data/lexique.tsv
 

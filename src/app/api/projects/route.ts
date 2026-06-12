@@ -1,30 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCognitoId, unauthorized } from "@/lib/rbac";
 import { getProjects, createProject } from "@/server/projects/controller";
+import { withErrorHandler } from "@/lib/api-middleware";
 
-export async function GET(request: NextRequest) {
-  try {
-    const cognitoId = getCognitoId(request);
-    if (!cognitoId) return unauthorized();
+export let GET = withErrorHandler(async (request: NextRequest) => {
+    try {
+        const cognitoId = getCognitoId(request);
+        if (!cognitoId) return unauthorized();
 
-    const result = await getProjects(cognitoId);
-    return NextResponse.json(result.data ?? result.error, { status: result.status });
-  } catch (error) {
-    console.error("GET projects error:", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-  }
-}
+        const result = await getProjects(cognitoId);
+        return NextResponse.json(result.data ?? result.error, { status: result.status });
+      } catch (error) {
+      throw error;
+    }
+    });
+export let POST = withErrorHandler(async (request: NextRequest) => {
+    try {
+        const cognitoId = getCognitoId(request);
+        if (!cognitoId) return unauthorized();
 
-export async function POST(request: NextRequest) {
-  try {
-    const cognitoId = getCognitoId(request);
-    if (!cognitoId) return unauthorized();
-
-    const body = await request.json();
-    const result = await createProject(cognitoId, body);
-    return NextResponse.json(result.data ?? result.error, { status: result.status });
-  } catch (error) {
-    console.error("POST projects error:", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-  }
-}
+        const body = await request.json();
+        const result = await createProject(cognitoId, body);
+        return NextResponse.json(result.data ?? result.error, { status: result.status });
+      } catch (error) {
+      throw error;
+    }
+    });
