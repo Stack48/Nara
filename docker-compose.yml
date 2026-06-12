@@ -16,6 +16,19 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   pgadmin:
     image: dpage/pgadmin4:latest
     restart: unless-stopped
@@ -41,7 +54,6 @@ services:
         condition: service_healthy
     restart: "no"
 
-  # Développement : code monté depuis l’hôte, hot reload (make up)
   app-dev:
     image: node:22-alpine
     working_dir: /app
@@ -52,13 +64,21 @@ services:
       - "3000:3000"
     environment:
       DATABASE_URL: postgresql://nara:nara_secret@db:5432/nara
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
       NODE_ENV: development
       WATCHPACK_POLLING: "true"
+      AWS_REGION: ${AWS_REGION}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET}
     depends_on:
       db:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
+      redis:
+        condition: service_healthy
     command:
       - sh
       - -c
@@ -71,7 +91,6 @@ services:
         fi
         exec npm run dev:docker
 
-  # Production (image standalone) : make up-prod
   app:
     profiles:
       - prod
@@ -83,12 +102,17 @@ services:
       - "3000:3000"
     environment:
       DATABASE_URL: postgresql://nara:nara_secret@db:5432/nara
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
     depends_on:
       db:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
+      redis:
+        condition: service_healthy
 
 volumes:
   postgres_data:
   app_dev_node_modules:
+  redis_data:
