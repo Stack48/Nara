@@ -1,5 +1,8 @@
 "use client";
 
+import "@/lib/amplify";
+import { io as socketIO, Socket } from "socket.io-client";
+
 import type { JSONContent } from "@tiptap/core";
 import {
 	Check,
@@ -146,6 +149,8 @@ type CaretPlacement = "start" | "end";
 type LyricsEditorWorkspaceProps = {
 	format: LyricsFormat;
 	onFormatChange: (patch: Partial<LyricsFormat>) => void;
+	lyricsId?: string;
+	projectId?: string;
 };
 
 type SectionKindPickerProps = {
@@ -218,7 +223,7 @@ const focusTextareaLeftPaddingPx = 64;
 const focusSectionLabelOffsetPx = 31;
 const focusSectionSeparatorNewlineCount = 3;
 const localPresenceUser = {
-	color: "#DA069A",
+	color: "#b4783c",
 	initial: "N",
 	name: "Nilu",
 	userId: "nilu",
@@ -242,7 +247,7 @@ const sectionLabels: Record<SectionKind, string> = {
 };
 
 const sectionAccentPalette: string[] = [
-	"#DA069A",
+	"#b4783c",
 	"#F4B84A",
 	"#8B5CF6",
 	"#6D7DFF",
@@ -581,7 +586,7 @@ function getSectionAccentColor(index: number): string {
 
 	return (
 		sectionAccentPalette[safeIndex % sectionAccentPalette.length] ??
-		"#DA069A"
+		"#b4783c"
 	);
 }
 
@@ -828,73 +833,22 @@ function renumberDocument(
 }
 
 function createInitialDocument(): TipTapLyricsDocument {
-	return {
-		id: "my-way",
-		title: "My Way",
-		updatedAt: null,
-		sections: renumberDocument([
-			{
-				accentColor: getSectionAccentColor(0),
-				activeAlternativeId: null,
-				alternatives: [],
-				id: "intro",
-				kind: "intro",
-				title: "INTRO",
-				lines: [
-					createLine("intro", "Sed ut perspiciatis unde omnis"),
-					createLine("intro", "Doloremque laudantium,"),
-					createLine(
-						"intro",
-						"Iste natus error sit voluptatem accusantium",
-					),
-					createLine(
-						"intro",
-						"Totam rem aperiam, eaque ipsa veritatis",
-					),
-				],
-			},
-			{
-				accentColor: getSectionAccentColor(1),
-				activeAlternativeId: null,
-				alternatives: [],
-				id: "couplet-1",
-				kind: "couplet",
-				title: "COUPLET 1",
-				lines: [
-					createLine("couplet", "Sed ut perspiciatis unde omnis"),
-					createLine("couplet", "Doloremque laudantium,"),
-					createLine(
-						"couplet",
-						"Iste natus error sit voluptatem accusantium",
-					),
-					createLine(
-						"couplet",
-						"Totam rem aperiam, eaque ipsa veritatis",
-					),
-				],
-			},
-			{
-				accentColor: getSectionAccentColor(2),
-				activeAlternativeId: null,
-				alternatives: [],
-				id: "refrain",
-				kind: "refrain",
-				title: "REFRAIN",
-				lines: [
-					createLine("refrain", "Sed ut perspiciatis unde omnis"),
-					createLine("refrain", "Doloremque laudantium,"),
-					createLine(
-						"refrain",
-						"Iste natus error sit voluptatem accusantium",
-					),
-					createLine(
-						"refrain",
-						"Totam rem aperiam, eaque ipsa veritatis",
-					),
-				],
-			},
-		]),
-	};
+    return {
+        id: "new",
+        title: "Sans titre",
+        updatedAt: null,
+        sections: renumberDocument([
+            {
+                accentColor: getSectionAccentColor(0),
+                activeAlternativeId: null,
+                alternatives: [],
+                id: "couplet-1",
+                kind: "couplet",
+                title: "COUPLET",
+                lines: [createLine("couplet")],
+            },
+        ]),
+    };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -1746,12 +1700,12 @@ function createSectionDragImage(sectionElement: HTMLElement): HTMLElement {
 	);
 	const previewBackground: string =
 		themeStyles.getPropertyValue("--nara-surface-raised").trim() ||
-		"#202027";
+		"var(--nara-surface-raised)";
 	const previewBorder: string =
 		themeStyles.getPropertyValue("--nara-border-strong").trim() ||
-		"#4A4A52";
+		"var(--nara-border-strong)";
 	const previewText: string =
-		themeStyles.getPropertyValue("--nara-text-primary").trim() || "#F3F4F6";
+		themeStyles.getPropertyValue("--nara-text-primary").trim() || "var(--nara-text-primary)";
 	const clonedEditors: NodeListOf<HTMLElement> =
 		dragImage.querySelectorAll<HTMLElement>("[data-line-editor='true']");
 
@@ -1795,12 +1749,12 @@ function createLineDragImage(lineElement: HTMLElement): HTMLElement {
 	);
 	const previewBackground: string =
 		themeStyles.getPropertyValue("--nara-surface-raised").trim() ||
-		"#202027";
+		"var(--nara-surface-raised)";
 	const previewBorder: string =
 		themeStyles.getPropertyValue("--nara-border-strong").trim() ||
-		"#4A4A52";
+		"var(--nara-border-strong)";
 	const previewText: string =
-		themeStyles.getPropertyValue("--nara-text-primary").trim() || "#F3F4F6";
+		themeStyles.getPropertyValue("--nara-text-primary").trim() || "var(--nara-text-primary)";
 	const clonedEditor: HTMLElement | null =
 		dragImage.querySelector<HTMLElement>("[data-line-editor='true']");
 
@@ -1938,8 +1892,8 @@ function SwitchTrack({ enabled }: { enabled: boolean }): ReactElement {
 	return (
 		<span
 			aria-hidden="true"
-			className={`relative h-[15px] w-[34px] shrink-0 overflow-hidden rounded-full border border-white/10 transition-colors duration-150 ${
-				enabled ? "bg-[#F2C4B0]" : "bg-[#4A4A52]"
+			className={`relative h-[15px] w-[34px] shrink-0 overflow-hidden rounded-full border border-[var(--nara-border)] transition-colors duration-150 ${
+				enabled ? "bg-[#F2C4B0]" : "bg-[var(--nara-border-strong)]"
 			}`}
 		>
 			<span
@@ -1962,7 +1916,7 @@ function ToggleSwitch({
 			type="button"
 			aria-pressed={toggle.enabled}
 			onClick={(): void => onToggle(toggle.key)}
-			className="inline-flex h-5 select-none items-center gap-[6px] rounded-[3px] text-[10px] font-semibold text-[#F3F4F6] outline-none transition-colors hover:text-white focus:outline-none focus-visible:outline-none"
+			className="inline-flex h-5 select-none items-center gap-[6px] rounded-[3px] text-[10px] font-semibold text-[var(--nara-text-primary)] outline-none transition-colors hover:text-[var(--nara-text-primary)] focus:outline-none focus-visible:outline-none"
 		>
 			<span>{toggle.label}</span>
 			<SwitchTrack enabled={toggle.enabled} />
@@ -1984,7 +1938,7 @@ function MenuToggle({
 			type="button"
 			aria-pressed={enabled}
 			onClick={onToggle}
-			className="flex h-5 w-full select-none items-center justify-between gap-8 rounded-[3px] text-[12px] text-[#F3F4F6] outline-none transition-colors hover:text-white focus:outline-none focus-visible:outline-none"
+			className="flex h-5 w-full select-none items-center justify-between gap-8 rounded-[3px] text-[12px] text-[var(--nara-text-primary)] outline-none transition-colors hover:text-[var(--nara-text-primary)] focus:outline-none focus-visible:outline-none"
 		>
 			<span>{label}</span>
 			<SwitchTrack enabled={enabled} />
@@ -2012,7 +1966,7 @@ function SectionVariantSwitcher({
 	return (
 		<div
 			aria-label="Versions de la section"
-			className="flex h-6 items-center gap-1 rounded-[5px] border border-[#2C2C32] bg-[#18181D] p-0.5"
+			className="flex h-6 items-center gap-1 rounded-[5px] border border-[var(--nara-border)] bg-[var(--nara-surface)] p-0.5"
 		>
 			<button
 				type="button"
@@ -2020,8 +1974,8 @@ function SectionVariantSwitcher({
 				onClick={(): void => onSelect(null)}
 				className={`h-5 rounded-[4px] px-2 text-[10px] font-semibold transition-colors ${
 					activeAlternativeId === null
-						? "bg-[#2A2A31] text-[#F3F4F6]"
-						: "text-[#8C8C96] hover:bg-[#202027] hover:text-[#F3F4F6]"
+						? "bg-[var(--nara-surface-soft)] text-[var(--nara-text-primary)]"
+						: "text-[var(--nara-text-muted)] hover:bg-[var(--nara-surface-raised)] hover:text-[var(--nara-text-primary)]"
 				}`}
 			>
 				Base
@@ -2036,8 +1990,8 @@ function SectionVariantSwitcher({
 							key={alternative.id}
 							className={`group/variant inline-flex h-5 items-center rounded-[4px] transition-colors ${
 								isActive
-									? "bg-[#2A2A31] text-[#F3F4F6]"
-									: "text-[#8C8C96] hover:bg-[#202027] hover:text-[#F3F4F6]"
+									? "bg-[var(--nara-surface-soft)] text-[var(--nara-text-primary)]"
+									: "text-[var(--nara-text-muted)] hover:bg-[var(--nara-surface-raised)] hover:text-[var(--nara-text-primary)]"
 							}`}
 						>
 							<button
@@ -2060,7 +2014,7 @@ function SectionVariantSwitcher({
 										event.stopPropagation();
 										onPromote(alternative.id);
 									}}
-									className="inline-flex h-4 w-4 items-center justify-center rounded-[3px] text-[#8C8C96] transition-colors hover:bg-[#3A3A42] hover:text-[#F3F4F6]"
+									className="inline-flex h-4 w-4 items-center justify-center rounded-[3px] text-[var(--nara-text-muted)] transition-colors hover:bg-[var(--nara-border-strong)] hover:text-[var(--nara-text-primary)]"
 								>
 									<Check size={10} strokeWidth={2.4} />
 								</button>
@@ -2071,7 +2025,7 @@ function SectionVariantSwitcher({
 										event.stopPropagation();
 										onDelete(alternative.id);
 									}}
-									className="inline-flex h-4 w-4 items-center justify-center rounded-[3px] text-[#8C8C96] transition-colors hover:bg-[#3A3A42] hover:text-[#F3F4F6]"
+									className="inline-flex h-4 w-4 items-center justify-center rounded-[3px] text-[var(--nara-text-muted)] transition-colors hover:bg-[var(--nara-border-strong)] hover:text-[var(--nara-text-primary)]"
 								>
 									<Trash2 size={10} strokeWidth={2.1} />
 								</button>
@@ -2091,7 +2045,7 @@ export function SectionAddMenu({
 	onAddLine: () => void;
 }): ReactElement {
 	return (
-		<div className="section-menu-container w-[214px] z-40 rounded-[18px] border border-[#5A5A63] bg-[#2B2B31] px-4 py-5 shadow-[0_18px_36px_rgba(0,0,0,0.35)]">
+		<div className="section-menu-container w-[214px] z-40 rounded-[18px] border border-[var(--nara-border-strong)] bg-[var(--nara-surface-soft)] px-4 py-5 shadow-[0_18px_36px_rgba(0,0,0,0.35)]">
 			<div className="grid gap-2">
 				{editableSectionKinds.map(
 					(kind: Exclude<SectionKind, "untitled">): ReactElement => (
@@ -2099,7 +2053,7 @@ export function SectionAddMenu({
 							key={kind}
 							type="button"
 							onClick={(): void => onAddSection(kind)}
-							className="text-left text-[13px] font-medium text-[#F3F4F6] transition-colors hover:text-white"
+							className="text-left text-[13px] font-medium text-[var(--nara-text-primary)] transition-colors hover:text-[var(--nara-text-primary)]"
 						>
 							{getSectionLabel(kind)}
 						</button>
@@ -2109,7 +2063,7 @@ export function SectionAddMenu({
 			<button
 				type="button"
 				onClick={onAddLine}
-				className="mt-5 text-left text-[13px] font-medium text-[#F3F4F6] transition-colors hover:text-white"
+				className="mt-5 text-left text-[13px] font-medium text-[var(--nara-text-primary)] transition-colors hover:text-[var(--nara-text-primary)]"
 			>
 				Ajouter une ligne
 			</button>
@@ -2136,7 +2090,7 @@ export function SectionOptionsMenu({
 
 	return (
 		<div className="section-menu-container flex items-start gap-3">
-			<div className="w-[216px] rounded-[18px] z-50 border border-[#5A5A63] bg-[#2B2B31] px-4 py-4 shadow-[0_18px_36px_rgba(0,0,0,0.35)]">
+			<div className="w-[216px] rounded-[18px] z-50 border border-[var(--nara-border-strong)] bg-[var(--nara-surface-soft)] px-4 py-4 shadow-[0_18px_36px_rgba(0,0,0,0.35)]">
 				<div className="grid gap-1">
 					{sectionMenuToggleOrder.map(
 						(key: EditorToggleKey): ReactElement => {
@@ -2163,13 +2117,13 @@ export function SectionOptionsMenu({
 					/>
 				</div>
 
-				<div className="my-3 h-px bg-[#666670]" />
+				<div className="my-3 h-px bg-[var(--nara-border-strong)]" />
 
-				<div className="grid gap-2 text-[12px] text-[#F3F4F6]">
+				<div className="grid gap-2 text-[12px] text-[var(--nara-text-primary)]">
 					<button
 						type="button"
 						onClick={onCreateAlternative}
-						className="flex items-center justify-between text-left transition-colors hover:text-white"
+						className="flex items-center justify-between text-left transition-colors hover:text-[var(--nara-text-primary)]"
 					>
 						Version alternative
 						<Copy size={12} strokeWidth={1.8} />
@@ -2177,7 +2131,7 @@ export function SectionOptionsMenu({
 					<button
 						type="button"
 						onClick={onDuplicate}
-						className="flex items-center justify-between text-left transition-colors hover:text-white"
+						className="flex items-center justify-between text-left transition-colors hover:text-[var(--nara-text-primary)]"
 					>
 						Duplicate
 						<Copy size={12} strokeWidth={1.8} />
@@ -2185,33 +2139,33 @@ export function SectionOptionsMenu({
 					<button
 						type="button"
 						onClick={onDelete}
-						className="flex items-center justify-between text-left transition-colors hover:text-white"
+						className="flex items-center justify-between text-left transition-colors hover:text-[var(--nara-text-primary)]"
 					>
 						Delete
 						<Trash2 size={12} strokeWidth={1.8} />
 					</button>
 				</div>
 
-				<div className="my-3 h-px bg-[#666670]" />
+				<div className="my-3 h-px bg-[var(--nara-border-strong)]" />
 
-				<div className="grid gap-2 text-[12px] text-[#F3F4F6]">
+				<div className="grid gap-2 text-[12px] text-[var(--nara-text-primary)]">
 					<button
 						type="button"
-						className="text-left transition-colors hover:text-white"
+						className="text-left transition-colors hover:text-[var(--nara-text-primary)]"
 					>
 						Global Comment
 					</button>
 					<button
 						type="button"
-						className="text-left transition-colors hover:text-white"
+						className="text-left transition-colors hover:text-[var(--nara-text-primary)]"
 					>
 						Comment
 					</button>
 				</div>
 
-				<div className="my-3 h-px bg-[#666670]" />
+				<div className="my-3 h-px bg-[var(--nara-border-strong)]" />
 
-				<div className="grid gap-2 text-[12px] text-[#F3F4F6]">
+				<div className="grid gap-2 text-[12px] text-[var(--nara-text-primary)]">
 					<button
 						type="button"
 						aria-expanded={isHistoryOpen}
@@ -2221,7 +2175,7 @@ export function SectionOptionsMenu({
 									!currentValue,
 							);
 						}}
-						className="flex items-center justify-between text-left transition-colors hover:text-white"
+						className="flex items-center justify-between text-left transition-colors hover:text-[var(--nara-text-primary)]"
 					>
 						Derniere modification
 						<ChevronRight size={13} strokeWidth={1.8} />
@@ -2229,7 +2183,7 @@ export function SectionOptionsMenu({
 					<button
 						type="button"
 						onClick={onValidate}
-						className="flex items-center justify-between text-left transition-colors hover:text-white"
+						className="flex items-center justify-between text-left transition-colors hover:text-[var(--nara-text-primary)]"
 					>
 						Valider la section
 						<CheckSquare size={13} strokeWidth={1.8} />
@@ -2238,22 +2192,22 @@ export function SectionOptionsMenu({
 			</div>
 
 			{isHistoryOpen && (
-				<div className="mt-[160px] hidden w-[244px] rounded-[18px] border border-[#5A5A63] bg-[#2B2B31] px-5 py-4 shadow-[0_18px_36px_rgba(0,0,0,0.35)] xl:block">
-					<div className="flex items-center justify-between text-[13px] text-[#F3F4F6]">
+				<div className="mt-[160px] hidden w-[244px] rounded-[18px] border border-[var(--nara-border-strong)] bg-[var(--nara-surface-soft)] px-5 py-4 shadow-[0_18px_36px_rgba(0,0,0,0.35)] xl:block">
+					<div className="flex items-center justify-between text-[13px] text-[var(--nara-text-primary)]">
 						<span>Creer par Nilu</span>
-						<span className="font-semibold text-[#A1A1AA]">
+						<span className="font-semibold text-[var(--nara-text-secondary)]">
 							17hours
 						</span>
 					</div>
-					<div className="mt-4 text-[13px] text-[#F3F4F6]">
+					<div className="mt-4 text-[13px] text-[var(--nara-text-primary)]">
 						Derniere modification
 					</div>
 					<div className="mt-3 flex items-center justify-between text-[13px]">
-						<span className="flex items-center gap-2 text-[#F3F4F6]">
+						<span className="flex items-center gap-2 text-[var(--nara-text-primary)]">
 							<span className="h-2 w-2 rounded-full bg-white" />
 							Maya
 						</span>
-						<span className="font-semibold text-[#A1A1AA]">
+						<span className="font-semibold text-[var(--nara-text-secondary)]">
 							2hours
 						</span>
 					</div>
@@ -2318,8 +2272,8 @@ function SectionKindPicker({
 					onClick={onToggle}
 					className={
 						isFocusMode
-							? "group inline-flex h-5 items-center gap-0.5 rounded-[4px] text-left text-[#6F6F78] hover:text-[#F3F4F6] outline-none transition-colors"
-							: "group inline-flex h-6 items-center gap-1 rounded-[4px] text-left text-[#F3F4F6] outline-none transition-colors hover:text-white focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-[#6F6F78]"
+							? "group inline-flex h-5 items-center gap-0.5 rounded-[4px] text-left text-[var(--nara-text-faint)] hover:text-[var(--nara-text-primary)] outline-none transition-colors"
+							: "group inline-flex h-6 items-center gap-1 rounded-[4px] text-left text-[var(--nara-text-primary)] outline-none transition-colors hover:text-[var(--nara-text-primary)] focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-[var(--nara-text-faint)]"
 					}
 				>
 					<span
@@ -2335,8 +2289,8 @@ function SectionKindPicker({
 						<ChevronDown
 							size={13}
 							strokeWidth={2}
-							className={`text-[#777780] transition-transform duration-150 group-hover:text-[#F3F4F6] ${
-								isOpen ? "rotate-180 text-[#F3F4F6]" : ""
+							className={`text-[var(--nara-text-secondary)] transition-transform duration-150 group-hover:text-[var(--nara-text-primary)] ${
+								isOpen ? "rotate-180 text-[var(--nara-text-primary)]" : ""
 							}`}
 						/>
 					)}
@@ -2347,7 +2301,7 @@ function SectionKindPicker({
 				<div
 					role="listbox"
 					aria-label="Type de section"
-					className="absolute left-0 top-[calc(100%+7px)] z-40 w-[148px] overflow-hidden rounded-[10px] border border-[#4A4A52] bg-[#202026] p-1 shadow-[0_18px_34px_rgba(0,0,0,0.45)]"
+					className="absolute left-0 top-[calc(100%+7px)] z-40 w-[148px] overflow-hidden rounded-[10px] border border-[var(--nara-border-strong)] bg-[var(--nara-surface-soft)] p-1 shadow-[0_18px_34px_rgba(0,0,0,0.45)]"
 				>
 					{editableSectionKinds.map(
 						(
@@ -2367,14 +2321,14 @@ function SectionKindPicker({
 									}}
 									className={`relative flex h-8 w-full items-center rounded-[6px] px-2.5 text-left text-[13px] font-semibold outline-none transition-colors ${
 										isSelected
-											? "bg-[#303039] text-[#F3F4F6]"
-											: "text-[#C9C9CF] hover:bg-[#2A2A31] hover:text-white focus-visible:bg-[#2A2A31] focus-visible:text-white"
+											? "bg-[var(--nara-surface-soft)] text-[var(--nara-text-primary)]"
+											: "text-[var(--nara-text-primary)] hover:bg-[var(--nara-surface-soft)] hover:text-[var(--nara-text-primary)] focus-visible:bg-[var(--nara-surface-soft)] focus-visible:text-[var(--nara-text-primary)]"
 									}`}
 								>
 									{isSelected && (
 										<span
 											aria-hidden="true"
-											className="absolute left-0 top-1/2 h-4 w-[2px] -translate-y-1/2 rounded-full bg-[#F3F4F6]"
+											className="absolute left-0 top-1/2 h-4 w-[2px] -translate-y-1/2 rounded-full bg-[var(--nara-text-primary)]"
 										/>
 									)}
 									<span>{getSectionLabel(kind)}</span>
@@ -2391,6 +2345,8 @@ function SectionKindPicker({
 export default function LyricsEditorWorkspace({
 	format,
 	onFormatChange,
+	lyricsId,
+	projectId,
 }: LyricsEditorWorkspaceProps): ReactElement {
 	const [document, setDocument] = useState<TipTapLyricsDocument>(
 		createInitialDocument,
@@ -2471,7 +2427,72 @@ export default function LyricsEditorWorkspace({
 	);
 	const [remotePresencesBySessionId, setRemotePresencesBySessionId] =
 		useState<RemotePresenceBySessionId>({});
+	const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
 	const presenceSessionIdRef = useRef<string>(createPresenceSessionId());
+	const socketRef = useRef<Socket | null>(null);
+
+	useEffect(() => {
+		if (!lyricsId) return;
+
+		const connectSocket = async () => {
+			try {
+				const { getCurrentUser } = await import("aws-amplify/auth");
+				const user = await getCurrentUser();
+
+				const socket = socketIO(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000", {
+					auth: { cognitoId: user.userId },
+					transports: ["websocket", "polling"],
+				});
+
+				socketRef.current = socket;
+
+				socket.on("connect", () => {
+					console.log("✅ Socket connecté");
+					socket.emit("join:project", {
+						projectId: lyricsId,
+						name: user.username ?? "Anonyme",
+					});
+					socket.emit("yjs:sync", { lyricsId });
+				});
+
+				// Reçoit l'état initial Yjs
+				socket.on("yjs:state", (data: { lyricsId: string; state: string }) => {
+					console.log("📄 Yjs state reçu");
+				});
+
+				// Reçoit les updates Yjs des autres
+				socket.on("yjs:update", (data: { lyricsId: string; update: string }) => {
+					console.log("🔄 Yjs update reçu");
+				});
+
+				// Présence
+				socket.on("user:joined", (presence: any) => {
+					console.log("👤 User joined:", presence.name);
+				});
+
+				socket.on("user:left", (data: { userId: string }) => {
+					console.log("👤 User left:", data.userId);
+				});
+
+				socket.on("presence:list", (members: any[]) => {
+					console.log("👥 Members:", members.length);
+				});
+
+			} catch (err) {
+				console.error("Socket connection error:", err);
+			}
+		};
+
+		connectSocket();
+
+		return () => {
+			if (socketRef.current) {
+				socketRef.current.emit("leave:project", { projectId: lyricsId });
+				socketRef.current.disconnect();
+				socketRef.current = null;
+			}
+		};
+	}, [lyricsId]);
 
 	useEffect((): (() => void) | undefined => {
 		if (!openOptionsMenuSectionId && !openAddMenuSectionId) {
@@ -2643,24 +2664,37 @@ export default function LyricsEditorWorkspace({
 	const applyRemoteDocumentPayload = useCallback((): void => {}, []);
 
 	useEffect((): void => {
-		const storage = getClientStorage();
-		const storedDocument = parseStoredDocument(
-			storage?.getItem(storageKey) ?? null,
-		);
-		const storedLineComments = parseStoredLineComments(
-			storage?.getItem(commentsStorageKey) ?? null,
-		);
+		const loadDocument = async () => {
+			if (lyricsId) {
+				try {
+					const { getCurrentUser } = await import("aws-amplify/auth");
+					const user = await getCurrentUser();
+					const res = await fetch(`/api/lyrics/${lyricsId}`, {
+						headers: { "x-cognito-id": user.userId },
+					});
+					if (res.ok) {
+						const data = await res.json();
+						const parsedDoc = parseStoredDocument(JSON.stringify(data.content));
+						if (parsedDoc) {
+							console.log("Setting document:", parsedDoc);
+							setDocument(parsedDoc);
+						} else {
+							setDocument({
+								...createInitialDocument(),
+								id: data.id,
+								title: data.title,
+							});
+						}
+					}
+				} catch (err) {
+					console.error("Erreur chargement lyrics:", err);
+				}
+			}
+			hasLoadedStorageRef.current = true;
+		};
 
-		if (storedDocument) {
-			setDocument(storedDocument);
-		}
-
-		if (storedLineComments) {
-			setLineCommentsById(storedLineComments);
-		}
-
-		hasLoadedStorageRef.current = true;
-	}, []);
+		loadDocument();
+	}, [lyricsId]);
 
 	useEffect((): void => {
 		if (!hasLoadedStorageRef.current) {
@@ -3046,35 +3080,55 @@ export default function LyricsEditorWorkspace({
 	]);
 
 	function handleAddLineComment(lineId: string, body: string): void {
-		const nextComment: LineComment = {
-			author: "Nilu",
-			body,
-			id: createId(`comment-${lineId}`),
-			initial: "N",
-			time: "maintenant",
-		};
+		if (!lyricsId || !projectId) return;
 
-		setLineCommentsById(
-			(currentCommentsById: LineCommentsById): LineCommentsById => ({
-				...currentCommentsById,
-				[lineId]: [...(currentCommentsById[lineId] ?? []), nextComment],
-			}),
-		);
+		import("aws-amplify/auth").then(({ getCurrentUser }) => {
+			getCurrentUser().then((user) => {
+				fetch(`/api/projects/${projectId}/lyrics/${lyricsId}/comments`, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						"x-cognito-id": user.userId,
+					},
+					body: JSON.stringify({ content: body, lyricsId }),
+				})
+				.then(res => res.json())
+				.then(comment => {
+					const nextComment: LineComment = {
+						author: comment.author?.name ?? comment.author?.username ?? "Moi",
+						username: comment.author?.username,
+						avatarUrl: comment.author?.avatarUrl,
+						body: comment.content,
+						id: comment.id,
+						initial: ((comment.author?.name || comment.author?.username) ?? "M")[0].toUpperCase(),
+						time: "maintenant",
+					};
 
-		updateDocument({
-			...document,
-			sections: document.sections.map(
-				(section: TipTapLyricSection): TipTapLyricSection =>
-					setVisibleSectionLines(
-						section,
-						getVisibleSectionLines(section).map(
-							(line: TipTapLyricLine): TipTapLyricLine =>
-								line.id === lineId
-									? { ...line, comments: line.comments + 1 }
-									: line,
+					setLineCommentsById(
+						(currentCommentsById: LineCommentsById): LineCommentsById => ({
+							...currentCommentsById,
+							[lineId]: [...(currentCommentsById[lineId] ?? []), nextComment],
+						}),
+					);
+
+					updateDocument({
+						...document,
+						sections: document.sections.map(
+							(section: TipTapLyricSection): TipTapLyricSection =>
+								setVisibleSectionLines(
+									section,
+									getVisibleSectionLines(section).map(
+										(line: TipTapLyricLine): TipTapLyricLine =>
+											line.id === lineId
+												? { ...line, comments: line.comments + 1 }
+												: line,
+									),
+								),
 						),
-					),
-			),
+					});
+				})
+				.catch(err => console.error("Comment error:", err));
+			});
 		});
 	}
 
@@ -3088,6 +3142,7 @@ export default function LyricsEditorWorkspace({
 	function handleAddSectionComment(sectionId: string, body: string): void {
 		const nextComment: LineComment = {
 			author: "Nilu",
+			username: "nilu",
 			body,
 			id: createId(`section-comment-${sectionId}`),
 			initial: "N",
@@ -3104,7 +3159,7 @@ export default function LyricsEditorWorkspace({
 		);
 	}
 
-	function handleSave(isCheckpoint: boolean = false): void {
+	async function handleSave(isCheckpoint: boolean = false): Promise<void> {
 		const storage = getClientStorage();
 		const savedDocument: TipTapLyricsDocument = {
 			...document,
@@ -3118,21 +3173,22 @@ export default function LyricsEditorWorkspace({
 		setSaveState("saved");
 		window.setTimeout((): void => setSaveState("idle"), 1400);
 
-		// Sauvegarde en arrière-plan (BDD)
-		const payload: any = {
-			projectId: "demo-project", // À remplacer par l'ID réel via router/props
-			content: savedDocument,
-		};
-
-		if (isCheckpoint) {
-			payload.name = `Version du ${new Date().toLocaleString("fr-FR")}`;
+		if (lyricsId) {
+			const { getCurrentUser } = await import("aws-amplify/auth");
+			try {
+				const user = await getCurrentUser();
+				await fetch(`/api/lyrics/${lyricsId}`, {
+					method: "PATCH",
+					headers: {
+						"Content-Type": "application/json",
+						"x-cognito-id": user.userId,
+					},
+					body: JSON.stringify({ content: savedDocument }),
+				});
+			} catch (err) {
+				console.error("Save to API failed:", err);
+			}
 		}
-
-		fetch("/api/projects/save", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify(payload),
-		}).catch((err) => console.error("Save failed", err));
 	}
 
 	// Auto-save toutes les 5 secondes en cas de modifications non sauvegardées
@@ -3143,6 +3199,8 @@ export default function LyricsEditorWorkspace({
 		}, 5000);
 		return () => clearTimeout(timer);
 	}, [document, isDirty]);
+
+	console.log("Current document sections:", document.sections.length);
 
 	function handleToggle(key: EditorToggleKey): void {
 		setToggles((currentToggles: EditorToggle[]): EditorToggle[] =>
@@ -3887,7 +3945,7 @@ export default function LyricsEditorWorkspace({
 		setCustomTrackMarkers((current: TrackMarker[]): TrackMarker[] => [
 			...current,
 			{
-				accentColor: "#DA069A",
+				accentColor: "#b4783c",
 				id: createId("track-marker"),
 				label: payload.label.trim() || "Annotation",
 				positionPercent,
@@ -3920,7 +3978,7 @@ export default function LyricsEditorWorkspace({
 						? "ml-[72px] h-auto w-auto border-l-0 px-0 py-0"
 						: isAlternative
 							? "h-auto w-auto px-4 py-2"
-							: "ml-[59px] h-auto w-auto border-l-2 border-[#38383C] px-4 py-2"
+							: "ml-[59px] h-auto w-auto border-l-2 border-[var(--nara-text-faint)] px-4 py-2"
 				}
 				onMouseDown={(
 					event: React.MouseEvent<HTMLDivElement>,
@@ -4035,10 +4093,10 @@ export default function LyricsEditorWorkspace({
 									handleSectionDrop(section.id);
 								}
 							}}
-							className={`group/line relative grid min-w-0 items-center text-[#F3F4F6] transition-colors ${
+							className={`group/line relative grid min-w-0 items-center text-[var(--nara-text-primary)] transition-colors ${
 								format.focusMode
 									? "min-h-[18px] gap-0 rounded-[3px] px-0 py-[1px] hover:bg-transparent focus-within:bg-transparent"
-									: "-mx-2 min-h-[28px] gap-2 rounded-[5px] px-2 py-1 hover:bg-[#202027] focus-within:bg-[#202027]"
+									: "-mx-2 min-h-[28px] gap-2 rounded-[5px] px-2 py-1 hover:bg-[var(--nara-surface-raised)] focus-within:bg-[var(--nara-surface-raised)]"
 							} ${
 								draggedLine?.lineId === line.id
 									? "opacity-45"
@@ -4102,7 +4160,7 @@ export default function LyricsEditorWorkspace({
 										}
 									}}
 									onDragEnd={(): void => setDraggedLine(null)}
-									className="inline-flex h-6 w-full cursor-grab select-none items-center justify-end rounded-[3px] pr-0.5 text-right text-[16px] font-medium leading-none tabular-nums text-[#F3F4F6] transition-colors hover:bg-[#222228] hover:text-white group-hover/line:text-white active:cursor-grabbing"
+									className="inline-flex h-6 w-full cursor-grab select-none items-center justify-end rounded-[3px] pr-0.5 text-right text-[16px] font-medium leading-none tabular-nums text-[var(--nara-text-primary)] transition-colors hover:bg-[var(--nara-surface-soft)] hover:text-[var(--nara-text-primary)] group-hover/line:text-[var(--nara-text-primary)] active:cursor-grabbing"
 								>
 									{line.number}
 								</button>
@@ -4148,7 +4206,7 @@ export default function LyricsEditorWorkspace({
 														>
 															<span
 																aria-hidden="true"
-																className="absolute inset-x-0 top-0 select-none text-center text-[#A1A1AA]"
+																className="absolute inset-x-0 top-0 select-none text-center text-[var(--nara-text-secondary)]"
 																style={
 																	syllableNumberStyle
 																}
@@ -4232,12 +4290,12 @@ export default function LyricsEditorWorkspace({
 													: line.id,
 											)
 										}
-										className={`mt-0.5 grid h-5 w-[34px] grid-cols-[14px_12px] items-center justify-end gap-1 rounded-[3px] text-[11px] transition-[color,opacity,background-color] hover:bg-[#222228] hover:text-white ${
+										className={`mt-0.5 grid h-5 w-[34px] grid-cols-[14px_12px] items-center justify-end gap-1 rounded-[3px] text-[11px] transition-[color,opacity,background-color] hover:bg-[var(--nara-surface-soft)] hover:text-[var(--nara-text-primary)] ${
 											openCommentLineId === line.id
-												? "bg-[#222228] text-white opacity-100"
+												? "bg-[var(--nara-surface-soft)] text-[var(--nara-text-primary)] opacity-100"
 												: lineCommentCount > 0
-													? "text-[#D6D6DD] opacity-100"
-													: "text-[#6F6F78] opacity-0 group-hover/line:opacity-100 focus-visible:opacity-100"
+													? "text-[var(--nara-text-primary)] opacity-100"
+													: "text-[var(--nara-text-faint)] opacity-0 group-hover/line:opacity-100 focus-visible:opacity-100"
 										}`}
 									>
 										<MessageSquare
@@ -4431,18 +4489,58 @@ export default function LyricsEditorWorkspace({
 						}`}
 					>
 						<div
-							className={`sticky top-[64px] z-[40] flex items-center justify-between gap-3 mt-[64px] rounded-bl-2xl rounded-br-2xl px-4 py-2 bg-[#0D0D10]/55 backdrop-blur-xl ${
+							className={`sticky top-[64px] z-[40] flex items-center justify-between gap-3 mt-[64px] rounded-bl-2xl rounded-br-2xl px-4 py-2 bg-[var(--nara-shell-bg)]/55 backdrop-blur-xl ${
 								format.focusMode ? "mb-7" : "mb-6"
 							}`}
 						>
 							<div className="flex items-center gap-3">
-								<h1 className="whitespace-nowrap text-[15px] font-bold text-[#F3F4F6]">
-									{document.title}
-								</h1>
+								{isEditingTitle ? (
+									<input
+										type="text"
+										value={document.title}
+										autoFocus
+										onChange={(e) => {
+											setDocument({ ...document, title: e.target.value });
+										}}
+										onBlur={async () => {
+											setIsEditingTitle(false);
+											if (!lyricsId) return;
+											try {
+												const { getCurrentUser } = await import("aws-amplify/auth");
+												const user = await getCurrentUser();
+												await fetch(`/api/songs/${lyricsId}/rename`, {
+													method: "PATCH",
+													headers: {
+														"Content-Type": "application/json",
+														"x-cognito-id": user.userId,
+													},
+													body: JSON.stringify({ title: document.title }),
+												});
+												window.dispatchEvent(new CustomEvent("nara-data-updated"));
+											} catch (err) {
+												console.error("Rename error:", err);
+											}
+										}}
+										onKeyDown={(e) => {
+											if (e.key === "Enter") {
+												e.currentTarget.blur();
+											}
+										}}
+										className="whitespace-nowrap text-[15px] font-bold text-[var(--nara-text-primary)] bg-transparent border-none outline-none focus:border-b focus:border-neutral-600 cursor-text w-auto"
+									/>
+								) : (
+									<h1 
+										className="whitespace-nowrap text-[15px] font-bold text-[var(--nara-text-primary)] cursor-text hover:text-[var(--nara-text-primary)] transition-colors"
+										onDoubleClick={() => setIsEditingTitle(true)}
+										title="Double-cliquez pour renommer"
+									>
+										{document.title}
+									</h1>
+								)}
 								<button
 									type="button"
 									onClick={() => handleSave(true)}
-									className="inline-flex h-6 items-center gap-1.5 rounded-[4px] border border-[#2C2C32] px-2 text-[10px] font-semibold text-[#F3F4F6] transition-colors hover:border-[#4A4A52] hover:bg-[#202027]"
+									className="inline-flex h-6 items-center gap-1.5 rounded-[4px] border border-[var(--nara-border)] px-2 text-[10px] font-semibold text-[var(--nara-text-primary)] transition-colors hover:border-[var(--nara-border-strong)] hover:bg-[var(--nara-surface-raised)]"
 								>
 									<Save size={12} strokeWidth={1.8} />
 									{saveState === "saved"
@@ -4450,7 +4548,7 @@ export default function LyricsEditorWorkspace({
 										: "Sauvegarder"}
 								</button>
 								{isDirty && (
-									<span className="text-[10px] font-medium text-[#A1A1AA]">
+									<span className="text-[10px] font-medium text-[var(--nara-text-secondary)]">
 										Modifie
 									</span>
 								)}
@@ -4466,7 +4564,7 @@ export default function LyricsEditorWorkspace({
 										/>
 									),
 								)}
-								<span className="text-[10px] font-bold text-[#F3F4F6]">
+								<span className="text-[10px] font-bold text-[var(--nara-text-primary)]">
 									{wordCount} mots
 								</span>
 							</div>
@@ -4725,7 +4823,7 @@ export default function LyricsEditorWorkspace({
 																		section.id,
 																	)
 																}
-																className="inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded-[5px] text-[#38383C] hover:bg-[#202027] hover:text-[#F3F4F6]"
+																className="inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded-[5px] text-[var(--nara-text-faint)] hover:bg-[var(--nara-surface-raised)] hover:text-[var(--nara-text-primary)]"
 															>
 																<Plus
 																	size={20}
@@ -4813,7 +4911,7 @@ export default function LyricsEditorWorkspace({
 																		0,
 																	);
 																}}
-																className="inline-flex h-5 w-5 cursor-grab items-center justify-center rounded-[5px] text-[#38383C] hover:bg-[#202027] hover:text-[#F3F4F6] active:cursor-grabbing"
+																className="inline-flex h-5 w-5 cursor-grab items-center justify-center rounded-[5px] text-[var(--nara-text-faint)] hover:bg-[var(--nara-surface-raised)] hover:text-[var(--nara-text-primary)] active:cursor-grabbing"
 															>
 																<GripVertical
 																	size={20}
@@ -4909,7 +5007,7 @@ export default function LyricsEditorWorkspace({
 																			}
 																		>
 																			<div className="mb-1 flex h-5 items-center px-4">
-																				<span className="text-[13px] font-medium text-[#6F6F78] uppercase tracking-wider">
+																				<span className="text-[13px] font-medium text-[var(--nara-text-faint)] uppercase tracking-wider">
 																					{
 																						section.title
 																					}{" "}
@@ -5024,7 +5122,7 @@ export default function LyricsEditorWorkspace({
 																					section.id,
 																				)
 																			}
-																			className={`inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded-[5px] text-[#38383C] transition-opacity duration-150 hover:bg-[#202027] hover:text-[#F3F4F6] ${
+																			className={`inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded-[5px] text-[var(--nara-text-faint)] transition-opacity duration-150 hover:bg-[var(--nara-surface-raised)] hover:text-[var(--nara-text-primary)] ${
 																				openAddMenuSectionId ===
 																					section.id ||
 																				openOptionsMenuSectionId ===
@@ -5149,7 +5247,7 @@ export default function LyricsEditorWorkspace({
 																					0,
 																				);
 																			}}
-																			className={`inline-flex h-5 w-5 cursor-grab items-center justify-center rounded-[5px] text-[#38383C] transition-opacity duration-150 hover:bg-[#202027] hover:text-[#F3F4F6] active:cursor-grabbing ${
+																			className={`inline-flex h-5 w-5 cursor-grab items-center justify-center rounded-[5px] text-[var(--nara-text-faint)] transition-opacity duration-150 hover:bg-[var(--nara-surface-raised)] hover:text-[var(--nara-text-primary)] active:cursor-grabbing ${
 																				openAddMenuSectionId ===
 																					section.id ||
 																				openOptionsMenuSectionId ===
@@ -5304,7 +5402,7 @@ export default function LyricsEditorWorkspace({
 																				section.id,
 																			)
 																		}
-																		className="inline-flex h-7 items-center gap-2 rounded-[5px] px-2 text-[13px] font-medium text-[#A1A1AA] transition-colors hover:bg-[#202027] hover:text-[#F3F4F6]"
+																		className="inline-flex h-7 items-center gap-2 rounded-[5px] px-2 text-[13px] font-medium text-[var(--nara-text-secondary)] transition-colors hover:bg-[var(--nara-surface-raised)] hover:text-[var(--nara-text-primary)]"
 																	>
 																		<Plus
 																			size={
@@ -5325,7 +5423,7 @@ export default function LyricsEditorWorkspace({
 																				section.id,
 																			)
 																		}
-																		className="inline-flex h-7 items-center gap-1.5 rounded-[5px] border border-[#2C2C32] px-2 text-[11px] font-semibold text-[#F3F4F6] transition-colors hover:border-[#4A4A52] hover:bg-[#202027]"
+																		className="inline-flex h-7 items-center gap-1.5 rounded-[5px] border border-[var(--nara-border)] px-2 text-[11px] font-semibold text-[var(--nara-text-primary)] transition-colors hover:border-[var(--nara-border-strong)] hover:bg-[var(--nara-surface-raised)]"
 																	>
 																		<Copy
 																			size={
@@ -5344,7 +5442,7 @@ export default function LyricsEditorWorkspace({
 																				section.id,
 																			)
 																		}
-																		className="inline-flex h-7 items-center gap-1.5 rounded-[5px] border border-[#2C2C32] px-2 text-[11px] font-semibold text-[#F3F4F6] transition-colors hover:border-[#4A4A52] hover:bg-[#202027]"
+																		className="inline-flex h-7 items-center gap-1.5 rounded-[5px] border border-[var(--nara-border)] px-2 text-[11px] font-semibold text-[var(--nara-text-primary)] transition-colors hover:border-[var(--nara-border-strong)] hover:bg-[var(--nara-surface-raised)]"
 																	>
 																		<Copy
 																			size={
@@ -5363,7 +5461,7 @@ export default function LyricsEditorWorkspace({
 																				null,
 																			)
 																		}
-																		className="inline-flex h-7 items-center gap-1.5 rounded-[5px] border border-[#2C2C32] px-2 text-[11px] font-semibold text-[#F3F4F6] transition-colors hover:border-[#4A4A52] hover:bg-[#202027]"
+																		className="inline-flex h-7 items-center gap-1.5 rounded-[5px] border border-[var(--nara-border)] px-2 text-[11px] font-semibold text-[var(--nara-text-primary)] transition-colors hover:border-[var(--nara-border-strong)] hover:bg-[var(--nara-surface-raised)]"
 																	>
 																		<CheckSquare
 																			size={
@@ -5382,7 +5480,7 @@ export default function LyricsEditorWorkspace({
 																				section.id,
 																			)
 																		}
-																		className="inline-flex h-7 items-center justify-center rounded-[5px] border border-[#2C2C32] px-2 text-[#A1A1AA] transition-colors hover:border-[#4A4A52] hover:bg-[#202027] hover:text-[#F3F4F6]"
+																		className="inline-flex h-7 items-center justify-center rounded-[5px] border border-[var(--nara-border)] px-2 text-[var(--nara-text-secondary)] transition-colors hover:border-[var(--nara-border-strong)] hover:bg-[var(--nara-surface-raised)] hover:text-[var(--nara-text-primary)]"
 																	>
 																		<Trash2
 																			size={
@@ -5399,7 +5497,7 @@ export default function LyricsEditorWorkspace({
 															{/* Column 2: Alternative Lyrics */}
 															<div>
 																<div className="mb-2 flex h-6 items-center">
-																	<span className="text-[13px] font-medium text-[#6F6F78]">
+																	<span className="text-[13px] font-medium text-[var(--nara-text-faint)]">
 																		{
 																			section.title
 																		}{" "}
@@ -5424,7 +5522,7 @@ export default function LyricsEditorWorkspace({
 																				section.id,
 																			)
 																		}
-																		className="inline-flex h-7 items-center gap-2 rounded-[5px] px-2 text-[13px] font-medium text-[#A1A1AA] transition-colors hover:bg-[#202027] hover:text-[#F3F4F6]"
+																		className="inline-flex h-7 items-center gap-2 rounded-[5px] px-2 text-[13px] font-medium text-[var(--nara-text-secondary)] transition-colors hover:bg-[var(--nara-surface-raised)] hover:text-[var(--nara-text-primary)]"
 																	>
 																		<Plus
 																			size={
@@ -5446,7 +5544,7 @@ export default function LyricsEditorWorkspace({
 															{/* Menus were moved inside relative wrappers */}
 															<div className="buttons mb-2 flex h-auto flex-row items-center gap-2">
 																{format.focusMode && (
-																	<div className="absolute left-0 top-0 flex h-5 w-8 items-center justify-center text-[11px] font-medium text-[#D6D6DD]">
+																	<div className="absolute left-0 top-0 flex h-5 w-8 items-center justify-center text-[11px] font-medium text-[var(--nara-text-primary)]">
 																		{getFocusSectionInitial(
 																			section.kind,
 																		)}
@@ -5467,7 +5565,7 @@ export default function LyricsEditorWorkspace({
 																						section.id,
 																					)
 																				}
-																				className={`inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded-[5px] text-[#38383C] transition-opacity duration-150 hover:bg-[#202027] hover:text-[#F3F4F6] ${
+																				className={`inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded-[5px] text-[var(--nara-text-faint)] transition-opacity duration-150 hover:bg-[var(--nara-surface-raised)] hover:text-[var(--nara-text-primary)] ${
 																					openAddMenuSectionId ===
 																						section.id ||
 																					openOptionsMenuSectionId ===
@@ -5592,7 +5690,7 @@ export default function LyricsEditorWorkspace({
 																						0,
 																					);
 																				}}
-																				className={`inline-flex h-5 w-5 cursor-grab items-center justify-center rounded-[5px] text-[#38383C] transition-opacity duration-150 hover:bg-[#202027] hover:text-[#F3F4F6] active:cursor-grabbing ${
+																				className={`inline-flex h-5 w-5 cursor-grab items-center justify-center rounded-[5px] text-[var(--nara-text-faint)] transition-opacity duration-150 hover:bg-[var(--nara-surface-raised)] hover:text-[var(--nara-text-primary)] active:cursor-grabbing ${
 																					openAddMenuSectionId ===
 																						section.id ||
 																					openOptionsMenuSectionId ===
@@ -5750,7 +5848,7 @@ export default function LyricsEditorWorkspace({
 																				section.id,
 																			)
 																		}
-																		className="inline-flex h-7 items-center gap-2 rounded-[5px] px-2 text-[13px] font-medium text-[#A1A1AA] transition-colors hover:bg-[#202027] hover:text-[#F3F4F6]"
+																		className="inline-flex h-7 items-center gap-2 rounded-[5px] px-2 text-[13px] font-medium text-[var(--nara-text-secondary)] transition-colors hover:bg-[var(--nara-surface-raised)] hover:text-[var(--nara-text-primary)]"
 																	>
 																		<Plus
 																			size={
@@ -5771,7 +5869,7 @@ export default function LyricsEditorWorkspace({
 																				section.id,
 																			)
 																		}
-																		className="inline-flex h-7 items-center gap-1.5 rounded-[5px] border border-[#2C2C32] px-2 text-[11px] font-semibold text-[#F3F4F6] transition-colors hover:border-[#4A4A52] hover:bg-[#202027]"
+																		className="inline-flex h-7 items-center gap-1.5 rounded-[5px] border border-[var(--nara-border)] px-2 text-[11px] font-semibold text-[var(--nara-text-primary)] transition-colors hover:border-[var(--nara-border-strong)] hover:bg-[var(--nara-surface-raised)]"
 																	>
 																		<Copy
 																			size={
@@ -5790,7 +5888,7 @@ export default function LyricsEditorWorkspace({
 																				section.id,
 																			)
 																		}
-																		className="inline-flex h-7 items-center gap-1.5 rounded-[5px] border border-[#2C2C32] px-2 text-[11px] font-semibold text-[#F3F4F6] transition-colors hover:border-[#4A4A52] hover:bg-[#202027]"
+																		className="inline-flex h-7 items-center gap-1.5 rounded-[5px] border border-[var(--nara-border)] px-2 text-[11px] font-semibold text-[var(--nara-text-primary)] transition-colors hover:border-[var(--nara-border-strong)] hover:bg-[var(--nara-surface-raised)]"
 																	>
 																		<Copy
 																			size={
@@ -5809,7 +5907,7 @@ export default function LyricsEditorWorkspace({
 																				null,
 																			)
 																		}
-																		className="inline-flex h-7 items-center gap-1.5 rounded-[5px] border border-[#2C2C32] px-2 text-[11px] font-semibold text-[#F3F4F6] transition-colors hover:border-[#4A4A52] hover:bg-[#202027]"
+																		className="inline-flex h-7 items-center gap-1.5 rounded-[5px] border border-[var(--nara-border)] px-2 text-[11px] font-semibold text-[var(--nara-text-primary)] transition-colors hover:border-[var(--nara-border-strong)] hover:bg-[var(--nara-surface-raised)]"
 																	>
 																		<CheckSquare
 																			size={
@@ -5828,7 +5926,7 @@ export default function LyricsEditorWorkspace({
 																				section.id,
 																			)
 																		}
-																		className="inline-flex h-7 items-center justify-center rounded-[5px] border border-[#2C2C32] px-2 text-[#A1A1AA] transition-colors hover:border-[#4A4A52] hover:bg-[#202027] hover:text-[#F3F4F6]"
+																		className="inline-flex h-7 items-center justify-center rounded-[5px] border border-[var(--nara-border)] px-2 text-[var(--nara-text-secondary)] transition-colors hover:border-[var(--nara-border-strong)] hover:bg-[var(--nara-surface-raised)] hover:text-[var(--nara-text-primary)]"
 																	>
 																		<Trash2
 																			size={

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Sidebar } from "../nav/Sidebar";
-import { Topbar } from "../nav/Topbar";
+import { PageHeader } from "../nav/PageHeader";
 import { EditDetailsModal } from "../modals/EditDetailsModal";
 import { MoveToModal } from "../modals/MoveToModal";
 import { ShareModal } from "../modals/ShareModal";
@@ -137,7 +137,7 @@ export const Layout = ({ children }: LayoutProps) => {
 
     return (
         <SelectionProvider>
-            <div className="flex h-screen bg-black text-white font-arimo overflow-hidden">
+            <div className="flex h-screen bg-n-bg text-n-text font-arimo overflow-hidden">
                 {/* sidebar */}
                 <Sidebar
                     collapsed={collapsed}
@@ -146,13 +146,11 @@ export const Layout = ({ children }: LayoutProps) => {
                 />
 
                 {/* main content */}
-                <div className="flex flex-col flex-1 min-w-0 transition-all duration-300">
-                    <Topbar />
-                    <main className="flex-1 p-6 bg-[#0a0a0a] overflow-y-auto flex flex-col relative">
-                        {children}
-                        <SelectionBanner />
-                    </main>
-                </div>
+                <main className="flex-1 p-8 bg-n-bg overflow-y-auto flex flex-col relative transition-all duration-500 ease-in-out min-w-0">
+                    <PageHeader />
+                    {children}
+                    <SelectionBanner />
+                </main>
 
                 {/* Edit Details Modal (also handles creation of projects) */}
                 <EditDetailsModal

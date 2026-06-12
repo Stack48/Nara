@@ -137,7 +137,7 @@ function normalizeTextStyleColor(
 ): Pick<LyricsFormat, "textColor" | "textOpacity"> {
 	if (typeof color !== "string" || color.trim().length === 0) {
 		return {
-			textColor: "#F3F4F6",
+			textColor: "var(--nara-text-primary)",
 			textOpacity: 100,
 		};
 	}
@@ -193,7 +193,7 @@ function normalizeTextStyleColor(
 	}
 
 	return {
-		textColor: "#F3F4F6",
+		textColor: "var(--nara-text-primary)",
 		textOpacity: 100,
 	};
 }
@@ -371,7 +371,7 @@ export default function TipTapLineEditor({
 				"data-line-editor": "true",
 				"data-line-id": lineId,
 				"data-section-id": sectionId,
-				class: "relative z-10 min-h-[24px] w-full cursor-text select-text bg-transparent text-[#F3F4F6] outline-none transition-colors focus-visible:text-white [&_.ProseMirror]:min-h-[24px] [&_.ProseMirror]:outline-none [&_p]:m-0",
+				class: "relative z-10 min-h-[24px] w-full cursor-text select-text bg-transparent text-[var(--nara-text-primary)] outline-none transition-colors focus-visible:text-[var(--nara-text-primary)] [&_.ProseMirror]:min-h-[24px] [&_.ProseMirror]:outline-none [&_p]:m-0",
 				role: "textbox",
 				spellcheck: "false",
 			},
@@ -616,7 +616,7 @@ export default function TipTapLineEditor({
 	return (
 		<div className="relative z-10 w-full min-w-0 select-text" style={style}>
 			{isEmpty && (
-				<span className="pointer-events-none absolute left-0 top-0 text-[#38383C]">
+				<span className="pointer-events-none absolute left-0 top-0 text-[var(--nara-text-faint)]">
 					Ecrire une ligne
 				</span>
 			)}

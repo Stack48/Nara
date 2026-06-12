@@ -69,15 +69,15 @@ export const ProjectCard = ({
                 <button
                     type="button"
                     onClick={handleClick}
-                    className="group relative aspect-square rounded-2xl overflow-hidden border border-dashed border-neutral-800/80 hover:border-[#D90097]/60 hover:bg-[#121212]/50 transition-all duration-300 flex flex-col items-center justify-center gap-3 bg-[#151515]/30 cursor-pointer animate-in fade-in"
+                    className="group relative aspect-square rounded-2xl overflow-hidden border border-dashed border-n-border/80 hover:border-n-accent/60 hover:bg-n-bg/50 transition-all duration-300 flex flex-col items-center justify-center gap-3 bg-n-surface/30 cursor-pointer animate-in fade-in"
                 >
-                    <div className="w-12 h-12 rounded-full border border-neutral-800/80 group-hover:border-[#D90097]/40 bg-[#171717] group-hover:bg-[#D90097]/10 flex items-center justify-center transition-all duration-300">
+                    <div className="w-12 h-12 rounded-full border border-n-border/80 group-hover:border-n-accent/40 bg-n-hover group-hover:bg-n-accent/10 flex items-center justify-center transition-all duration-300">
                         <Plus
                             size={20}
-                            className="text-neutral-400 group-hover:text-[#D90097] transition-colors"
+                            className="text-n-text-2 group-hover:text-n-accent transition-colors"
                         />
                     </div>
-                    <span className="font-syne font-bold text-sm text-neutral-400 group-hover:text-white transition-colors">
+                    <span className="font-bold text-sm text-n-text transition-colors">
                         New Project
                     </span>
                 </button>
@@ -89,16 +89,16 @@ export const ProjectCard = ({
             <button
                 type="button"
                 onClick={handleClick}
-                className="w-full grid grid-cols-12 gap-4 items-center p-3 rounded-xl border border-dashed border-neutral-800/80 hover:border-[#D90097]/60 hover:bg-[#121212]/50 transition-all duration-300 group cursor-pointer text-left mb-2"
+                className="w-full grid grid-cols-12 gap-4 items-center p-3 rounded-xl border border-dashed border-n-border/80 hover:border-n-accent/60 hover:bg-n-bg/50 transition-all duration-300 group cursor-pointer text-left mb-2"
             >
                 <div className="col-span-12 flex items-center gap-4 pl-1">
-                    <div className="w-12 h-12 rounded-xl border border-dashed border-neutral-700/80 group-hover:border-[#D90097]/40 flex items-center justify-center bg-[#171717]/50 transition-colors">
+                    <div className="w-12 h-12 rounded-xl border border-dashed border-n-border-2/80 group-hover:border-n-accent/40 flex items-center justify-center bg-n-hover/50 transition-colors">
                         <Plus
                             size={16}
-                            className="text-neutral-400 group-hover:text-[#D90097]"
+                            className="text-n-text-2 group-hover:text-n-accent"
                         />
                     </div>
-                    <span className="font-bold text-sm text-neutral-400 group-hover:text-white transition-colors font-syne">
+                    <span className="font-bold text-sm text-n-text transition-colors">
                         New Project
                     </span>
                 </div>
@@ -172,11 +172,11 @@ export const ProjectCard = ({
                         draggable={false}
                     />
                 ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-neutral-900 via-[#181818] to-neutral-950 flex items-center justify-center transition-all duration-700 group-hover:scale-105">
-                        <div className="relative flex items-center justify-center w-24 h-24 rounded-full bg-neutral-800/10 border border-neutral-800/30 group-hover:border-[#D90097]/20 group-hover:bg-[#D90097]/5 transition-all duration-500">
+                    <div className="absolute inset-0 bg-gradient-to-br from-n-surface via-n-bg to-n-surface flex items-center justify-center transition-all duration-700 group-hover:scale-105">
+                        <div className="relative flex items-center justify-center w-24 h-24 rounded-full bg-n-hover/50 border border-n-border/80 group-hover:border-n-accent/40 group-hover:bg-n-accent/10 transition-all duration-500">
                             <FolderOpen
                                 size={40}
-                                className="text-neutral-500 group-hover:text-[#D90097] transition-all duration-500"
+                                className="text-n-text-2 group-hover:text-n-accent transition-all duration-500"
                             />
                         </div>
                     </div>
@@ -184,7 +184,7 @@ export const ProjectCard = ({
 
                 {/* Favorite badge */}
                 {project.isFavorite && (
-                    <div className="absolute top-3 left-3 z-20 bg-black/60 backdrop-blur-sm p-1.5 rounded-full text-[#D90097]">
+                    <div className="absolute top-3 left-3 z-20 bg-n-bg/60 backdrop-blur-sm p-1.5 rounded-full text-n-accent">
                         <Heart
                             size={14}
                             className=" text-red-500 fill-red-500"
@@ -194,17 +194,17 @@ export const ProjectCard = ({
 
 
                 {/* Dégradé sombre puissant en bas pour une visibilité parfaite du texte */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-n-bg/95 via-n-bg/60 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-500"></div>
 
                 {/* Contenu textuel */}
                 <div className="absolute bottom-0 left-0 right-0 p-5 flex flex-col justify-end h-full">
                     <div className="flex flex-col gap-1.5 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                        <span className="text-[11px] font-bold text-neutral-300 capitalize tracking-wide">
+                        <span className="text-[11px] font-bold text-n-text capitalize tracking-wide">
                             {project.type} • {project.songsCount}{" "}
                             {project.songsCount > 1 ? "songs" : "song"}
                         </span>
 
-                        <h3 className="font-bold text-white text-xl line-clamp-2 leading-tight">
+                        <h3 className="font-bold text-n-text text-xl line-clamp-2 leading-tight">
                             {project.title}
                         </h3>
                     </div>
@@ -212,19 +212,19 @@ export const ProjectCard = ({
                     {/* Section Collaborateurs / Owner / Trashed Info */}
                     <div className="mt-3">
                         {isDeletedView ? (
-                            <div className="pt-3 border-t border-white/10">
-                                <span className="text-[11px] font-medium text-neutral-400">
+                            <div className="pt-3 border-t border-n-border/40">
+                                <span className="text-[11px] font-medium text-n-text-2">
                                     {formatDeletedTime(project.lastModified)}
                                 </span>
                             </div>
                         ) : isSharedView || project.isShared ? (
-                            <div className="pt-3 border-t border-white/10 flex items-center justify-start">
+                            <div className="pt-3 border-t border-n-border/40 flex items-center justify-start">
                                 {project.owner ? (
-                                    <span className="text-[11px] text-[#D90097] font-semibold block text-left">
+                                    <span className="text-[11px] text-n-accent font-semibold block text-left">
                                         Shared by {project.owner}
                                     </span>
                                 ) : (
-                                    <div className="w-6 h-6 rounded-full border border-neutral-800 overflow-hidden relative z-10">
+                                    <div className="w-6 h-6 rounded-full border border-n-border overflow-hidden relative z-10">
                                         <Image
                                             src={
                                                 getOwnerAvatar(
@@ -240,15 +240,15 @@ export const ProjectCard = ({
                                 )}
                             </div>
                         ) : project.collabs > 0 ? (
-                            <div className="flex items-center justify-between pt-3 border-t border-white/10">
-                                <span className="text-[11px] font-medium text-neutral-400">
+                            <div className="flex items-center justify-between pt-3 border-t border-n-border/40">
+                                <span className="text-[11px] font-medium text-n-text-2">
                                     {project.collabs} Collaborator
                                     {project.collabs > 1 ? "s" : ""}
                                 </span>
                             </div>
                         ) : (
-                            <div className="pt-3 border-t border-white/10">
-                                <span className="text-[11px] font-medium text-neutral-500">
+                            <div className="pt-3 border-t border-n-border/40">
+                                <span className="text-[11px] font-medium text-n-text-2">
                                     Personal Project
                                 </span>
                             </div>
@@ -259,8 +259,8 @@ export const ProjectCard = ({
         );
 
         const gridClassName = isSelected
-            ? "group relative aspect-square rounded-2xl overflow-hidden border border-[#D90097] bg-[#D90097]/5 shadow-[0_0_15px_rgba(217,0,151,0.15)] transition-all duration-300 animate-in fade-in"
-            : "group relative aspect-square rounded-2xl overflow-hidden border border-neutral-800/80 hover:border-neutral-500 transition-colors animate-in fade-in";
+            ? "group relative aspect-square rounded-2xl overflow-hidden border border-n-accent bg-n-accent/5 shadow-[0_0_15px_rgba(217,0,151,0.15)] transition-all duration-300 animate-in fade-in"
+            : "group relative aspect-square rounded-2xl overflow-hidden border border-n-border/80 hover:border-neutral-500 transition-colors animate-in fade-in";
 
         if (href) {
             return (
@@ -293,8 +293,8 @@ export const ProjectCard = ({
     const listContent = (
         <div className={`grid grid-cols-12 gap-4 items-center p-2 rounded-xl transition-all duration-200 group ${
             isSelected
-                ? "bg-[#D90097]/10 border border-[#D90097]/30 shadow-[0_0_10px_rgba(217,0,151,0.1)]"
-                : "hover:bg-[#151515]"
+                ? "bg-n-accent/10 border border-n-accent/30 shadow-[0_0_10px_rgba(217,0,151,0.1)]"
+                : "hover:bg-n-surface"
         }`}>
             {/* Name + Image */}
             <div
@@ -308,11 +308,11 @@ export const ProjectCard = ({
             >
                 <div className="relative w-14 h-14 flex-shrink-0 mt-1 mb-1">
                     {/* Stack effects pour signifier un "Projet" (dossier) */}
-                    <div className="absolute -top-2 inset-x-2 h-full bg-neutral-800/40 rounded-xl border border-neutral-800/50 transition-transform group-hover:-translate-y-0.5"></div>
-                    <div className="absolute -top-1 inset-x-1 h-full bg-neutral-800/60 rounded-xl border border-neutral-700/50 transition-transform group-hover:-translate-y-0.5"></div>
+                    <div className="absolute -top-2 inset-x-2 h-full bg-n-hover/40 rounded-xl border border-n-border/50 transition-transform group-hover:-translate-y-0.5"></div>
+                    <div className="absolute -top-1 inset-x-1 h-full bg-n-hover/60 rounded-xl border border-n-border-2/50 transition-transform group-hover:-translate-y-0.5"></div>
 
                     {/* Image principale */}
-                    <div className="relative w-full h-full rounded-xl overflow-hidden shadow-lg border border-neutral-700 z-10 bg-gradient-to-br from-neutral-900 to-neutral-950 flex items-center justify-center">
+                    <div className="bg-n-cta text-n-cta-text hover:bg-n-cta-hover rounded-lg px-4 py-2 font-semibold transition-colors w-full">
                         {isValidImageSrc(project.image) ? (
                             <Image
                                 src={project.image}
@@ -325,19 +325,19 @@ export const ProjectCard = ({
                         ) : (
                             <FolderOpen
                                 size={20}
-                                className="text-neutral-500 group-hover:text-[#D90097] transition-colors duration-300"
+                                className="text-n-text-2 group-hover:text-n-accent transition-colors duration-300"
                             />
                         )}
                     </div>
                 </div>
                 <div className="flex flex-col">
-                    <span className="text-[10px] text-neutral-500 capitalize tracking-wide mb-0.5 font-bold">
+                    <span className="text-[10px] text-n-text-2 capitalize tracking-wide mb-0.5 font-bold">
                         {project.type} • {project.songsCount}{" "}
                         {project.songsCount > 1 ? "songs" : "song"}
                     </span>
                     <div className="flex items-center gap-1.5 min-w-0">
                         <span
-                            className={`font-bold text-sm text-white line-clamp-1 ${href ? "group-hover:text-[#D90097] transition-colors" : ""}`}
+                            className={`font-bold text-sm text-n-text line-clamp-1 ${href ? "group-hover:text-n-accent transition-colors" : ""}`}
                         >
                             {project.title}
                         </span>
@@ -355,7 +355,7 @@ export const ProjectCard = ({
             {isDeletedView ? (
                 <>
                     {/* Deleted time */}
-                    <div className="col-span-3 text-xs text-white truncate">
+                    <div className="col-span-3 text-xs text-n-text truncate">
                         {formatDeletedTime(project.lastModified)}
                     </div>
 
@@ -385,20 +385,20 @@ export const ProjectCard = ({
                                     ),
                                 )}
                                 {project.collabs > 3 && (
-                                    <div className="w-6 h-6 rounded-full border border-[#151515] bg-neutral-800 flex items-center justify-center relative z-10 text-[9px] font-bold text-neutral-300">
+                                    <div className="w-6 h-6 rounded-full border border-[#151515] bg-n-hover flex items-center justify-center relative z-10 text-[9px] font-bold text-n-text">
                                         +{project.collabs - 3}
                                     </div>
                                 )}
                             </div>
                         ) : (
-                            <span className="text-xs text-neutral-600">-</span>
+                            <span className="text-[11px] font-medium text-n-text-2">Personal Project</span>
                         )}
                     </div>
 
                     {/* Actions */}
                     <div className="col-span-2 flex justify-end gap-2 pr-2 relative z-20">
                         <button
-                            className="p-1.5 text-neutral-400 hover:text-[#D90097] hover:bg-[#D90097]/10 rounded transition-colors"
+                            className="p-1.5 text-n-text-2 hover:text-n-accent hover:bg-n-accent/10 rounded transition-colors"
                             title="Restaurer"
                             onClick={(e) => {
                                 e.stopPropagation();
@@ -409,7 +409,7 @@ export const ProjectCard = ({
                             <RotateCcw size={16} />
                         </button>
                         <button
-                            className="p-1.5 text-neutral-400 hover:text-red-500 hover:bg-red-500/10 rounded transition-colors"
+                            className="p-1.5 text-n-text-2 hover:text-red-500 hover:bg-red-500/10 rounded transition-colors"
                             title="Supprimer définitivement"
                             onClick={(e) => {
                                 e.stopPropagation();
@@ -426,7 +426,7 @@ export const ProjectCard = ({
                     {/* Owner Avatar / Shared by info */}
                     <div className="col-span-2 flex items-center">
                         {project.owner ? (
-                            <span className="text-xs text-[#D90097] font-semibold truncate text-left">
+                            <span className="text-xs text-n-accent font-semibold truncate text-left">
                                 Shared by {project.owner}
                             </span>
                         ) : (
@@ -446,17 +446,17 @@ export const ProjectCard = ({
                     </div>
 
                     {/* State placeholder (projects have no state) */}
-                    <div className="col-span-1 text-xs text-neutral-600 font-medium">
+                    <div className="col-span-1 text-xs text-n-text-3 font-medium">
                         -
                     </div>
 
                     {/* Last modified */}
-                    <div className="col-span-2 text-xs text-white truncate">
+                    <div className="col-span-2 text-xs text-n-text truncate">
                         {project.lastModified}
                     </div>
 
                     {/* Created */}
-                    <div className="col-span-2 text-xs text-white truncate">
+                    <div className="col-span-2 text-xs text-n-text truncate">
                         {project.created}
                     </div>
 
@@ -486,13 +486,13 @@ export const ProjectCard = ({
                                     ),
                                 )}
                                 {project.collabs > 3 && (
-                                    <div className="w-6 h-6 rounded-full border border-[#151515] bg-neutral-800 flex items-center justify-center relative z-10 text-[9px] font-bold text-neutral-300">
+                                    <div className="w-6 h-6 rounded-full border border-[#151515] bg-n-hover flex items-center justify-center relative z-10 text-[9px] font-bold text-n-text">
                                         +{project.collabs - 3}
                                     </div>
                                 )}
                             </div>
                         ) : (
-                            <span className="text-xs text-neutral-600">-</span>
+                            <span className="text-[11px] font-medium text-n-text-2">Personal Project</span>
                         )}
                     </div>
                 </>
@@ -500,18 +500,18 @@ export const ProjectCard = ({
                 <>
                     {/* State placeholder if in recent or favorite contexts to align with combined headers */}
                     {(context === "recent" || context === "favorite") && (
-                        <div className="col-span-2 text-xs text-neutral-600 font-medium">
+                        <div className="col-span-2 text-xs text-n-text-3 font-medium">
                             -
                         </div>
                     )}
 
                     {/* Last modified */}
-                    <div className="col-span-2 text-xs text-white truncate">
+                    <div className="col-span-2 text-xs text-n-text truncate">
                         {project.lastModified}
                     </div>
 
                     {/* Created */}
-                    <div className="col-span-2 text-xs text-white truncate">
+                    <div className="col-span-2 text-xs text-n-text truncate">
                         {project.created}
                     </div>
 
@@ -542,13 +542,13 @@ export const ProjectCard = ({
                                     ),
                                 )}
                                 {project.collabs > 3 && (
-                                    <div className="w-6 h-6 rounded-full border border-[#151515] bg-neutral-800 flex items-center justify-center relative z-10 text-[9px] font-bold text-neutral-300">
+                                    <div className="w-6 h-6 rounded-full border border-[#151515] bg-n-hover flex items-center justify-center relative z-10 text-[9px] font-bold text-n-text">
                                         +{project.collabs - 3}
                                     </div>
                                 )}
                             </div>
                         ) : (
-                            <span className="text-xs text-neutral-600">-</span>
+                            <span className="text-[11px] font-medium text-n-text-2">Personal Project</span>
                         )}
                     </div>
                 </>

@@ -12,8 +12,9 @@ import {
     ArrowUpDown,
 } from "lucide-react";
 import Image from "next/image";
-import { useProjects } from "@/lib/projectStore";
-import { useSongs, setSongProject } from "@/lib/songStore";
+import { setSongProject } from "@/lib/songStore";
+import { useApiProjects } from "@/hooks/useApiProjects";
+import { useApiSongs } from "@/hooks/useApiSongs";
 
 interface SelectedItem {
     id: string;
@@ -29,8 +30,8 @@ interface MoveToModalProps {
 }
 
 export const MoveToModal = ({ isOpen, items, onClose }: MoveToModalProps) => {
-    const allProjects = useProjects();
-    const allSongs = useSongs();
+    const { projects: allProjects } = useApiProjects();
+    const { songs: allSongs } = useApiSongs();
 
     const activeProjects = allProjects.filter((p) => !p.isDeleted);
 
@@ -120,19 +121,19 @@ export const MoveToModal = ({ isOpen, items, onClose }: MoveToModalProps) => {
     });
 
     return (
-        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[110] flex items-center justify-center p-4">
-            <div className="bg-[#121212] border border-neutral-800 rounded-3xl max-w-2xl w-full h-[600px] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-n-bg/85 backdrop-blur-md z-[110] flex items-center justify-center p-4">
+            <div className="bg-n-bg border border-n-border rounded-3xl max-w-2xl w-full h-[600px] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-900 bg-neutral-950/20 shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-[#D90097]/10 flex items-center justify-center text-[#D90097]">
+                        <div className="w-10 h-10 rounded-full bg-n-accent/10 flex items-center justify-center text-n-accent">
                             <FolderSymlink size={18} />
                         </div>
                         <div>
-                            <h3 className="font-syne font-bold text-white text-base">
+                            <h3 className="font-serif font-bold text-n-text text-base">
                                 Move to Project
                             </h3>
-                            <p className="text-[10px] text-neutral-500 font-semibold uppercase tracking-wider">
+                            <p className="text-[10px] text-n-text-2 font-semibold uppercase tracking-wider">
                                 Moving {items.length} song
                                 {items.length > 1 ? "s" : ""}
                             </p>
@@ -140,7 +141,7 @@ export const MoveToModal = ({ isOpen, items, onClose }: MoveToModalProps) => {
                     </div>
                     <button
                         onClick={onClose}
-                        className="text-neutral-500 hover:text-white p-1.5 hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer"
+                        className="text-n-text-2 hover:text-n-text p-1.5 hover:bg-n-hover rounded-lg transition-colors cursor-pointer"
                     >
                         <X size={18} />
                     </button>
@@ -150,7 +151,7 @@ export const MoveToModal = ({ isOpen, items, onClose }: MoveToModalProps) => {
                 <div className="flex-1 min-h-0 flex border-b border-neutral-900">
                     {/* Left Pane - Projects Selection List */}
                     <div className="w-1/2 border-r border-neutral-900 overflow-y-auto p-4 flex flex-col select-none">
-                        <span className="block text-neutral-500 text-[10px] font-bold uppercase tracking-wider mb-2 px-2 shrink-0">
+                        <span className="block text-n-text-2 text-[10px] font-bold uppercase tracking-wider mb-2 px-2 shrink-0">
                             Select Target Project
                         </span>
 
@@ -160,7 +161,7 @@ export const MoveToModal = ({ isOpen, items, onClose }: MoveToModalProps) => {
                             <div className="relative">
                                 <Search
                                     size={13}
-                                    className="absolute left-3 top-2.5 text-neutral-500"
+                                    className="absolute left-3 top-2.5 text-n-text-2"
                                 />
                                 <input
                                     type="text"
@@ -169,13 +170,13 @@ export const MoveToModal = ({ isOpen, items, onClose }: MoveToModalProps) => {
                                     onChange={(e) =>
                                         setSearchQuery(e.target.value)
                                     }
-                                    className="w-full bg-[#151515] border border-neutral-850 focus:border-neutral-700 rounded-xl py-1.5 pl-8.5 pr-8 text-xs text-white placeholder-neutral-500 focus:outline-none transition-colors"
+                                    className="w-full bg-n-surface border border-neutral-850 focus:border-n-border-2 rounded-xl py-1.5 pl-8.5 pr-8 text-xs text-n-text placeholder-neutral-500 focus:outline-none transition-colors"
                                 />
                                 {searchQuery && (
                                     <button
                                         type="button"
                                         onClick={() => setSearchQuery("")}
-                                        className="absolute right-3 top-2.5 text-neutral-500 hover:text-white cursor-pointer"
+                                        className="absolute right-3 top-2.5 text-n-text-2 hover:text-n-text cursor-pointer"
                                     >
                                         <X size={12} />
                                     </button>
@@ -183,7 +184,7 @@ export const MoveToModal = ({ isOpen, items, onClose }: MoveToModalProps) => {
                             </div>
 
                             {/* Sort selection drop down */}
-                            <div className="flex items-center justify-between text-[9px] text-neutral-500 font-semibold uppercase tracking-wider">
+                            <div className="flex items-center justify-between text-[9px] text-n-text-2 font-semibold uppercase tracking-wider">
                                 <span>Trier par</span>
                                 <div className="flex items-center gap-1.5">
                                     <select
@@ -191,7 +192,7 @@ export const MoveToModal = ({ isOpen, items, onClose }: MoveToModalProps) => {
                                         onChange={(e) =>
                                             setSortBy(e.target.value as any)
                                         }
-                                        className="bg-[#151515] border border-neutral-850 rounded px-1.5 py-0.5 text-[9px] text-neutral-350 focus:outline-none cursor-pointer"
+                                        className="bg-n-surface border border-neutral-850 rounded px-1.5 py-0.5 text-[9px] text-neutral-350 focus:outline-none cursor-pointer"
                                     >
                                         <option value="modified">
                                             Last modified
@@ -212,7 +213,7 @@ export const MoveToModal = ({ isOpen, items, onClose }: MoveToModalProps) => {
                                                     : "asc",
                                             )
                                         }
-                                        className="text-neutral-500 hover:text-white transition-colors cursor-pointer"
+                                        className="text-n-text-2 hover:text-n-text transition-colors cursor-pointer"
                                         title="Changer l'ordre de tri"
                                     >
                                         <ArrowUpDown size={12} />
@@ -234,19 +235,19 @@ export const MoveToModal = ({ isOpen, items, onClose }: MoveToModalProps) => {
                                 }
                                 className={`w-full text-left p-3 rounded-xl border flex items-center justify-between transition-all cursor-pointer shrink-0 ${
                                     selectedProjectId === "standalone_none"
-                                        ? "bg-[#D90097]/5 border-[#D90097] text-white"
-                                        : "bg-[#151515]/30 border-neutral-800 hover:border-neutral-700 text-neutral-300 hover:text-white"
+                                        ? "bg-n-accent/5 border-n-accent text-n-text"
+                                        : "bg-n-surface/30 border-n-border hover:border-n-border-2 text-n-text hover:text-n-text"
                                 }`}
                             >
                                 <div className="flex items-center gap-3 min-w-0">
-                                    <div className="w-8 h-8 rounded-lg bg-neutral-900 border border-neutral-850 flex items-center justify-center text-neutral-400">
+                                    <div className="w-8 h-8 rounded-lg bg-n-surface-2 border border-neutral-850 flex items-center justify-center text-n-text-2">
                                         <Music size={14} />
                                     </div>
                                     <div className="min-w-0">
                                         <h4 className="font-bold text-xs truncate">
                                             Standalone
                                         </h4>
-                                        <p className="text-[9px] text-neutral-500 font-medium">
+                                        <p className="text-[9px] text-n-text-2 font-medium">
                                             Remove from project
                                         </p>
                                     </div>
@@ -254,7 +255,7 @@ export const MoveToModal = ({ isOpen, items, onClose }: MoveToModalProps) => {
                                 {selectedProjectId === "standalone_none" && (
                                     <Check
                                         size={14}
-                                        className="text-[#D90097]"
+                                        className="text-n-accent"
                                     />
                                 )}
                             </button>
@@ -275,12 +276,12 @@ export const MoveToModal = ({ isOpen, items, onClose }: MoveToModalProps) => {
                                         }
                                         className={`w-full text-left p-3 rounded-xl border flex items-center justify-between transition-all cursor-pointer ${
                                             isSelected
-                                                ? "bg-[#D90097]/5 border-[#D90097] text-white"
-                                                : "bg-[#151515]/30 border-neutral-800 hover:border-neutral-700 text-neutral-300 hover:text-white"
+                                                ? "bg-n-accent/5 border-n-accent text-n-text"
+                                                : "bg-n-surface/30 border-n-border hover:border-n-border-2 text-n-text hover:text-n-text"
                                         }`}
                                     >
                                         <div className="flex items-center gap-3 min-w-0">
-                                            <div className="relative w-8 h-8 rounded-lg overflow-hidden bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-400 shrink-0">
+                                            <div className="relative w-8 h-8 rounded-lg overflow-hidden bg-n-surface-2 border border-n-border flex items-center justify-center text-n-text-2 shrink-0">
                                                 {proj.image ? (
                                                     <Image
                                                         src={proj.image}
@@ -297,7 +298,7 @@ export const MoveToModal = ({ isOpen, items, onClose }: MoveToModalProps) => {
                                                 <h4 className="font-bold text-xs truncate">
                                                     {proj.title}
                                                 </h4>
-                                                <p className="text-[10px] text-neutral-500 font-medium capitalize">
+                                                <p className="text-[10px] text-n-text-2 font-medium capitalize">
                                                     {proj.type} •{" "}
                                                     {proj.songsCount} track
                                                     {proj.songsCount > 1
@@ -309,7 +310,7 @@ export const MoveToModal = ({ isOpen, items, onClose }: MoveToModalProps) => {
                                         {isSelected && (
                                             <Check
                                                 size={14}
-                                                className="text-[#D90097]"
+                                                className="text-n-accent"
                                             />
                                         )}
                                     </button>
@@ -317,7 +318,7 @@ export const MoveToModal = ({ isOpen, items, onClose }: MoveToModalProps) => {
                             })}
 
                             {sortedProjects.length === 0 && (
-                                <div className="p-4 text-center text-xs text-neutral-600 italic">
+                                <div className="p-4 text-center text-xs text-n-text-3 italic">
                                     Aucun projet trouvé
                                 </div>
                             )}
@@ -326,12 +327,12 @@ export const MoveToModal = ({ isOpen, items, onClose }: MoveToModalProps) => {
 
                     {/* Right Pane - Content Preview Panel */}
                     <div className="w-1/2 bg-neutral-950/20 overflow-y-auto p-4 space-y-3">
-                        <span className="block text-neutral-500 text-[10px] font-bold uppercase tracking-wider mb-2 px-1">
+                        <span className="block text-n-text-2 text-[10px] font-bold uppercase tracking-wider mb-2 px-1">
                             Project Preview
                         </span>
 
                         {selectedProjectId === "standalone_none" ? (
-                            <div className="h-[80%] flex flex-col items-center justify-center text-center p-6 text-neutral-500">
+                            <div className="h-[80%] flex flex-col items-center justify-center text-center p-6 text-n-text-2">
                                 <Music
                                     size={32}
                                     className="text-neutral-700 mb-2"
@@ -339,7 +340,7 @@ export const MoveToModal = ({ isOpen, items, onClose }: MoveToModalProps) => {
                                 <p className="text-xs font-medium">
                                     Moving item(s) to Standalone
                                 </p>
-                                <p className="text-[10px] text-neutral-600 mt-1 max-w-[180px]">
+                                <p className="text-[10px] text-n-text-3 mt-1 max-w-[180px]">
                                     This will unlink the song from its current
                                     project.
                                 </p>
@@ -350,9 +351,9 @@ export const MoveToModal = ({ isOpen, items, onClose }: MoveToModalProps) => {
                                     previewSongs.map((song) => (
                                         <div
                                             key={song.id}
-                                            className="flex items-center gap-3 p-2 bg-[#151515]/30 border border-neutral-800/40 rounded-xl"
+                                            className="flex items-center gap-3 p-2 bg-n-surface/30 border border-n-border/40 rounded-xl"
                                         >
-                                            <div className="relative w-8 h-8 rounded-lg overflow-hidden bg-neutral-900 border border-neutral-850 flex items-center justify-center text-neutral-500 shrink-0">
+                                            <div className="relative w-8 h-8 rounded-lg overflow-hidden bg-n-surface-2 border border-neutral-850 flex items-center justify-center text-n-text-2 shrink-0">
                                                 {song.image ? (
                                                     <Image
                                                         src={song.image}
@@ -366,17 +367,17 @@ export const MoveToModal = ({ isOpen, items, onClose }: MoveToModalProps) => {
                                                 )}
                                             </div>
                                             <div className="min-w-0">
-                                                <h5 className="font-bold text-xs text-white truncate">
+                                                <h5 className="font-bold text-xs text-n-text truncate">
                                                     {song.title}
                                                 </h5>
-                                                <p className="text-[9px] text-neutral-500">
+                                                <p className="text-[9px] text-n-text-2">
                                                     {song.state}
                                                 </p>
                                             </div>
                                         </div>
                                     ))
                                 ) : (
-                                    <div className="h-48 flex flex-col items-center justify-center text-center text-neutral-600 p-4">
+                                    <div className="h-48 flex flex-col items-center justify-center text-center text-n-text-3 p-4">
                                         <Folder
                                             size={24}
                                             className="text-neutral-700 mb-2"
@@ -397,17 +398,17 @@ export const MoveToModal = ({ isOpen, items, onClose }: MoveToModalProps) => {
                 {/* Footer Actions */}
                 <div className="px-6 py-4 bg-neutral-950/20 shrink-0 flex items-center justify-between">
                     {/* Status Summary */}
-                    <div className="flex items-center gap-2 text-xs text-neutral-400 font-semibold min-w-0 pr-4">
-                        <span className="truncate max-w-[120px] font-bold text-white">
+                    <div className="flex items-center gap-2 text-xs text-n-text-2 font-semibold min-w-0 pr-4">
+                        <span className="truncate max-w-[120px] font-bold text-n-text">
                             {items.length === 1
                                 ? `"${items[0].title}"`
                                 : `${items.length} items`}
                         </span>
                         <ArrowRight
                             size={14}
-                            className="shrink-0 text-neutral-500"
+                            className="shrink-0 text-n-text-2"
                         />
-                        <span className="truncate max-w-[150px] font-bold text-[#D90097] flex items-center gap-1">
+                        <span className="truncate max-w-[150px] font-bold text-n-accent flex items-center gap-1">
                             <Folder size={12} className="shrink-0" />
                             {selectedProjectId === "standalone_none"
                                 ? "Standalone"
@@ -419,14 +420,14 @@ export const MoveToModal = ({ isOpen, items, onClose }: MoveToModalProps) => {
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 text-xs font-semibold text-neutral-400 hover:text-white border border-neutral-800 hover:border-neutral-700 rounded-lg transition-colors cursor-pointer"
+                            className="px-4 py-2 text-xs font-semibold text-n-text-2 hover:text-n-text border border-n-border hover:border-n-border-2 rounded-lg transition-colors cursor-pointer"
                         >
                             Cancel
                         </button>
                         <button
                             type="button"
                             onClick={handleMove}
-                            className="px-5 py-2 text-xs font-semibold text-white bg-gradient-to-r from-[#AB0063] to-[#D50093] rounded-lg shadow-lg hover:opacity-90 hover:scale-[1.02] transition-all cursor-pointer flex items-center gap-2"
+                            className="bg-n-cta text-n-cta-text hover:bg-n-cta-hover rounded-lg px-4 py-2 font-semibold transition-colors"
                         >
                             <span>Move Here</span>
                         </button>

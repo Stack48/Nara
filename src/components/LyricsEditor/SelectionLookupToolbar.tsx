@@ -61,11 +61,11 @@ export default function SelectionLookupToolbar({
 		<div
 			role="toolbar"
 			aria-label={`Actions pour ${selection.text}`}
-			className="fixed z-[70] flex min-h-8 items-center gap-1 rounded-[7px] border border-[#3A3A42] bg-[#202027] px-1.5 py-1 shadow-[0_12px_28px_rgba(0,0,0,0.34)]"
+			className="fixed z-[70] flex min-h-8 items-center gap-1 rounded-[7px] border border-[var(--nara-border-strong)] bg-[var(--nara-surface-raised)] px-1.5 py-1 shadow-[0_12px_28px_rgba(0,0,0,0.34)]"
 			style={{ left, top, transform: "translateX(-50%)" }}
 			onMouseDown={(event): void => event.preventDefault()}
 		>
-			<span className="flex max-w-[112px] items-center gap-1.5 truncate px-1.5 text-[11px] font-semibold text-[#F3F4F6]">
+			<span className="flex max-w-[112px] items-center gap-1.5 truncate px-1.5 text-[11px] font-semibold text-[var(--nara-text-primary)]">
 				<Search size={12} strokeWidth={1.8} />
 				<span className="truncate">
 					{isTransformSelection ? "Transformer" : selection.text}
@@ -81,7 +81,7 @@ export default function SelectionLookupToolbar({
 								key={`transform-${kind}`}
 								type="button"
 								onClick={(): void => onTransformSelection(kind)}
-								className="h-6 rounded-[4px] px-2 text-[10px] font-semibold text-[#F3F4F6] transition-colors hover:bg-[#2B2B31] hover:text-white"
+								className="h-6 rounded-[4px] px-2 text-[10px] font-semibold text-[var(--nara-text-primary)] transition-colors hover:bg-[var(--nara-surface-soft)] hover:text-[var(--nara-text-primary)]"
 							>
 								{getSectionLabel(kind)}
 							</button>
@@ -93,35 +93,35 @@ export default function SelectionLookupToolbar({
 					<button
 						type="button"
 						onClick={(): void => onSearch("all")}
-						className="h-6 rounded-[4px] px-2 text-[10px] font-semibold text-[#F3F4F6] transition-colors hover:bg-[#2B2B31] hover:text-white"
+						className="h-6 rounded-[4px] px-2 text-[10px] font-semibold text-[var(--nara-text-primary)] transition-colors hover:bg-[var(--nara-surface-soft)] hover:text-[var(--nara-text-primary)]"
 					>
 						Tout
 					</button>
 					<button
 						type="button"
 						onClick={(): void => onSearch("rhymes")}
-						className="h-6 rounded-[4px] px-2 text-[10px] font-semibold text-[#CFCFD6] transition-colors hover:bg-[#2B2B31] hover:text-white"
+						className="h-6 rounded-[4px] px-2 text-[10px] font-semibold text-[var(--nara-text-primary)] transition-colors hover:bg-[var(--nara-surface-soft)] hover:text-[var(--nara-text-primary)]"
 					>
 						Rimes
 					</button>
 					<button
 						type="button"
 						onClick={(): void => onSearch("synonyms")}
-						className="h-6 rounded-[4px] px-2 text-[10px] font-semibold text-[#CFCFD6] transition-colors hover:bg-[#2B2B31] hover:text-white"
+						className="h-6 rounded-[4px] px-2 text-[10px] font-semibold text-[var(--nara-text-primary)] transition-colors hover:bg-[var(--nara-surface-soft)] hover:text-[var(--nara-text-primary)]"
 					>
 						Synonymes
 					</button>
 					<button
 						type="button"
 						onClick={(): void => onSearch("antonyms")}
-						className="h-6 rounded-[4px] px-2 text-[10px] font-semibold text-[#CFCFD6] transition-colors hover:bg-[#2B2B31] hover:text-white"
+						className="h-6 rounded-[4px] px-2 text-[10px] font-semibold text-[var(--nara-text-primary)] transition-colors hover:bg-[var(--nara-surface-soft)] hover:text-[var(--nara-text-primary)]"
 					>
 						Antonymes
 					</button>
 					<button
 						type="button"
 						onClick={(): void => onSearch("lexical")}
-						className="h-6 rounded-[4px] px-2 text-[10px] font-semibold text-[#CFCFD6] transition-colors hover:bg-[#2B2B31] hover:text-white"
+						className="h-6 rounded-[4px] px-2 text-[10px] font-semibold text-[var(--nara-text-primary)] transition-colors hover:bg-[var(--nara-surface-soft)] hover:text-[var(--nara-text-primary)]"
 					>
 						Champ
 					</button>
@@ -131,7 +131,7 @@ export default function SelectionLookupToolbar({
 				type="button"
 				aria-label="Fermer la recherche"
 				onClick={onClose}
-				className="ml-1 h-6 rounded-[4px] px-1.5 text-[10px] font-semibold text-[#8C8C96] transition-colors hover:bg-[#2B2B31] hover:text-white"
+				className="ml-1 h-6 rounded-[4px] px-1.5 text-[10px] font-semibold text-[var(--nara-text-muted)] transition-colors hover:bg-[var(--nara-surface-soft)] hover:text-[var(--nara-text-primary)]"
 			>
 				Esc
 			</button>

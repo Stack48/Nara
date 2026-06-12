@@ -29,19 +29,18 @@ enum SuggestionStatus {
   REJECTED
 }
 
-enum SectionType {
-  COUPLET
-  REFRAIN
-  PONT
-  INTRO
-  OUTRO
-  BRIDGE
+enum ProjectStatus {
+  DRAFT
+  IN_PROGRESS
+  COMPLETED
+  ARCHIVED
 }
 
-enum SuggestionStatus {
-  PENDING
-  APPROVED
-  REJECTED
+enum LyricsState {
+  DRAFT
+  IN_PROGRESS
+  COMPLETED
+  REVIEW
 }
 
 model User {
@@ -50,6 +49,7 @@ model User {
   email          String   @unique
   name           String?
   username       String?  @unique
+  avatarUrl      String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -61,51 +61,31 @@ model User {
   lyricVersions  LyricVersion[]
   files          File[]
   auditLogs      AuditLog[]
-  rgpdConsent    RgpdConsent?
   markers        AudioMarker[]
   passwordResets PasswordResetRequest[]
-  lyricVersions LyricVersion[]
+  comments       Comment[]
 }
 
 model Project {
-  id          String   @id @default(cuid())
+  id          String        @id @default(cuid())
   name        String
   description String?
   genre       String?
-  status      String   @default("DRAFT")
+  status      ProjectStatus @default(DRAFT)
+  imageUrl    String?
+  isFavorite  Boolean       @default(false)
+  isDeleted   Boolean       @default(false)
+  deletedAt   DateTime?
   ownerId     String
-  content     String?  // Auto-saved content
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
   owner       User            @relation("OwnedProjects", fields: [ownerId], references: [id], onDelete: Cascade)
   members     ProjectMember[]
   invitations Invitation[]
-  versions    ProjectVersion[]
   lyrics      Lyrics[]
   files       File[]
   labelCopies LabelCopy[]
-}
-
-model ProjectVersion {
-  id          String   @id @default(cuid())
-  name        String?  // Ex: "V1 - Premier jet"
-  content     String   // Le JSON du document ou texte
-  createdAt   DateTime @default(now())
-
-  projectId   String
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-}
-
-model WordSuggestion {
-  id               String   @id @default(cuid())
-  word             String   @unique
-  description      String
-  synonyms         String?
-  antonyms         String?
-  isVerifiedByNara Boolean  @default(false)
-  status           String   @default("PENDING") // PENDING, APPROVED, REJECTED
-  createdAt        DateTime @default(now())
 }
 
 model ProjectMember {
@@ -143,20 +123,23 @@ model Lyrics {
   content     Json
   order       Int         @default(0)
   sectionType SectionType @default(COUPLET)
-  projectId   String
+  state       LyricsState @default(DRAFT)
+  imageUrl    String?
+  audioSrc    String?
+  isFavorite  Boolean     @default(false)
+  isDeleted   Boolean     @default(false)
+  deletedAt   DateTime?
+  projectId   String?
   authorId    String
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
-  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  author      User         @relation(fields: [authorId], references: [id])
-  suggestions Suggestion[]
-  versions    LyricVersion[]
-  project     Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project     Project?       @relation(fields: [projectId], references: [id], onDelete: Cascade)
   author      User           @relation(fields: [authorId], references: [id])
   suggestions Suggestion[]
   versions    LyricVersion[]
   markers     AudioMarker[]
+  comments    Comment[]
 }
 
 model Suggestion {
@@ -182,4 +165,88 @@ model LyricVersion {
 
   lyrics    Lyrics @relation(fields: [lyricsId], references: [id], onDelete: Cascade)
   author    User   @relation(fields: [authorId], references: [id])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  lyricsId  String
+  authorId  String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lyrics    Lyrics @relation(fields: [lyricsId], references: [id], onDelete: Cascade)
+  author    User   @relation(fields: [authorId], references: [id])
+}
+
+model File {
+  id           String   @id @default(cuid())
+  name         String
+  originalName String
+  mimeType     String
+  size         Int
+  s3Key        String   @unique
+  projectId    String
+  uploadedBy   String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  project      Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploader     User          @relation(fields: [uploadedBy], references: [id])
+  markers      AudioMarker[]
+}
+
+model AudioMarker {
+  id        String   @id @default(cuid())
+  timecode  Float
+  label     String?
+  lyricsId  String
+  fileId    String
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lyrics    Lyrics   @relation(fields: [lyricsId], references: [id], onDelete: Cascade)
+  file      File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  creator   User     @relation(fields: [createdBy], references: [id])
+}
+
+model LabelCopy {
+  id            String    @id @default(cuid())
+  title         String
+  isrc          String?
+  composers     String[]
+  publishers    String[]
+  recordLabel   String?
+  releaseDate   DateTime?
+  projectId     String
+  bridgeAudioId String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  resource  String
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PasswordResetRequest {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique @default(cuid())
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

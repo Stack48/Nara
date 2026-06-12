@@ -9,6 +9,8 @@ import { LibraryHeader } from "./LibraryHeader";
 import { ProjectCard } from "./projectCard";
 import { useSelection } from "@/context/SelectionContext";
 import { ChevronUp, ChevronDown } from "lucide-react";
+import { useApiProjects } from "@/hooks/useApiProjects";
+import { SkeletonGrid, SkeletonList } from "@/components/ui/SkeletonCard";
 
 export const Projects = () => {
     // États pour le menu contextuel et renommage
@@ -24,7 +26,8 @@ export const Projects = () => {
 
     const { selectedIds, handleSelect } = useSelection();
 
-    const allProjects = useProjects();
+    // Après
+    const { projects: allProjects, loading } = useApiProjects();
     const projectsList = allProjects.filter(
         (project) => !project.isDeleted && !project.isShared,
     );
@@ -67,7 +70,7 @@ export const Projects = () => {
     };
 
     return (
-        <div className="w-full font-arimo text-white pb-10">
+        <div className="w-full font-arimo text-n-text pb-10 min-h-[600px]">
             <LibraryHeader
                 title="My Projects"
                 itemCount={sortedProjectList.length}
@@ -82,10 +85,11 @@ export const Projects = () => {
                 viewMode={viewMode}
                 setViewMode={setViewMode}
             />
-
             {/* CONDITION D'AFFICHAGE SELON LE VIEWMODE */}
-            {sortedProjectList.length === 0 && searchQuery ? (
-                <div className="flex flex-col items-center justify-center py-20 text-neutral-500 border border-neutral-800/80 rounded-2xl bg-[#151515] border-dashed">
+            {loading ? (
+                viewMode === "grid" ? <SkeletonGrid type="project" /> : <SkeletonList />
+            ) : sortedProjectList.length === 0 && searchQuery ? (
+                <div className="flex flex-col items-center justify-center py-20 text-n-text-2 border border-n-border/80 rounded-2xl bg-n-surface border-dashed">
                     <p>No projects found matching "{searchQuery}".</p>
                 </div>
             ) : viewMode === "grid" ? (
@@ -112,11 +116,11 @@ export const Projects = () => {
                 /* --- VUE LISTE --- */
                 <div className="w-full">
                     {/* En-tête du tableau */}
-                    <div className="grid grid-cols-12 gap-4 pb-4 mb-2 text-xs font-medium text-neutral-500 border-b border-neutral-800">
+                    <div className="grid grid-cols-12 gap-4 pb-4 mb-2 text-xs font-medium text-n-text-2 border-b border-n-border">
                         <button
                             type="button"
                             onClick={() => handleHeaderSort("alphabetical")}
-                            className="col-span-6 pl-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                            className="col-span-6 pl-2 flex items-center gap-1 hover:text-n-text transition-colors text-left font-medium"
                         >
                             <span>Name</span>
                             {sortBy === "alphabetical" && (
@@ -126,7 +130,7 @@ export const Projects = () => {
                         <button
                             type="button"
                             onClick={() => handleHeaderSort("modified")}
-                            className="col-span-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                            className="col-span-2 flex items-center gap-1 hover:text-n-text transition-colors text-left font-medium"
                         >
                             <span>Last modified</span>
                             {sortBy === "modified" && (
@@ -136,7 +140,7 @@ export const Projects = () => {
                         <button
                             type="button"
                             onClick={() => handleHeaderSort("created")}
-                            className="col-span-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                            className="col-span-2 flex items-center gap-1 hover:text-n-text transition-colors text-left font-medium"
                         >
                             <span>Created</span>
                             {sortBy === "created" && (
@@ -194,15 +198,25 @@ export const Projects = () => {
                     label="Project Name"
                     placeholder="Enter project name"
                     initialValue={renameModal.initialTitle}
-                    onSave={(newValue) => {
-                        renameProject(renameModal.projectId, newValue);
-                        window.dispatchEvent(
-                            new CustomEvent("show-nara-toast", {
-                                detail: {
-                                    message: `Project renamed to "${newValue}"`,
+                    onSave={async (newValue) => {
+                        try {
+                            const { getCurrentUser } = await import("aws-amplify/auth");
+                            const user = await getCurrentUser();
+                            await fetch(`/api/projects/${renameModal.projectId}/rename`, {
+                                method: "PATCH",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "x-cognito-id": user.userId,
                                 },
-                            }),
-                        );
+                                body: JSON.stringify({ name: newValue }),
+                            });
+                            window.dispatchEvent(new CustomEvent("show-nara-toast", {
+                                detail: { message: `Project renamed to "${newValue}"` },
+                            }));
+                            window.dispatchEvent(new CustomEvent("nara-data-updated"));
+                        } catch (err) {
+                            console.error("Rename error:", err);
+                        }
                     }}
                 />
             )}
