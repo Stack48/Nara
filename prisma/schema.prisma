@@ -29,19 +29,10 @@ enum SuggestionStatus {
   REJECTED
 }
 
-enum SectionType {
-  COUPLET
-  REFRAIN
-  PONT
-  INTRO
-  OUTRO
-  BRIDGE
-}
-
-enum SuggestionStatus {
-  PENDING
-  APPROVED
-  REJECTED
+enum PlanType {
+  FREE_TRIAL
+  BASIC
+  PRO
 }
 
 model User {
@@ -55,7 +46,7 @@ model User {
 
   memberships    ProjectMember[]
   invitations    Invitation[]
-  ownedProjects  Project[]            @relation("OwnedProjects")
+  ownedProjects  Project[]              @relation("OwnedProjects")
   lyrics         Lyrics[]
   suggestions    Suggestion[]
   lyricVersions  LyricVersion[]
@@ -64,6 +55,9 @@ model User {
   rgpdConsent    RgpdConsent?
   markers        AudioMarker[]
   passwordResets PasswordResetRequest[]
+
+  subscription Subscription?
+  apiKeys      ApiKey[]
   lyricVersions LyricVersion[]
 }
 
@@ -180,6 +174,128 @@ model LyricVersion {
   authorId  String
   createdAt DateTime @default(now())
 
-  lyrics    Lyrics @relation(fields: [lyricsId], references: [id], onDelete: Cascade)
-  author    User   @relation(fields: [authorId], references: [id])
+  lyrics Lyrics @relation(fields: [lyricsId], references: [id], onDelete: Cascade)
+  author User   @relation(fields: [authorId], references: [id])
+}
+
+model File {
+  id           String   @id @default(cuid())
+  name         String
+  originalName String
+  mimeType     String
+  size         Int
+  s3Key        String   @unique
+  s3Bucket     String
+  projectId    String
+  uploadedBy   String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  project  Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploader User          @relation(fields: [uploadedBy], references: [id])
+  markers  AudioMarker[]
+}
+
+model AudioMarker {
+  id        String   @id @default(cuid())
+  timecode  Float
+  label     String?
+  lyricsId  String
+  fileId    String
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lyrics  Lyrics @relation(fields: [lyricsId], references: [id], onDelete: Cascade)
+  file    File   @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  creator User   @relation(fields: [createdBy], references: [id])
+}
+
+model LabelCopy {
+  id            String    @id @default(cuid())
+  title         String
+  isrc          String?
+  composers     String[]
+  publishers    String[]
+  recordLabel   String?
+  releaseDate   DateTime?
+  projectId     String
+  bridgeAudioId String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  resource  String
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model RgpdConsent {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  accepted  Boolean
+  version   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PasswordResetRequest {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique @default(cuid())
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id                   String    @id @default(cuid())
+  userId               String    @unique
+  stripeCustomerId     String?   @unique
+  stripeSubscriptionId String?   @unique
+  planType             PlanType  @default(FREE_TRIAL)
+  status               String    @default("active")
+  currentPeriodEnd     DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ApiKey {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String   @default("Default Key")
+  keyHash   String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  rateLimits RateLimit[]
+}
+
+model RateLimit {
+  id       String   @id @default(cuid())
+  apiKeyId String
+  endpoint String
+  count    Int      @default(0)
+  resetAt  DateTime
+
+  apiKey ApiKey @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+
+  @@unique([apiKeyId, endpoint])
 }
