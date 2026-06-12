@@ -28,7 +28,8 @@ Finaliser le **back-end du dictionnaire communautaire** (43-BE / 48-BE) et l'aff
 | Sécurité & RGPD | 20-BE | `server/crypto.service.ts`, `rgpd.service.ts`, `audit.service.ts`, `rateLimitAuth.ts` | [prd](./prd/securite-rgpd.md) | ✅ (pentest/SOC2 hors scope) |
 | Audio & markers | 21-BE, 35-FE | `server/bridge-audio.service.ts`, routes markers/label-copy | [prd](./prd/audio-markers.md) | ✅ back · 🔄 player front |
 | Outils linguistiques | 30-FE | `lib/lexique.ts`, `lib/dicolink.ts`, `hooks/useLinguistic.ts` | [prd](./prd/outils-linguistiques.md) | ✅ (refactor filtres 🔄) |
-| Dictionnaire communautaire | 43/44/45/46/47/48 | `server/dictionary/controller.ts`, routes dictionary + admin | [prd](./prd/dictionnaire-communautaire.md) | 🔄 en cours (43/48 entamés) |
+| Dictionnaire communautaire | 43/45/46/47/48 | `server/dictionary/controller.ts`, routes dictionary + admin | [prd](./prd/dictionnaire-communautaire.md) | 🔄 en cours (43/48 entamés) |
+| Dictionnaire — crawling | 44-BE | `server/crawl/**` (crawlers datamuse/free-dict/wiktionary, job, service), routes admin+cron | [prd](./prd/dictionnaire-crawling.md) | ✅ (datasets lourds à venir) |
 
 ### Fait récemment ✅
 - **Migrations Prisma réparées** : historique squashé en 2 migrations propres (`20260611085034_baseline` + `20260611095811_extend_word_suggestion`). `prisma migrate status` et `migrate dev` passent.
@@ -46,7 +47,7 @@ Finaliser le **back-end du dictionnaire communautaire** (43-BE / 48-BE) et l'aff
 2. **Tester les routes dictionnaire** contre le PRD (pagination, filtres, vote unique/remplacement, seuil auto-verified, 403 admin pour non-admin).
 3. **Vérifier le seuil auto-verified** (EF-6, défaut 10) dans `dictionary/controller.ts`.
 4. **Terminer le refactor LyricsInspector** (props `panelId`-based sur la card).
-5. 44-BE : crawling bases externes (indépendant, après 43-BE).
+5. **44-BE crawling = déjà construit** (`server/crawl/**`) — voir [prd/dictionnaire-crawling.md](./prd/dictionnaire-crawling.md). Restes : curseur de reprise des seeds (Q-1), auth admin sur RBAC réel, imports datasets lourds (Lexique.org/DBnary).
 
 ## 3. Décisions prises — et POURQUOI
 

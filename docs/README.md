@@ -23,7 +23,8 @@
 | [prd/securite-rgpd.md](./prd/securite-rgpd.md) | Sécurité, chiffrement, RGPD | 20-BE | ✅ |
 | [prd/audio-markers.md](./prd/audio-markers.md) | Player audio, markers, Bridge.audio | 21-BE, 35-FE | ✅ back · 🔄 player |
 | [prd/outils-linguistiques.md](./prd/outils-linguistiques.md) | Rimes, syllabes, synonymes | 30-FE | ✅ (refactor filtres 🔄) |
-| [prd/dictionnaire-communautaire.md](./prd/dictionnaire-communautaire.md) | Dictionnaire communautaire | 43/44/45/46/47/48 | 🔄 en cours |
+| [prd/dictionnaire-communautaire.md](./prd/dictionnaire-communautaire.md) | Dictionnaire communautaire | 43/45/46/47/48 | 🔄 en cours |
+| [prd/dictionnaire-crawling.md](./prd/dictionnaire-crawling.md) | Dictionnaire — crawling bases externes | 44-BE | ✅ |
 
 ## Règles d'or (résumé — détail dans HANDOFF §7)
 

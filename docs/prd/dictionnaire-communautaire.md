@@ -53,7 +53,7 @@ Le **dictionnaire communautaire** permet aux utilisateurs de contribuer des mots
 
 ## 5. Non-objectifs (hors scope de cette itération)
 
-- **PAS de crawling externe** (Wiktionnaire, CNRTL, Datamuse, Free Dictionary) — c'est le ticket 44-BE, séparé.
+- **PAS de crawling externe ici** (Wiktionnaire, Datamuse, Free Dictionary) — c'est le ticket 44-BE, traité séparément et **déjà implémenté** : voir [dictionnaire-crawling](./dictionnaire-crawling.md). Note : les données crawlées vivent dans `DictionaryEntry` (staging multi-source), distinct de `WordSuggestion` (canal communautaire) — ne pas confondre les deux.
 - **PAS de notification email** à l'auteur après décision de modération — dépend de 13-BE (Cognito). En V1 : simple mise à jour du statut visible dans l'UI.
 - **PAS de suggestion inline dans l'éditeur** (46-FE) ni de panneau ghostwriter (47-FE) — sprints S5, après stabilisation de l'API.
 - **PAS d'auth Cognito réelle** : tant que 13-BE n'est pas livré, l'identité passe par un `cognitoId` simulé (voir `getOrCreateUser` dans `src/server/dictionary/controller.ts`).

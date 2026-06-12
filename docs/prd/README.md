@@ -13,6 +13,7 @@ Un PRD (Product Requirements Document) par domaine fonctionnel. Chacun suit la m
 | [securite-rgpd](./securite-rgpd.md) | Sécurité, chiffrement, RGPD | 20-BE | ✅ |
 | [audio-markers](./audio-markers.md) | Player audio, markers, Bridge.audio | 21-BE, 35-FE | ✅ back · 🔄 player |
 | [outils-linguistiques](./outils-linguistiques.md) | Rimes, syllabes, synonymes | 30-FE | ✅ (refactor filtres 🔄) |
-| [dictionnaire-communautaire](./dictionnaire-communautaire.md) | Dictionnaire communautaire | 43/44/45/46/47/48 | 🔄 en cours |
+| [dictionnaire-communautaire](./dictionnaire-communautaire.md) | Dictionnaire communautaire | 43/45/46/47/48 | 🔄 en cours |
+| [dictionnaire-crawling](./dictionnaire-crawling.md) | Dictionnaire — crawling bases externes | 44-BE | ✅ (datasets lourds à venir) |
 
 > Convention de nommage : `prd/<feature-name>.md` (kebab-case, sans préfixe `prd-` puisqu'on est déjà dans `prd/`). L'état de vérité reste le code + le [HANDOFF](../HANDOFF.md) ; un PRD au statut ✅ documente l'existant.
