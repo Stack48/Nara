@@ -1,345 +1,329 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getCurrentUser } from "aws-amplify/auth";
+import "@/lib/amplify";
 import { MenuContext } from "@/context/MenuContext";
-import { useSongs, Song } from "@/lib/songStore";
-import {
-    Pencil,
-    MoreHorizontal,
-    CircleCheck,
-    CircleMinus,
-    Circle,
-    MoreVertical,
-    Music,
-} from "lucide-react";
-import alfredo from "@/assets/cover/alfredo.png";
-import allen from "@/assets/user/allen.png";
-import duncan from "@/assets/user/duncan.png";
-import haslem from "@/assets/user/haslem.png";
-import lgseo from "@/assets/cover/lgseo.png";
-import mcgrady from "@/assets/user/mcgrady.png";
-import vince from "@/assets/cover/vince.png";
-
-const isValidImageSrc = (img: any): boolean => {
-    if (!img) return false;
-    if (typeof img === "string") return img.trim() !== "";
-    if (typeof img === "object") return !!img.src;
-    return false;
-};
+import { Song } from "@/lib/songStore";
+import { Pencil, MoreHorizontal, MoreVertical, Music, User } from "lucide-react";
+import { useApiSongs } from "@/hooks/useApiSongs";
+import { useApiProjects } from "@/hooks/useApiProjects";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 export const Dashboard = () => {
-    // Données factices basées sur ton design
-    const recentComments = [
-        {
-            name: "Tracy McGrady",
-            time: "il y a 2 heures",
-            song: "F.I.C.O",
-            text: "Le 1er couplet a une super vibe. Peut être faut-il renforcer la chute sur la dernière ligne ?",
-            unread: true,
-            image: mcgrady,
-        },
-        {
-            name: "Tim Duncan",
-            time: "il y a 2 heures",
-            song: "Ensalada",
-            text: "Les adlibs en fin de refrain fonctionnent bien, à garder !",
-            unread: false,
-            image: duncan,
-        },
-        {
-            name: "Ray Allen",
-            time: "il y a 2 heures",
-            song: "Let God Sort Em Out/Chandeliers",
-            text: "J'aime l'énergie ici. Le bridge manque encore d'impact, on creuse ça ensemble ce soir.",
-            unread: false,
-            image: allen,
-        },
-    ];
+    const [recentComments, setRecentComments] = useState<any[]>([]);
+    const [userName, setUserName] = useState<string>("");
+    const [userAvatar, setUserAvatar] = useState<string>("");
+    const [contextMenu, setContextMenu] = useState<{ x: number; y: number; song: Song } | null>(null);
 
-    const allSongs = useSongs();
-    const ficoSong = allSongs.find((s) => s.id === "FICO") || allSongs[0];
+    const { projects, loading: loadingProjects } = useApiProjects();
+    const { songs: allSongs, loading: loadingSongs } = useApiSongs();
+
+    const recentProjects = projects.filter(p => !p.isDeleted).slice(0, 4);
     const recentSongs = [...allSongs]
-        .filter((s) => !s.isDeleted)
-        .sort(
-            (a, b) =>
-                b.lastModifiedDate.getTime() - a.lastModifiedDate.getTime(),
-        )
+        .filter(s => !s.isDeleted)
+        .sort((a, b) => b.lastModifiedDate.getTime() - a.lastModifiedDate.getTime())
         .slice(0, 4);
 
-    const [contextMenu, setContextMenu] = useState<{
-        x: number;
-        y: number;
-        song: Song;
-    } | null>(null);
+    const latestSong = recentSongs[0];
+    const latestProject = projects[0];
 
-    const handleContextMenu = (e: React.MouseEvent, song: Song) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setContextMenu({
-            x: e.clientX,
-            y: e.clientY,
-            song,
-        });
-    };
+    useEffect(() => {
+        const init = async () => {
+            try {
+                const user = await getCurrentUser();
+                const { fetchUserAttributes } = await import("aws-amplify/auth");
+                const attrs = await fetchUserAttributes();
+                setUserName(attrs.name || attrs.preferred_username || attrs.email?.split("@")[0] || user.signInDetails?.loginId?.split("@")[0] || "User");
+                setUserAvatar(attrs.picture || "");
+
+                const [commentsRes, meRes] = await Promise.all([
+                    fetch("/api/comments/recent", { headers: { "x-cognito-id": user.userId } }),
+                    fetch("/api/users/me", { headers: { "x-cognito-id": user.userId } })
+                ]);
+                
+                if (commentsRes.ok) setRecentComments(await commentsRes.json());
+                if (meRes.ok) {
+                    const meData = await meRes.json();
+                    if (meData.avatarUrl) setUserAvatar(meData.avatarUrl);
+                    if (meData.name) setUserName(meData.name);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        };
+        init();
+    }, []);
+
+    if (loadingProjects || loadingSongs) {
+        return (
+            <div className="w-full flex-1 flex flex-col font-arimo pb-2">
+                <div className="mb-6 flex-shrink-0">
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-[#FFFFFF] from-[35%] to-[#D90097] to-[100%] bg-clip-text text-transparent inline-block">
+                        Welcome back to NARA
+                    </h1>
+                    <p className="text-neutral-400 mt-1">Let's write songs together !</p>
+                </div>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-12 lg:grid-rows-[3fr_2fr] gap-6 flex-1 min-h-0">
+                    <div className="lg:col-span-9 relative bg-[#151515] rounded-2xl border border-neutral-800 flex flex-col overflow-hidden">
+                        <div className="relative z-10 p-8 flex flex-col lg:flex-row items-center justify-between gap-8 h-full">
+                            <div className="flex flex-col justify-center flex-1 w-full gap-4">
+                                <Skeleton className="w-40 h-8 rounded-lg" />
+                                <div className="mt-4">
+                                    <Skeleton className="w-3/4 h-16" />
+                                    <Skeleton className="w-48 h-6 mt-2" />
+                                </div>
+                                <div className="flex items-center gap-3 mt-6">
+                                    <Skeleton className="w-32 h-4" />
+                                    <div className="flex items-center gap-2">
+                                        <Skeleton className="w-7 h-7 rounded-full shrink-0" />
+                                        <Skeleton className="w-24 h-4" />
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-4 mt-8">
+                                    <Skeleton className="w-40 h-12 rounded-lg" />
+                                    <Skeleton className="w-12 h-12 rounded-lg" />
+                                </div>
+                            </div>
+                            <div className="w-full lg:w-[380px] bg-[#0A0A0A]/80 backdrop-blur-md rounded-xl p-6 border border-neutral-800 flex flex-col gap-4 shadow-2xl">
+                                <Skeleton className="w-32 h-4 mb-2" />
+                                {[1, 2, 3].map(i => <Skeleton key={i} className="h-10 w-full rounded-lg" />)}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="lg:col-span-3 bg-[#151515] rounded-2xl p-6 border border-neutral-800 flex flex-col min-h-0">
+                        <div className="flex items-center justify-between mb-6">
+                            <Skeleton className="w-32 h-4" />
+                            <Skeleton className="w-16 h-4" />
+                        </div>
+                        <div className="flex flex-col gap-4 flex-1 min-h-0">
+                            {[1, 2, 3].map(i => (
+                                <Skeleton key={i} className="h-24 w-full rounded-xl" />
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="lg:col-span-4 bg-[#151515] rounded-2xl p-6 border border-neutral-800 flex flex-col justify-between min-h-0">
+                        <div>
+                            <div className="flex items-center justify-between mb-6">
+                                <Skeleton className="w-24 h-4" />
+                                <Skeleton className="w-12 h-4" />
+                            </div>
+                            <div className="flex items-center gap-4 mb-6">
+                                <Skeleton className="w-16 h-16 rounded-full shrink-0" />
+                                <div className="flex flex-col gap-2">
+                                    <Skeleton className="w-24 h-6" />
+                                    <Skeleton className="w-48 h-3" />
+                                    <Skeleton className="w-40 h-3" />
+                                </div>
+                            </div>
+                            <div className="flex flex-col gap-3 mb-8">
+                                <Skeleton className="w-full h-5" />
+                                <Skeleton className="w-full h-5" />
+                            </div>
+                        </div>
+                        <Skeleton className="w-[45%] h-12 mx-auto rounded-lg mt-auto" />
+                    </div>
+
+                    <div className="lg:col-span-8 bg-[#151515] rounded-2xl p-6 border border-neutral-800 flex flex-col min-h-0">
+                        <div className="flex items-center justify-between mb-6">
+                            <Skeleton className="w-32 h-4" />
+                            <Skeleton className="w-16 h-4" />
+                        </div>
+                        <div className="flex flex-col gap-4 flex-1 min-h-0">
+                            {[1, 2, 3].map(i => (
+                                <Skeleton key={i} className="h-16 w-full rounded-lg" />
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="w-full flex-1 flex flex-col font-arimo pb-2">
-            {/* en tête */}
+            {/* Header */}
             <div className="mb-6 flex-shrink-0">
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-[#FFFFFF] from-[35%] to-[#D90097] to-[100%] bg-clip-text text-transparent inline-block">
                     Welcome back to NARA
                 </h1>
-                <p className="text-neutral-400 mt-1">
-                    Let's write songs together !
-                </p>
+                <p className="text-neutral-400 mt-1">Let's write songs together !</p>
             </div>
 
-            {/* grille principale */}
             <div className="grid grid-cols-1 lg:grid-cols-12 lg:grid-rows-[3fr_2fr] gap-6 flex-1 min-h-0">
-                {/* BLOC 1 : SESSION */}
-                <div className="lg:col-span-9 relative bg-[#151515] rounded-2xl border border-neutral-800 flex flex-col overflow-hidden">
-                    {/* bg img (lgseo) avec overlay */}
-                    <div className="absolute inset-0 z-0">
-                        <Image
-                            src={lgseo}
-                            alt="Cover Let God Sort Em Out"
-                            fill
-                            className="object-cover opacity-50 mix-blend-lighten"
-                        />
-                        {/* Dégradé pour assombrir la gauche et laisser l'image visible à droite */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-[#121212] via-[#121212]/60 to-transparent"></div>
-                    </div>
 
-                    {/* contenu principal */}
+                {/* BLOC 1 : SESSION EN ÉCRITURE */}
+                <div className="lg:col-span-9 relative bg-[#151515] rounded-2xl border border-neutral-800 flex flex-col overflow-hidden">
+                    {latestSong?.image && (
+                        <div className="absolute inset-0 z-0">
+                            <img src={typeof latestSong.image === "string" ? latestSong.image : latestSong.image?.src} alt="" className="w-full h-full object-cover opacity-50 mix-blend-lighten" />
+                            <div className="absolute inset-0 bg-gradient-to-r from-[#121212] via-[#121212]/60 to-transparent" />
+                        </div>
+                    )}
                     <div className="relative z-10 p-8 flex flex-col lg:flex-row items-center justify-between gap-8 h-full">
-                        {/*left : infos session */}
                         <div className="flex flex-col justify-center flex-1 w-full">
-                            {/* animation session */}
                             <span className="inline-flex items-center gap-2 w-fit bg-[#D90097]/10 border border-[#D90097]/30 text-[#D90097] text-xs font-bold tracking-widest px-3 py-1.5 rounded-lg uppercase animate-pulse">
-                                <span className="w-2 h-2 rounded-full bg-[#D90097]"></span>
+                                <span className="w-2 h-2 rounded-full bg-[#D90097]" />
                                 Session en écriture
                             </span>
-
                             <div className="mt-4">
-                                <h2 className="text-5xl sm:text-6xl font-extrabold font-syne tracking-widest text-white drop-shadow-lg">
-                                    {ficoSong?.title || "F.I.C.O"}
-                                </h2>
-                                <p className="text-xl text-neutral-300 mt-1">
-                                    from{" "}
-                                    {ficoSong?.projectName ? (
-                                        <Link href={`/projects/${ficoSong.projectId}`} className="underline decoration-neutral-500 underline-offset-4 hover:text-white transition-colors cursor-pointer">
-                                            {ficoSong.projectName}
-                                        </Link>
-                                    ) : (
-                                        <span className="underline decoration-neutral-500 underline-offset-4 hover:text-white transition-colors cursor-pointer">
-                                            Standalone
-                                        </span>
-                                    )}
-                                </p>
+                                {loadingSongs ? (
+                                    <div className="h-16 w-64 bg-neutral-800/60 rounded-lg animate-pulse" />
+                                ) : latestSong ? (
+                                    <>
+                                        <h2 className="text-5xl sm:text-6xl font-extrabold font-syne tracking-widest text-white drop-shadow-lg">
+                                            {latestSong.title}
+                                        </h2>
+                                        <p className="text-xl text-neutral-300 mt-1">
+                                            from{" "}
+                                            {latestSong.projectName ? (
+                                                <Link href={`/projects/${latestSong.projectId}`} className="underline decoration-neutral-500 underline-offset-4 hover:text-white transition-colors">
+                                                    {latestSong.projectName}
+                                                </Link>
+                                            ) : (
+                                                <span className="underline decoration-neutral-500 underline-offset-4">Standalone</span>
+                                            )}
+                                        </p>
+                                    </>
+                                ) : latestProject ? (
+                                    <>
+                                        <h2 className="text-5xl sm:text-6xl font-extrabold font-syne tracking-widest text-white drop-shadow-lg">
+                                            {latestProject.title}
+                                        </h2>
+                                        <p className="text-xl text-neutral-300 mt-1">Projet en cours</p>
+                                    </>
+                                ) : (
+                                    <h2 className="text-3xl font-extrabold font-syne text-neutral-500">
+                                        Aucune session en cours
+                                    </h2>
+                                )}
                             </div>
-
                             <div className="flex items-center gap-3 mt-6">
-                                <span className="text-neutral-400 text-sm">
-                                    Last edited 8 minutes ago
-                                </span>
-                                <div className="flex items-center gap-2">
-                                    <Image
-                                        src={haslem}
-                                        alt="Udonis Haslem"
-                                        width={28}
-                                        height={28}
-                                        className="rounded-full object-cover w-7 h-7"
-                                    />
+                                {latestSong && (
                                     <span className="text-neutral-400 text-sm">
-                                        Udonis Haslem
+                                        Modifié le {latestSong.lastModified}
                                     </span>
+                                )}
+                                <div className="flex items-center gap-2">
+                                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#AB0063] to-[#D50093] flex items-center justify-center text-white text-xs font-bold uppercase overflow-hidden shrink-0">
+                                        {userAvatar ? (
+                                            <img src={userAvatar} alt="Avatar" className="w-full h-full object-cover" />
+                                        ) : (
+                                            userName[0]
+                                        )}
+                                    </div>
+                                    <span className="text-neutral-400 text-sm">{userName}</span>
                                 </div>
                             </div>
-
                             <div className="flex items-center gap-4 mt-8">
-                                <Link
-                                    href="/lyric-editor"
-                                    className="flex items-center gap-2 bg-gradient-to-r from-[#AB0063] from-[0%] to-[#D50093] to-[100%] shadow-lg transition-all hover:scale-[1.02] hover:opacity-90 text-white font-bold py-2.5 px-6 rounded-lg"
-                                >
-                                    <Pencil size={18} />
-                                    Continue writing
-                                </Link>
-
+                                {latestSong ? (
+                                    <Link href={`/write/${latestSong.id}`} className="flex items-center gap-2 bg-gradient-to-r from-[#AB0063] to-[#D50093] shadow-lg transition-all hover:scale-[1.02] hover:opacity-90 text-white font-bold py-2.5 px-6 rounded-lg">
+                                        <Pencil size={18} />
+                                        Continue writing
+                                    </Link>
+                                ) : (
+                                    <button
+                                        onClick={async () => {
+                                            const user = await getCurrentUser();
+                                            const res = await fetch("/api/songs/new", {
+                                                method: "POST",
+                                                headers: { "Content-Type": "application/json", "x-cognito-id": user.userId },
+                                                body: JSON.stringify({ title: "Sans titre" }),
+                                            });
+                                            if (res.ok) {
+                                                const data = await res.json();
+                                                window.location.href = `/write/${data.id}`;
+                                            }
+                                        }}
+                                        className="flex items-center gap-2 bg-gradient-to-r from-[#AB0063] to-[#D50093] shadow-lg transition-all hover:scale-[1.02] hover:opacity-90 text-white font-bold py-2.5 px-6 rounded-lg"
+                                    >
+                                        <Pencil size={18} />
+                                        Start writing
+                                    </button>
+                                )}
                                 <button className="p-2.5 border border-neutral-600 hover:bg-neutral-800 transition-colors rounded-lg text-white">
                                     <MoreHorizontal size={18} />
                                 </button>
                             </div>
                         </div>
 
-                        {/* right : structure du morceau */}
-                        <div className="w-full lg:w-[380px] bg-[#0A0A0A]/80 backdrop-blur-md rounded-xl p-6 border border-neutral-800 flex flex-col gap-5 shadow-2xl">
-                            {/*header */}
-                            <div className="flex items-center justify-between mb-2">
-                                <h3 className="font-bold text-xs tracking-widest uppercase text-white">
-                                    Structure
-                                </h3>
-                            </div>
-
-                            {/* Couplet 1 */}
-                            <div className="flex flex-col gap-2.5">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <CircleCheck
-                                            className="text-emerald-300"
-                                            size={18}
-                                            strokeWidth={2.5}
-                                        />
-                                        <span className="text-white font-bold text-sm">
-                                            Couplet 1
-                                        </span>
-                                    </div>
-                                    <span className="text-emerald-300 text-[10px] font-bold uppercase tracking-wider bg-emerald-300/15 px-2 py-0.5 rounded">
-                                        Ecrit
-                                    </span>
+                        {/* Structure depuis la vraie song */}
+                        <div className="w-full lg:w-[380px] bg-[#0A0A0A]/80 backdrop-blur-md rounded-xl p-6 border border-neutral-800 flex flex-col gap-4 shadow-2xl">
+                            <h3 className="font-bold text-xs tracking-widest uppercase text-white">Songs récentes</h3>
+                            {loadingSongs ? (
+                                <div className="flex flex-col gap-3">
+                                    {[1, 2, 3].map(i => <div key={i} className="h-8 bg-neutral-800/60 rounded animate-pulse" />)}
                                 </div>
-                            </div>
-
-                            {/* Pre-Chorus */}
-                            <div className="flex flex-col gap-2.5">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <CircleMinus
-                                            className="text-sky-300"
-                                            size={18}
-                                            strokeWidth={2.5}
-                                        />
-                                        <span className="text-white font-bold text-sm">
-                                            Pre-Chorus
-                                        </span>
-                                    </div>
-                                    <span className="text-sky-300 text-[10px] font-bold uppercase tracking-wider bg-sky-300/15 px-2 py-0.5 rounded">
-                                        Brouillon
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* Chorus */}
-                            <div className="flex flex-col gap-2.5">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <CircleMinus
-                                            className="text-orange-300"
-                                            size={18}
-                                            strokeWidth={2.5}
-                                        />
-                                        <span className="text-white font-bold text-sm">
-                                            Chorus
-                                        </span>
-                                    </div>
-                                    <span className="text-orange-300 text-[10px] font-bold uppercase tracking-wider bg-orange-300/15 px-2 py-0.5 rounded">
-                                        A retravailler
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* Verse 2 */}
-                            <div className="flex flex-col gap-2.5 opacity-60">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <Circle
-                                            className="text-[#8A8A93]"
-                                            size={18}
-                                        />
-                                        <span className="text-[#8A8A93] font-bold text-sm">
-                                            Verse 2
-                                        </span>
-                                    </div>
-                                    <span className="text-[#8A8A93] text-[10px] font-bold uppercase tracking-wider bg-[#8A8A93]/15 px-2 py-0.5 rounded">
-                                        Vide
-                                    </span>
-                                </div>
-                                <div className="h-1.5 w-full bg-neutral-800/50 rounded-full"></div>
-                            </div>
-
-                            {/* Bridge */}
-                            <div className="flex flex-col gap-2.5 opacity-60">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <Circle
-                                            className="text-[#8A8A93]"
-                                            size={18}
-                                        />
-                                        <span className="text-[#8A8A93] font-bold text-sm">
-                                            Bridge
-                                        </span>
-                                    </div>
-                                    <span className="text-[#8A8A93] text-[10px] font-bold uppercase tracking-wider bg-[#8A8A93]/15 px-2 py-0.5 rounded">
-                                        Vide
-                                    </span>
-                                </div>
-                                <div className="h-1.5 w-full bg-neutral-800/50 rounded-full"></div>
-                            </div>
+                            ) : recentSongs.length === 0 ? (
+                                <p className="text-neutral-600 text-xs">Aucune song pour l'instant</p>
+                            ) : (
+                                recentSongs.map(song => (
+                                    <Link key={song.id} href={`/write/${song.id}`} className="flex items-center justify-between hover:bg-neutral-800/40 px-2 py-1.5 rounded-lg transition-colors">
+                                        <div className="flex items-center gap-3">
+                                            {song.image ? (
+                                                <img src={typeof song.image === "string" ? song.image : song.image.src} alt="" className="w-8 h-8 rounded object-cover" />
+                                            ) : (
+                                                <div className="w-8 h-8 rounded bg-neutral-900 border border-neutral-800 flex items-center justify-center">
+                                                    <Music size={12} className="text-[#D90097] flex-shrink-0" />
+                                                </div>
+                                            )}
+                                            <span className="text-white text-sm font-medium truncate max-w-[150px]">{song.title}</span>
+                                        </div>
+                                        <span className="text-neutral-500 text-[10px]">{song.lastModified}</span>
+                                    </Link>
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>
 
                 {/* BLOC 2 : COMMENTS */}
                 <div className="lg:col-span-3 bg-[#151515] rounded-2xl p-6 border border-neutral-800 flex flex-col min-h-0">
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="font-syne text-xs font-bold tracking-widest uppercase">
-                            Recent Comments
-                        </h3>
-                        <Link
-                            href="#"
-                            className="text-xs text-neutral-300 hover:text-white transition-colors"
-                        >
-                            Voir tout
-                        </Link>
+                    <div className="flex items-center mb-6">
+                        <h3 className="font-syne text-xs font-bold tracking-widest uppercase">Recent Comments</h3>
                     </div>
-
                     <div className="flex flex-col gap-4 overflow-y-auto flex-1 min-h-0 pr-2 custom-scrollbar">
-                        {recentComments.map((comment, index) => (
-                            <div
-                                key={index}
-                                className="bg-black/30 border border-neutral-800/60 rounded-xl p-4"
-                            >
+                        {recentComments.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center flex-1 text-neutral-600 text-sm gap-2">
+                                <Music size={24} className="text-neutral-700" />
+                                <p>Aucun commentaire pour l&apos;instant</p>
+                            </div>
+                        ) : recentComments.map((comment, index) => (
+                            <div key={index} className="bg-black/30 border border-neutral-800/60 rounded-xl p-4">
                                 <div className="flex items-start justify-between mb-2">
                                     <div className="flex items-center gap-3">
-                                        <Image
-                                            src={comment.image}
-                                            alt={comment.name}
-                                            width={32}
-                                            height={32}
-                                            className="rounded-full object-cover w-8 h-8"
-                                        />
+                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#AB0063] to-[#D50093] flex items-center justify-center text-xs font-bold text-white uppercase overflow-hidden shrink-0">
+                                            {comment.author?.avatarUrl ? (
+                                                <img src={comment.author.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                                            ) : (
+                                                (comment.author?.name || comment.author?.username)?.[0] ?? "?"
+                                            )}
+                                        </div>
                                         <div>
-                                            <p className="text-sm font-bold">
-                                                {comment.name}
-                                            </p>
-                                            <p className="text-[11px] text-neutral-500">
-                                                {comment.time}
+                                            <div className="flex items-center gap-2">
+                                                <p className="text-sm font-bold">{comment.author?.name || comment.author?.username || "Inconnu"}</p>
+                                                {comment.author?.username && comment.author.name !== comment.author.username && (
+                                                    <span className="text-[10px] text-neutral-500 font-medium bg-neutral-800/50 px-1.5 py-0.5 rounded">@{comment.author.username}</span>
+                                                )}
+                                            </div>
+                                            <p className="text-xs text-neutral-500 mt-0.5 flex items-center gap-1.5">
+                                                {new Date(comment.createdAt).toLocaleDateString("fr-FR")}
                                             </p>
                                         </div>
                                     </div>
-                                    <div
-                                        className={`w-3 h-3 rounded-full mt-1 ${comment.unread ? "bg-[#D90097]" : "bg-neutral-700"}`}
-                                    ></div>
+                                    <div className={`w-3 h-3 rounded-full mt-1 ${!comment.isRead ? "bg-[#D90097]" : "bg-neutral-700"}`} />
                                 </div>
-                                <div className="mt-3 flex items-center gap-1.5 text-xs text-neutral-400">
-                                    <Music
-                                        size={12}
-                                        className="text-[#D90097] flex-shrink-0"
-                                    />
-                                    <span className="text-[11px] text-neutral-500">
-                                        Sur
-                                    </span>
-                                    <Link
-                                        href="/lyric-editor"
-                                        className="font-semibold text-neutral-200 text-[11px] truncate hover:text-[#D90097] hover:underline transition-colors duration-200 cursor-pointer"
-                                    >
-                                        {comment.song}
+                                <div className="mt-3 flex items-center gap-1.5">
+                                    <Music size={12} className="text-[#D90097] flex-shrink-0" />
+                                    <Link href={`/write/${comment.lyrics?.id}`} className="font-semibold text-neutral-200 text-[11px] truncate hover:text-[#D90097] transition-colors">
+                                        {comment.lyrics?.title ?? "Inconnu"}
                                     </Link>
                                 </div>
-                                <p className="text-sm text-neutral-300 leading-relaxed mt-2 pr-8">
-                                    {comment.text}
-                                </p>
+                                <p className="text-sm text-neutral-300 leading-relaxed mt-2">{comment.content}</p>
                             </div>
                         ))}
                     </div>
@@ -349,157 +333,96 @@ export const Dashboard = () => {
                 <div className="lg:col-span-4 bg-[#151515] rounded-2xl p-6 border border-neutral-800 flex flex-col justify-between">
                     <div>
                         <div className="flex items-center justify-between mb-6">
-                            <h3 className="font-syne text-xs font-bold tracking-widest uppercase">
-                                Votre Plan
-                            </h3>
-                            <Link
-                                href="#"
-                                className="text-xs text-neutral-300 hover:text-white transition-colors"
-                            >
-                                Gérer mon abonnement
-                            </Link>
+                            <h3 className="font-syne text-xs font-bold tracking-widest uppercase">Votre Plan</h3>
+                            <Link href="/settings/billing" className="text-xs text-neutral-300 hover:text-white transition-colors">Gérer</Link>
                         </div>
-
                         <div className="flex items-center gap-4 mb-6">
-                            <Image
-                                src={haslem}
-                                alt="Gratuit"
-                                width={65}
-                                height={65}
-                                className="rounded-full"
-                            />
+                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#AB0063] to-[#D50093] flex items-center justify-center text-white text-2xl font-bold flex-shrink-0 uppercase overflow-hidden">
+                                {userAvatar ? (
+                                    <img src={userAvatar} alt="Avatar" className="w-full h-full object-cover" />
+                                ) : (
+                                    userName[0]
+                                )}
+                            </div>
                             <div>
-                                <h4 className="text-xl font-bold font-syne">
-                                    Gratuit
-                                </h4>
-                                <p className="text-xs text-neutral-400 mt-1 leading-snug pr-4">
-                                    Passez à un abonnement Pro pour débloquer
-                                    plus d'espace et des fonctionnalités
-                                    avancées.
-                                </p>
+                                <h4 className="text-xl font-bold font-syne">Gratuit</h4>
+                                <p className="text-xs text-neutral-400 mt-1 leading-snug pr-4">Passez à Pro pour débloquer plus de fonctionnalités.</p>
                             </div>
                         </div>
-
-                        <div className="mb-4">
-                            <div className="flex justify-between text-xs mb-2">
-                                <span className="text-neutral-300">
-                                    Stockage utilisé
-                                </span>
-                                <span>2.5 Go / 5 Go</span>
-                            </div>
-                            <div className="h-2 bg-neutral-800 rounded-full w-full overflow-hidden">
-                                <div className="bg-neutral-300 h-full w-[73%] rounded-full"></div>
-                            </div>
-                        </div>
-
                         <div className="flex flex-col gap-2 mb-8">
                             <div className="flex justify-between text-sm border-b border-neutral-800 pb-2">
-                                <span className="text-neutral-400">
-                                    Projets
-                                </span>
-                                <span>24 / Illimité</span>
+                                <span className="text-neutral-400">Projets</span>
+                                <span>{projects.length} créés</span>
                             </div>
                             <div className="flex justify-between text-sm">
-                                <span className="text-neutral-400">
-                                    Collaborateurs
-                                </span>
-                                <span>3 / 5</span>
+                                <span className="text-neutral-400">Songs</span>
+                                <span>{allSongs.length} créées</span>
                             </div>
                         </div>
                     </div>
-
-                    <button className="w-[45%] mx-auto bg-gradient-to-r from-[#AB0063] from-[0%] to-[#D50093] to-[100%] shadow-lg transition-all hover:scale-[1.02] hover:opacity-90 text-white font-bold py-3 rounded-lg mt-auto">
+                    <button className="w-[45%] mx-auto bg-gradient-to-r from-[#AB0063] to-[#D50093] shadow-lg transition-all hover:scale-[1.02] hover:opacity-90 text-white font-bold py-3 rounded-lg mt-auto">
                         Découvrir NARA Pro
                     </button>
                 </div>
 
-                {/* BLOC 4 : RECENT */}
+                {/* BLOC 4 : RECENTLY OPENED */}
                 <div className="lg:col-span-8 bg-[#151515] rounded-2xl p-6 border border-neutral-800 flex flex-col min-h-0">
                     <div className="flex items-center justify-between mb-6">
-                        <h3 className="font-syne text-xs font-bold tracking-widest uppercase">
-                            Recently Opened
-                        </h3>
-                        <Link
-                            href="#"
-                            className="text-xs text-neutral-300 hover:text-white transition-colors"
-                        >
-                            Voir tout
-                        </Link>
+                        <h3 className="font-syne text-xs font-bold tracking-widest uppercase">Recently Opened</h3>
+                        <Link href="/projects" className="text-xs text-neutral-300 hover:text-white transition-colors">Voir tout</Link>
                     </div>
-
                     <div className="flex flex-col gap-2 overflow-y-auto flex-1 min-h-0 pr-2 custom-scrollbar">
-                        {recentSongs.map((song, index) => (
-                            <div key={song.id} className="flex flex-col">
-                                <div
-                                    className="flex items-center justify-between p-2 hover:bg-neutral-800 transition-colors rounded-lg group cursor-pointer"
-                                    onContextMenu={(e) =>
-                                        handleContextMenu(e, song)
-                                    }
-                                >
+                        {loadingProjects ? (
+                            <div className="flex flex-col gap-2">
+                                {[1, 2, 3].map(i => <div key={i} className="h-16 bg-neutral-800/60 rounded-lg animate-pulse" />)}
+                            </div>
+                        ) : recentProjects.length === 0 ? (
+                            <div className="flex items-center justify-center flex-1 text-neutral-500 text-sm">
+                                Aucun projet pour l'instant
+                            </div>
+                        ) : recentProjects.map((project, index) => (
+                            <div key={project.id} className="flex flex-col">
+                                <Link href={`/projects/${project.id}`} className="flex items-center justify-between p-2 hover:bg-neutral-800 transition-colors rounded-lg group cursor-pointer">
                                     <div className="flex items-center gap-4">
-                                        {isValidImageSrc(song.image) ? (
-                                            <Image
-                                                src={song.image}
-                                                alt={song.title}
-                                                width={56}
-                                                height={56}
-                                                className="w-14 h-14 rounded-md object-cover flex-shrink-0"
+                                        {project.image ? (
+                                            <img
+                                                src={typeof project.image === "string" ? project.image : project.image?.src}
+                                                alt={project.title}
+                                                className="w-14 h-14 rounded-md object-cover border border-neutral-800"
                                             />
                                         ) : (
-                                            <div className="w-14 h-14 rounded-md bg-neutral-900 border border-neutral-800 flex items-center justify-center flex-shrink-0 text-neutral-400">
+                                            <div className="w-14 h-14 rounded-md bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-400">
                                                 <Music size={20} />
                                             </div>
                                         )}
-
                                         <div className="flex flex-col">
-                                            <p className="font-bold text-sm">
-                                                {song.title}{" "}
-                                                <span className="font-normal text-neutral-400 underline decoration-neutral-600 underline-offset-2">
-                                                    {song.projectName ? (
-                                                        <Link href={`/projects/${song.projectId}`} className="hover:text-white transition-colors">
-                                                            ({song.projectName})
-                                                        </Link>
-                                                    ) : (
-                                                        <Link href="/songs" className="hover:text-white transition-colors">
-                                                            (Standalone)
-                                                        </Link>
-                                                    )}
-                                                </span>
-                                            </p>
+                                            <p className="font-bold text-sm">{project.title}</p>
                                             <p className="text-xs text-neutral-500 mt-1">
-                                                Edited {song.lastModified.replace('mins', 'minutes')}
+                                                Modifié le {project.lastModified} • {project.owner || "Moi"}
                                             </p>
                                         </div>
                                     </div>
-
                                     <div className="flex items-center gap-4">
-                                        <span
-                                            className={`text-[11px] px-3 py-1.5 rounded-md ${
-                                                song.state === "En écriture"
-                                                    ? "bg-[#D90097]/10 text-[#D90097] border border-[#D90097]/30 font-bold"
-                                                    : "bg-neutral-800 text-neutral-300"
-                                            }`}
-                                        >
-                                            {song.state}
+                                        <span className={`text-[11px] px-3 py-1.5 rounded-md ${project.state === "En cours"
+                                                ? "bg-[#D90097]/10 text-[#D90097] border border-[#D90097]/30 font-bold"
+                                                : "bg-neutral-800 text-neutral-300"
+                                            }`}>
+                                            {project.state}
                                         </span>
-                                        <button
-                                            onClick={(e) =>
-                                                handleContextMenu(e, song)
-                                            }
-                                            className="text-neutral-500 hover:text-white"
-                                        >
+                                        <button className="text-neutral-500 hover:text-white">
                                             <MoreVertical size={18} />
                                         </button>
                                     </div>
-                                </div>
-                                {index !== recentSongs.length - 1 && (
-                                    <div className="border-b border-neutral-800 mx-2 my-1"></div>
+                                </Link>
+                                {index !== recentProjects.length - 1 && (
+                                    <div className="border-b border-neutral-800 mx-2 my-1" />
                                 )}
                             </div>
                         ))}
                     </div>
                 </div>
             </div>
+
             {contextMenu && (
                 <MenuContext
                     x={contextMenu.x}
@@ -507,10 +430,7 @@ export const Dashboard = () => {
                     itemType="song"
                     song={contextMenu.song}
                     onClose={() => setContextMenu(null)}
-                    onRenameClick={() => {
-                        // In dashboard we just close it for now, can be implemented similar to Songs.tsx
-                        setContextMenu(null);
-                    }}
+                    onRenameClick={() => setContextMenu(null)}
                 />
             )}
         </div>

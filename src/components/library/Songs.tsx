@@ -2,11 +2,13 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Check, ChevronDown, ChevronUp } from "lucide-react";
-import { useSongs, Song, renameSong } from "@/lib/songStore";
+import { Song, renameSong } from "@/lib/songStore";
 import { MenuContext } from "@/context/MenuContext";
 import { RenameModal } from "../modals/RenameModal";
 import { useLibrarySortAndFilter } from "@/hooks/useLibrarySortAndFilter";
 import { LibraryHeader } from "./LibraryHeader";
+import { useApiSongs } from "@/hooks/useApiSongs";
+import { SkeletonGrid, SkeletonList } from "@/components/ui/SkeletonCard";
 import { SongCard } from "./songCard";
 import { useSelection } from "@/context/SelectionContext";
 
@@ -39,7 +41,7 @@ export const Songs = () => {
         return "In a project";
     };
 
-    const allSongs = useSongs();
+    const { songs: allSongs, loading } = useApiSongs();
 
     // Pre-filtrer par "origin" et supprimer les deleted
     const preFilteredSongs = allSongs.filter((song) => {
@@ -100,7 +102,7 @@ export const Songs = () => {
     };
 
     return (
-        <div className="w-full font-arimo text-white pb-10">
+        <div className="w-full font-arimo text-white pb-10 min-h-[600px]">
             <LibraryHeader
                 title="All songs"
                 itemCount={sortedSongsList.length}
@@ -163,7 +165,9 @@ export const Songs = () => {
             </LibraryHeader>
 
             {/* CONDITION D'AFFICHAGE SELON LE VIEWMODE */}
-            {sortedSongsList.length === 0 && searchQuery ? (
+            {loading ? (
+                viewMode === "grid" ? <SkeletonGrid type="song" /> : <SkeletonList />
+            ) : sortedSongsList.length === 0 && searchQuery ? (
                 <div className="flex flex-col items-center justify-center py-20 text-neutral-500 border border-neutral-800/80 rounded-2xl bg-[#151515] border-dashed">
                     <p>No songs found matching "{searchQuery}".</p>
                 </div>
@@ -278,15 +282,25 @@ export const Songs = () => {
                     label="Song Title"
                     placeholder="Enter song title"
                     initialValue={renameModal.initialTitle}
-                    onSave={(newValue) => {
-                        renameSong(renameModal.songId, newValue);
-                        window.dispatchEvent(
-                            new CustomEvent("show-nara-toast", {
-                                detail: {
-                                    message: `Song renamed to "${newValue}"`,
+                    onSave={async (newValue) => {
+                        try {
+                            const { getCurrentUser } = await import("aws-amplify/auth");
+                            const user = await getCurrentUser();
+                            await fetch(`/api/songs/${renameModal.songId}/rename`, {
+                                method: "PATCH",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "x-cognito-id": user.userId,
                                 },
-                            }),
-                        );
+                                body: JSON.stringify({ title: newValue }),
+                            });
+                            window.dispatchEvent(new CustomEvent("show-nara-toast", {
+                                detail: { message: `Song renamed to "${newValue}"` },
+                            }));
+                            window.dispatchEvent(new CustomEvent("nara-data-updated"));
+                        } catch (err) {
+                            console.error("Rename error:", err);
+                        }
                     }}
                 />
             )}

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { exportUserData } from "@/server/rgpd.service";
-import { unauthorized } from "@/middleware/rbac.middleware";
+import { unauthorized } from "@/lib/rbac";
 import { logAction } from "@/server/audit.service";
 
 export async function GET(request: NextRequest) {

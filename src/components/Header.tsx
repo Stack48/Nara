@@ -52,7 +52,7 @@ export const Header = () => {
 						Se connecter
 					</Link>
 					<Link
-						href="/users"
+						href="/signup"
 						className="hidden rounded-full border border-white bg-white px-4 py-2 text-base leading-none text-black sm:inline-flex"
 					>
 						Commencer
@@ -111,7 +111,7 @@ export const Header = () => {
 						Se connecter
 					</Link>
 					<Link
-						href="/users"
+						href="/signup"
 						onClick={() => setMenuOpen(false)}
 						className="inline-flex justify-center w-full rounded-full border border-white bg-white px-4 py-3 text-base font-bold leading-none text-black hover:bg-gray-200 transition-colors"
 					>

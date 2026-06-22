@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireRole, forbidden, unauthorized } from "@/middleware/rbac.middleware";
+import { requireRole, forbidden, unauthorized } from "@/lib/rbac";
 import { z } from "zod";
 
 const createLyricsSchema = z.object({
@@ -22,12 +22,13 @@ export async function GET(
     const cognitoId = getCognitoId(request);
     if (!cognitoId) return unauthorized();
 
-    const { authorized } = await requireRole(cognitoId, params.id, "LECTURE_SEULE");
+    const { authorized } = await requireRole(cognitoId, params.id, "READONLY");
     if (!authorized) return forbidden();
 
     const lyrics = await prisma.lyrics.findMany({
         where: { projectId: params.id },
         include: {
+            project: { select: { id: true, name: true, status: true, imageUrl: true } },
             author: { select: { id: true, name: true, username: true } },
             suggestions: {
                 where: { status: "PENDING" },
@@ -42,16 +43,23 @@ export async function GET(
     return NextResponse.json(lyrics);
 }
 
-// POST /api/projects/:id/lyrics
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
+    const { id } = await params;
     const cognitoId = getCognitoId(request);
     if (!cognitoId) return unauthorized();
 
-    const { authorized, userId } = await requireRole(cognitoId, params.id, "PAROLIER");
-    if (!authorized) return forbidden("Accès refusé");
+    const user = await prisma.user.findUnique({ where: { cognitoId } });
+    if (!user) return NextResponse.json({ error: "Utilisateur introuvable" }, { status: 404 });
+
+    const project = await prisma.project.findUnique({ where: { id } });
+    if (!project) return NextResponse.json({ error: "Projet introuvable" }, { status: 404 });
+
+    const isMemberOrOwner = project.ownerId === user.id ||
+        !!(await prisma.projectMember.findFirst({ where: { projectId: id, userId: user.id } }));
+    if (!isMemberOrOwner) return forbidden();
 
     const body = await request.json();
     const parsed = createLyricsSchema.safeParse(body);
@@ -60,13 +68,10 @@ export async function POST(
         return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({ where: { cognitoId } });
-    if (!user) return NextResponse.json({ error: "Utilisateur introuvable" }, { status: 404 });
-
     const lyrics = await prisma.lyrics.create({
         data: {
             ...parsed.data,
-            projectId: params.id,
+            projectId: id,
             authorId: user.id,
         },
         include: {

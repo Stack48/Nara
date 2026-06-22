@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerRunner } from "@aws-amplify/adapter-nextjs";
 import { fetchAuthSession } from "aws-amplify/auth/server";
-import { amplifyConfig } from "@/lib/amplify";
+import { runWithAmplifyServerContext } from "@/lib/amplify";
 
-const { runWithAmplifyServerContext } = createServerRunner({
-    config: amplifyConfig,
-});
-
-const protectedRoutes = ["/dashboard", "/projects", "/studio"];
-const authRoutes = ["/connexion", "/inscription"];
+const protectedRoutes = [
+    "/dashboard",
+    "/projects",
+    "/songs",
+    "/recents",
+    "/favorites",
+    "/deleted",
+    "/shared",
+    "/write",
+    "/settings",
+];
+const authRoutes = ["/login", "/signup"];
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
@@ -35,7 +40,7 @@ export async function middleware(request: NextRequest) {
     });
 
     if (isProtected && !isAuthenticated) {
-        return NextResponse.redirect(new URL("/connexion", request.url));
+        return NextResponse.redirect(new URL("/login", request.url));
     }
 
     if (isAuthRoute && isAuthenticated) {

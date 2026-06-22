@@ -391,7 +391,7 @@ export const ProjectCard = ({
                                 )}
                             </div>
                         ) : (
-                            <span className="text-xs text-neutral-600">-</span>
+                            <span className="text-[11px] font-medium text-neutral-500">Personal Project</span>
                         )}
                     </div>
 
@@ -492,7 +492,7 @@ export const ProjectCard = ({
                                 )}
                             </div>
                         ) : (
-                            <span className="text-xs text-neutral-600">-</span>
+                            <span className="text-[11px] font-medium text-neutral-500">Personal Project</span>
                         )}
                     </div>
                 </>
@@ -548,7 +548,7 @@ export const ProjectCard = ({
                                 )}
                             </div>
                         ) : (
-                            <span className="text-xs text-neutral-600">-</span>
+                            <span className="text-[11px] font-medium text-neutral-500">Personal Project</span>
                         )}
                     </div>
                 </>

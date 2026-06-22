@@ -67,7 +67,7 @@ export default function ResetPasswordPage() {
                             Ton mot de passe a été modifié avec succès.
                         </p>
                         <Link
-                            href="/connexion"
+                            href="/login"
                             className="w-full block text-center bg-[#D90097] hover:bg-[#e60091] text-white px-10 py-3 rounded-full text-sm font-bold transition-all"
                         >
                             Se connecter
@@ -105,7 +105,7 @@ export default function ResetPasswordPage() {
                                 {loading ? "Envoi..." : "Envoyer le code"}
                             </button>
                             <p className="text-center text-xs text-gray-400">
-                                <Link href="/connexion" className="text-[#D90097] hover:underline underline-offset-4">
+                                <Link href="/login" className="text-[#D90097] hover:underline underline-offset-4">
                                     Retour à la connexion
                                 </Link>
                             </p>

@@ -1,4 +1,5 @@
 import { Amplify } from "aws-amplify";
+import { createServerRunner } from "@aws-amplify/adapter-nextjs";
 
 export const amplifyConfig = {
     Auth: {
@@ -13,16 +14,14 @@ export const amplifyConfig = {
             userAttributes: {
                 email: { required: true },
             },
-            cookieStorage: {
-                domain: process.env.NEXT_PUBLIC_DOMAIN ?? "localhost",
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "strict" as const,
-                path: "/",
-            },
         },
     },
 };
 
-Amplify.configure(amplifyConfig);
+Amplify.configure(amplifyConfig, { ssr: true });
+
+export const { runWithAmplifyServerContext } = createServerRunner({
+    config: amplifyConfig,
+});
 
 export default Amplify;

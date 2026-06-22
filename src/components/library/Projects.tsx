@@ -9,6 +9,8 @@ import { LibraryHeader } from "./LibraryHeader";
 import { ProjectCard } from "./projectCard";
 import { useSelection } from "@/context/SelectionContext";
 import { ChevronUp, ChevronDown } from "lucide-react";
+import { useApiProjects } from "@/hooks/useApiProjects";
+import { SkeletonGrid, SkeletonList } from "@/components/ui/SkeletonCard";
 
 export const Projects = () => {
     // États pour le menu contextuel et renommage
@@ -24,7 +26,8 @@ export const Projects = () => {
 
     const { selectedIds, handleSelect } = useSelection();
 
-    const allProjects = useProjects();
+    // Après
+    const { projects: allProjects, loading } = useApiProjects();
     const projectsList = allProjects.filter(
         (project) => !project.isDeleted && !project.isShared,
     );
@@ -67,7 +70,7 @@ export const Projects = () => {
     };
 
     return (
-        <div className="w-full font-arimo text-white pb-10">
+        <div className="w-full font-arimo text-white pb-10 min-h-[600px]">
             <LibraryHeader
                 title="My Projects"
                 itemCount={sortedProjectList.length}
@@ -82,9 +85,10 @@ export const Projects = () => {
                 viewMode={viewMode}
                 setViewMode={setViewMode}
             />
-
             {/* CONDITION D'AFFICHAGE SELON LE VIEWMODE */}
-            {sortedProjectList.length === 0 && searchQuery ? (
+            {loading ? (
+                viewMode === "grid" ? <SkeletonGrid type="project" /> : <SkeletonList />
+            ) : sortedProjectList.length === 0 && searchQuery ? (
                 <div className="flex flex-col items-center justify-center py-20 text-neutral-500 border border-neutral-800/80 rounded-2xl bg-[#151515] border-dashed">
                     <p>No projects found matching "{searchQuery}".</p>
                 </div>
@@ -194,15 +198,25 @@ export const Projects = () => {
                     label="Project Name"
                     placeholder="Enter project name"
                     initialValue={renameModal.initialTitle}
-                    onSave={(newValue) => {
-                        renameProject(renameModal.projectId, newValue);
-                        window.dispatchEvent(
-                            new CustomEvent("show-nara-toast", {
-                                detail: {
-                                    message: `Project renamed to "${newValue}"`,
+                    onSave={async (newValue) => {
+                        try {
+                            const { getCurrentUser } = await import("aws-amplify/auth");
+                            const user = await getCurrentUser();
+                            await fetch(`/api/projects/${renameModal.projectId}/rename`, {
+                                method: "PATCH",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "x-cognito-id": user.userId,
                                 },
-                            }),
-                        );
+                                body: JSON.stringify({ name: newValue }),
+                            });
+                            window.dispatchEvent(new CustomEvent("show-nara-toast", {
+                                detail: { message: `Project renamed to "${newValue}"` },
+                            }));
+                            window.dispatchEvent(new CustomEvent("nara-data-updated"));
+                        } catch (err) {
+                            console.error("Rename error:", err);
+                        }
                     }}
                 />
             )}

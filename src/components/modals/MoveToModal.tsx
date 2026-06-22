@@ -12,8 +12,9 @@ import {
     ArrowUpDown,
 } from "lucide-react";
 import Image from "next/image";
-import { useProjects } from "@/lib/projectStore";
-import { useSongs, setSongProject } from "@/lib/songStore";
+import { setSongProject } from "@/lib/songStore";
+import { useApiProjects } from "@/hooks/useApiProjects";
+import { useApiSongs } from "@/hooks/useApiSongs";
 
 interface SelectedItem {
     id: string;
@@ -29,8 +30,8 @@ interface MoveToModalProps {
 }
 
 export const MoveToModal = ({ isOpen, items, onClose }: MoveToModalProps) => {
-    const allProjects = useProjects();
-    const allSongs = useSongs();
+    const { projects: allProjects } = useApiProjects();
+    const { songs: allSongs } = useApiSongs();
 
     const activeProjects = allProjects.filter((p) => !p.isDeleted);
 
