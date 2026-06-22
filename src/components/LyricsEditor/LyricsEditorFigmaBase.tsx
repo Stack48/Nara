@@ -216,8 +216,8 @@ function MiniButton({
 			className={[
 				"inline-flex h-7 items-center justify-center rounded-[7px] px-2 text-[12px] font-semibold transition-colors",
 				active
-					? "bg-[#2c2c32] text-[#f3f4f6]"
-					: "text-[#d8d8df] hover:bg-[#202027] hover:text-[#f3f4f6]",
+					? "bg-[#2c2c32] text-[var(--nara-text-primary)]"
+					: "text-[#d8d8df] hover:bg-[var(--nara-surface-raised)] hover:text-[var(--nara-text-primary)]",
 			].join(" ")}
 		>
 			{Icon ? <Icon aria-hidden="true" className="h-4 w-4" /> : children}
@@ -229,7 +229,7 @@ function SelectToken({ value }: { value: string }): ReactElement {
 	return (
 		<button
 			type="button"
-			className="inline-flex h-7 items-center gap-2 rounded-[7px] bg-[#202027] px-3 text-[12px] font-semibold text-[#f3f4f6] transition-colors hover:bg-[#2c2c32]"
+			className="inline-flex h-7 items-center gap-2 rounded-[7px] bg-[var(--nara-surface-raised)] px-3 text-[12px] font-semibold text-[var(--nara-text-primary)] transition-colors hover:bg-[#2c2c32]"
 		>
 			{value}
 			<ChevronDown
@@ -252,7 +252,7 @@ function ToggleChip({
 	enabled: boolean;
 }): ReactElement {
 	return (
-		<label className="inline-flex items-center gap-2 text-[11px] font-bold text-[#f3f4f6]">
+		<label className="inline-flex items-center gap-2 text-[11px] font-bold text-[var(--nara-text-primary)]">
 			<span>{label}</span>
 			<span
 				aria-hidden="true"
@@ -261,7 +261,7 @@ function ToggleChip({
 					enabled ? "bg-[#d9008d]" : "bg-[#6f6f78]",
 				].join(" ")}
 			>
-				<span className="absolute right-[2px] top-1/2 h-[5px] w-[5px] -translate-y-1/2 rounded-full bg-[#f3f4f6]" />
+				<span className="absolute right-[2px] top-1/2 h-[5px] w-[5px] -translate-y-1/2 rounded-full bg-[var(--nara-text-primary)]" />
 			</span>
 		</label>
 	);
@@ -280,7 +280,7 @@ function EditorToolbar(): ReactElement {
 				<MiniButton label="Souligne" icon={Underline} />
 				<Divider />
 				<MiniButton label="Couleur">
-					<span className="h-4 w-4 rounded-[5px] bg-[#f3f4f6]" />
+					<span className="h-4 w-4 rounded-[5px] bg-[var(--nara-text-primary)]" />
 				</MiniButton>
 				<Divider />
 				<MiniButton label="Aligner a gauche" icon={AlignLeft} active />
@@ -330,12 +330,12 @@ function LyricSectionBlock({
 					{section.title}
 				</h2>
 			</div>
-			<div className="space-y-[3px] text-[14px] font-medium leading-[1.42] text-[#f3f4f6]">
+			<div className="space-y-[3px] text-[14px] font-medium leading-[1.42] text-[var(--nara-text-primary)]">
 				{section.lines.map(
 					(line: string, index: number): ReactElement => (
 						<p
 							key={`${section.id}-${index}-${line}`}
-							className="group/line relative rounded-[4px] transition-colors hover:bg-[#202027]/55"
+							className="group/line relative rounded-[4px] transition-colors hover:bg-[var(--nara-surface-raised)]/55"
 						>
 							<button
 								type="button"
@@ -357,10 +357,10 @@ function WorkspaceHeader(): ReactElement {
 	return (
 		<div className="flex shrink-0 items-center justify-between border-b border-[#26262c] px-3 py-2">
 			<div className="flex items-center gap-2">
-				<h1 className="text-[14px] font-bold text-[#f3f4f6]">My Way</h1>
+				<h1 className="text-[14px] font-bold text-[var(--nara-text-primary)]">My Way</h1>
 				<button
 					type="button"
-					className="inline-flex h-7 items-center gap-1 rounded-[6px] border border-[#2c2c32] px-2 text-[11px] font-bold text-[#f3f4f6] transition-colors hover:bg-[#202027]"
+					className="inline-flex h-7 items-center gap-1 rounded-[6px] border border-[#2c2c32] px-2 text-[11px] font-bold text-[var(--nara-text-primary)] transition-colors hover:bg-[var(--nara-surface-raised)]"
 				>
 					<Save aria-hidden="true" className="h-3.5 w-3.5" />
 					Sauvegarder
@@ -373,7 +373,7 @@ function WorkspaceHeader(): ReactElement {
 				<ToggleChip label="Rimes" enabled />
 				<ToggleChip label="Annotation" enabled />
 				<ToggleChip label="Syllabes" enabled />
-				<span className="text-[11px] font-bold text-[#f3f4f6]">
+				<span className="text-[11px] font-bold text-[var(--nara-text-primary)]">
 					30 mots
 				</span>
 			</div>
@@ -435,7 +435,7 @@ function ToolPanelCard({ panel }: { panel: ToolPanel }): ReactElement {
 							<input
 								readOnly
 								value={field.value}
-								className="h-6 w-full rounded-[5px] border border-[#34343b] bg-[#0d0d10] px-2 text-[11px] font-semibold text-[#f3f4f6] outline-none"
+								className="h-6 w-full rounded-[5px] border border-[#34343b] bg-[var(--nara-shell-bg)] px-2 text-[11px] font-semibold text-[var(--nara-text-primary)] outline-none"
 							/>
 						</label>
 					),
@@ -487,7 +487,7 @@ function Inspector(): ReactElement {
 							key={`rail-${panel.id}`}
 							type="button"
 							aria-label={panel.title}
-							className="inline-flex h-8 w-8 items-center justify-center rounded-[8px] bg-[#202027] text-[#d8d8df] transition-colors first:bg-[#2c2c32] hover:text-[#f3f4f6]"
+							className="inline-flex h-8 w-8 items-center justify-center rounded-[8px] bg-[var(--nara-surface-raised)] text-[#d8d8df] transition-colors first:bg-[#2c2c32] hover:text-[var(--nara-text-primary)]"
 						>
 							<Icon aria-hidden="true" className="h-4 w-4" />
 						</button>
@@ -496,7 +496,7 @@ function Inspector(): ReactElement {
 				<button
 					type="button"
 					aria-label="Assets"
-					className="inline-flex h-8 w-8 items-center justify-center rounded-[8px] bg-[#202027] text-[#d8d8df] transition-colors hover:text-[#f3f4f6]"
+					className="inline-flex h-8 w-8 items-center justify-center rounded-[8px] bg-[var(--nara-surface-raised)] text-[#d8d8df] transition-colors hover:text-[var(--nara-text-primary)]"
 				>
 					<Briefcase aria-hidden="true" className="h-4 w-4" />
 				</button>
@@ -523,7 +523,7 @@ function TrackMarker({ marker }: { marker: TimelineMarker }): ReactElement {
 			<div
 				className={`absolute left-1/2 w-16 -translate-x-1/2 text-center ${labelPosition}`}
 			>
-				<p className="truncate text-[9px] font-black leading-none text-[#f3f4f6]">
+				<p className="truncate text-[9px] font-black leading-none text-[var(--nara-text-primary)]">
 					{marker.label}
 				</p>
 				<p className="mt-0.5 text-[7px] font-semibold leading-none text-[#a1a1aa]">
@@ -550,7 +550,7 @@ function TrackPlayer(): ReactElement {
 			<div className="flex items-center gap-4">
 				<div className="h-14 w-14 shrink-0 rounded-[8px] border border-[#34343b]" />
 				<div className="hidden min-w-[130px] sm:block">
-					<p className="text-[13px] font-bold text-[#f3f4f6]">
+					<p className="text-[13px] font-bold text-[var(--nara-text-primary)]">
 						Nom de la piste
 					</p>
 					<div className="mt-2 flex items-center gap-3 text-[#a1a1aa]">
@@ -558,7 +558,7 @@ function TrackPlayer(): ReactElement {
 						<button
 							type="button"
 							aria-label="Lecture"
-							className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#f3f4f6] text-[#0d0d10]"
+							className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[var(--nara-text-primary)] text-[var(--nara-shell-bg)]"
 						>
 							<Play
 								aria-hidden="true"
@@ -579,14 +579,14 @@ function TrackPlayer(): ReactElement {
 					)}
 				</div>
 
-				<div className="hidden w-[190px] shrink-0 items-center justify-end gap-3 text-[11px] font-bold text-[#f3f4f6] lg:flex">
+				<div className="hidden w-[190px] shrink-0 items-center justify-end gap-3 text-[11px] font-bold text-[var(--nara-text-primary)] lg:flex">
 					<span>0:00/4:30</span>
 					<Volume2
 						aria-hidden="true"
 						className="h-4 w-4 text-[#d8d8df]"
 					/>
 					<div className="h-1 w-20 rounded-full bg-[#6f6f78]">
-						<div className="h-full w-[62%] rounded-full bg-[#f3f4f6]" />
+						<div className="h-full w-[62%] rounded-full bg-[var(--nara-text-primary)]" />
 					</div>
 				</div>
 			</div>
@@ -596,7 +596,7 @@ function TrackPlayer(): ReactElement {
 
 export default function LyricsEditorFigmaBase(): ReactElement {
 	return (
-		<section className="relative flex h-full min-h-[680px] w-full min-w-0 flex-col overflow-hidden rounded-[10px] border border-[#2c2c32] text-[#f3f4f6]">
+		<section className="relative flex h-full min-h-[680px] w-full min-w-0 flex-col overflow-hidden rounded-[10px] border border-[#2c2c32] text-[var(--nara-text-primary)]">
 			<EditorToolbar />
 			<div className="relative flex min-h-0 flex-1 overflow-hidden">
 				<div className="flex min-w-0 flex-1 flex-col">

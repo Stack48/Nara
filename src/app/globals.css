@@ -1,25 +1,62 @@
 @import url("https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400..700;1,400..700&display=swap");
 @import "tailwindcss";
 
+@theme {
+  --color-n-bg: var(--bg);
+  --color-n-surface: var(--surface);
+  --color-n-surface-2: var(--surface-2);
+  --color-n-border: var(--border);
+  --color-n-border-2: var(--border-2);
+  --color-n-hover: var(--hover);
+  --color-n-text: var(--text-1);
+  --color-n-text-2: var(--text-2);
+  --color-n-text-3: var(--text-3);
+  --color-n-cta: var(--cta);
+  --color-n-cta-text: var(--cta-text);
+  --color-n-cta-hover: var(--cta-hover);
+}
+
 :root {
-	--background: #fafafa;
-	--foreground: #0a0a0a;
+  --bg: #F4F2EE;
+  --surface: #FFFFFF;
+  --surface-2: #F0EDE8;
+  --border: #E5E0D8;
+  --border-2: #D8D2C8;
+  --hover: #ECEAE5;
+  --text-1: #1A1916;
+  --text-2: #6B6760;
+  --text-3: #A8A49E;
+  --cta: #1A1916;
+  --cta-text: #F4F2EE;
+  --cta-hover: #2E2C28;
 }
 
-@media (prefers-color-scheme: dark) {
-	:root {
-		--background: #0a0a0a;
-		--foreground: #fafafa;
-	}
+.dark {
+  --bg: #17161A;
+  --surface: #1F1E22;
+  --surface-2: #252328;
+  --border: #2E2C32;
+  --border-2: #3A383E;
+  --hover: #2A2830;
+  --text-1: #F0EDE8;
+  --text-2: #9A9690;
+  --text-3: #6A6660;
+  --cta: #F0EDE8;
+  --cta-text: #17161A;
+  --cta-hover: #FFFFFF;
 }
 
-body {
-	background: var(--background);
-	color: var(--foreground);
-	font-family: system-ui, sans-serif;
+* {
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.1s ease;
 }
 
-.nara-app {
+h1, h2, h3, h4 {
+    font-family: var(--font-inter);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+.dark .nara-app, .nara-dark {
 	--nara-shell-bg: #0d0d10;
 	--nara-nav-bg: #0d0d10;
 	--nara-header-bg: #0d0d10;
@@ -67,7 +104,7 @@ body {
 	color-scheme: dark;
 }
 
-.nara-light {
+.nara-app, .nara-light {
 	--nara-shell-bg: #ffffff;
 	--nara-nav-bg: #f7f7f9;
 	--nara-header-bg: #f7f7f9;

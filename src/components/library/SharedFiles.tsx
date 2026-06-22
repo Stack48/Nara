@@ -119,7 +119,7 @@ export const SharedFiles = () => {
     const combinedViewItems = [...filteredSharedProjects, ...filteredShared];
 
     return (
-        <div className="w-full font-arimo text-white pb-10 min-h-[600px]">
+        <div className="w-full font-arimo text-n-text pb-10 min-h-[600px]">
             <LibraryHeader
                 title="Shared with me"
                 itemCount={totalSharedCount}
@@ -151,18 +151,18 @@ export const SharedFiles = () => {
             {loading ? (
                 viewMode === "grid" ? <SkeletonGrid type="song" /> : <SkeletonList />
             ) : totalSharedCount === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 text-neutral-500 border border-neutral-800/80 rounded-2xl bg-[#151515] border-dashed">
+                <div className="flex flex-col items-center justify-center py-20 text-n-text-2 border border-n-border/80 rounded-2xl bg-n-surface border-dashed">
                     <p>No shared files found.</p>
                 </div>
             ) : (
                 <div className="w-full">
                     {/* Unique En-tête du tableau en haut en mode Liste */}
                     {viewMode === "list" && (
-                        <div className="grid grid-cols-12 gap-4 pb-4 mb-6 text-xs font-medium text-neutral-500 border-b border-neutral-800">
+                        <div className="grid grid-cols-12 gap-4 pb-4 mb-6 text-xs font-medium text-n-text-2 border-b border-n-border">
                             <button
                                 type="button"
                                 onClick={() => handleHeaderSort("alphabetical")}
-                                className="col-span-3 pl-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                                className="col-span-3 pl-2 flex items-center gap-1 hover:text-n-text transition-colors text-left font-medium"
                             >
                                 <span>Name</span>
                                 {sortBy === "alphabetical" && (
@@ -172,7 +172,7 @@ export const SharedFiles = () => {
                             <button
                                 type="button"
                                 onClick={() => handleHeaderSort("owner")}
-                                className="col-span-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                                className="col-span-2 flex items-center gap-1 hover:text-n-text transition-colors text-left font-medium"
                             >
                                 <span>Owner</span>
                                 {sortBy === "owner" && (
@@ -183,7 +183,7 @@ export const SharedFiles = () => {
                             <button
                                 type="button"
                                 onClick={() => handleHeaderSort("modified")}
-                                className="col-span-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                                className="col-span-2 flex items-center gap-1 hover:text-n-text transition-colors text-left font-medium"
                             >
                                 <span>Last modified</span>
                                 {sortBy === "modified" && (
@@ -193,7 +193,7 @@ export const SharedFiles = () => {
                             <button
                                 type="button"
                                 onClick={() => handleHeaderSort("created")}
-                                className="col-span-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                                className="col-span-2 flex items-center gap-1 hover:text-n-text transition-colors text-left font-medium"
                             >
                                 <span>Created</span>
                                 {sortBy === "created" && (
@@ -208,7 +208,7 @@ export const SharedFiles = () => {
                         {(filterValue === "all" || filterValue === "projects") &&
                             filteredSharedProjects.length > 0 && (
                                 <div>
-                                    <h2 className="text-sm font-bold uppercase tracking-wider text-neutral-500 mb-4 font-syne">
+                                    <h2 className="text-sm font-bold uppercase tracking-wider text-n-text-2 mb-4 font-serif">
                                         Projects ({filteredSharedProjects.length})
                                     </h2>
                                     {viewMode === "grid" ? (
@@ -271,7 +271,7 @@ export const SharedFiles = () => {
                         {(filterValue === "all" || filterValue === "songs") &&
                             filteredShared.length > 0 && (
                                 <div>
-                                    <h2 className="text-sm font-bold uppercase tracking-wider text-neutral-500 mb-4 font-syne">
+                                    <h2 className="text-sm font-bold uppercase tracking-wider text-n-text-2 mb-4 font-serif">
                                         Songs ({filteredShared.length})
                                     </h2>
                                     {viewMode === "grid" ? (

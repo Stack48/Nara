@@ -234,13 +234,13 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
 
     if (projectsLoading || songsLoading) {
         return (
-            <div className="w-full font-arimo text-white pb-10">
+            <div className="w-full font-arimo text-n-text pb-10">
                 <div className="flex items-center gap-2 mb-6">
                     <Skeleton className="w-24 h-4" />
-                    <span className="text-neutral-600">&gt;</span>
+                    <span className="text-n-text-3">&gt;</span>
                     <Skeleton className="w-32 h-4" />
                 </div>
-                <div className="bg-gradient-to-r from-[#121212] to-[#181818] border border-neutral-800/80 rounded-3xl p-6 mb-8 flex flex-col md:flex-row gap-6 items-start md:items-center">
+                <div className="bg-gradient-to-r from-[#121212] to-[#181818] border border-n-border/80 rounded-3xl p-6 mb-8 flex flex-col md:flex-row gap-6 items-start md:items-center">
                     <Skeleton className="w-32 h-32 md:w-36 md:h-36 rounded-2xl shrink-0" />
                     <div className="flex-1 flex flex-col w-full">
                         <Skeleton className="w-16 h-5 mb-2.5 rounded" />
@@ -265,26 +265,26 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
     }
 
     return (
-        <div className="w-full font-arimo text-white pb-10">
+        <div className="w-full font-arimo text-n-text pb-10">
             {/* Breadcrumbs */}
-            <div className="flex items-center gap-2 font-syne mb-6 text-sm">
+            <div className="flex items-center gap-2 font-serif mb-6 text-sm">
                 <Link
                     href={breadcrumbLink}
-                    className="text-neutral-500 hover:text-white transition-colors"
+                    className="text-n-text-2 hover:text-n-text transition-colors"
                 >
                     {breadcrumbLabel}
                 </Link>
-                <span className="text-neutral-600">&gt;</span>
-                <span className="text-neutral-300">{displayTitle}</span>
+                <span className="text-n-text-3">&gt;</span>
+                <span className="text-n-text">{displayTitle}</span>
             </div>
 
             {/* Project Details Banner */}
-            <div className="bg-gradient-to-r from-[#121212] to-[#181818] border border-neutral-800/80 rounded-3xl p-6 mb-8 flex flex-col md:flex-row gap-6 items-start md:items-center relative overflow-hidden group shadow-lg">
+            <div className="bg-n-cta text-n-cta-text hover:bg-n-cta-hover rounded-lg px-4 py-2 font-semibold transition-colors">
                 {/* Background Glow */}
-                <div className="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-[#D90097]/5 blur-3xl group-hover:bg-[#D90097]/8 transition-all duration-750 pointer-events-none" />
+                <div className="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-n-accent/5 blur-3xl group-hover:bg-n-accent/8 transition-all duration-750 pointer-events-none" />
 
                 {/* Project Image */}
-                <div className="relative w-32 h-32 md:w-36 md:h-36 rounded-2xl overflow-hidden border border-neutral-800 shadow-2xl shrink-0 bg-neutral-900 flex items-center justify-center">
+                <div className="relative w-32 h-32 md:w-36 md:h-36 rounded-2xl overflow-hidden border border-n-border shadow-2xl shrink-0 bg-n-surface-2 flex items-center justify-center">
                     {currentProject?.image ? (
                         <img
                             src={typeof currentProject.image === "string" ? currentProject.image : currentProject.image?.src}
@@ -292,39 +292,39 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
                             className="w-full h-full object-cover"
                         />
                     ) : (
-                        <FolderOpen size={40} className="text-neutral-600" />
+                        <FolderOpen size={40} className="text-n-text-3" />
                     )}
                 </div>
 
                 {/* Project Info */}
                 <div className="flex-1 flex flex-col justify-between w-full">
                     <div className="flex items-center gap-2 mb-2.5">
-                        <span className="bg-neutral-850 text-neutral-300 text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider border border-neutral-805">
+                        <span className="bg-neutral-850 text-n-text text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider border border-neutral-805">
                             {currentProject?.type || "Project"}
                         </span>
                     </div>
 
-                    <h1 className="font-syne font-extrabold text-3xl md:text-4xl text-white mb-2 leading-tight">
+                    <h1 className="font-serif font-extrabold text-3xl md:text-4xl text-n-text mb-2 leading-tight">
                         {displayTitle}
                     </h1>
 
                     {/* Project Description */}
-                    <p className="text-sm text-neutral-400 max-w-2xl leading-relaxed mb-4">
+                    <p className="text-sm text-n-text-2 max-w-2xl leading-relaxed mb-4">
                         {currentProject?.description || (
-                            <span className="text-neutral-600 italic">No description yet. Edit this project to add one.</span>
+                            <span className="text-n-text-3 italic">No description yet. Edit this project to add one.</span>
                         )}
                     </p>
 
                     {/* Footer Meta Row */}
-                    <div className="flex flex-wrap items-center justify-between gap-4 text-xs text-neutral-500 font-semibold border-t border-neutral-900 pt-3.5">
+                    <div className="flex flex-wrap items-center justify-between gap-4 text-xs text-n-text-2 font-semibold border-t border-neutral-900 pt-3.5">
                         <div className="flex items-center gap-4">
                             <div>
-                                Songs: <span className="text-neutral-300">{sortedProjectList.length}</span>
+                                Songs: <span className="text-n-text">{sortedProjectList.length}</span>
                             </div>
                             {currentProject?.collaboratorsList && currentProject.collaboratorsList.length > 0 && (
-                                <div className="flex items-center gap-2 border-l border-neutral-800 pl-4">
+                                <div className="flex items-center gap-2 border-l border-n-border pl-4">
                                     <span>Collaborators ({currentProject.collaboratorsList.length}):</span>
-                                    <span className="text-neutral-300">
+                                    <span className="text-n-text">
                                         {currentProject.collaboratorsList.join(", ")}
                                     </span>
                                 </div>
@@ -342,7 +342,7 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
                                     })
                                 );
                             }}
-                            className="text-xs font-bold text-[#D90097] hover:text-white transition-colors cursor-pointer border border-[#D90097]/25 hover:border-white px-3.5 py-1.5 rounded-xl bg-neutral-900/50 hover:bg-neutral-800/40 flex items-center gap-1.5"
+                            className="text-xs font-bold text-n-accent hover:text-n-text transition-colors cursor-pointer border border-n-accent/25 hover:border-white px-3.5 py-1.5 rounded-xl bg-n-surface-2/50 hover:bg-n-hover/40 flex items-center gap-1.5"
                         >
                             <Edit3 size={12} />
                             <span>Edit Details</span>
@@ -374,7 +374,7 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
 
             {/* CONDITION D'AFFICHAGE SELON LE VIEWMODE */}
             {sortedProjectList.length === 0 && searchQuery ? (
-                <div className="flex flex-col items-center justify-center py-20 text-neutral-500 border border-neutral-800/80 rounded-2xl bg-[#151515] border-dashed">
+                <div className="flex flex-col items-center justify-center py-20 text-n-text-2 border border-n-border/80 rounded-2xl bg-n-surface border-dashed">
                     <p>No tracks matching "{searchQuery}" in this project.</p>
                 </div>
             ) : viewMode === "grid" ? (
@@ -412,11 +412,11 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
                 /* --- VUE LISTE (TABLEAU) --- */
                 <div className="w-full">
                     {/* En-tête du tableau */}
-                    <div className="grid grid-cols-12 gap-4 pb-4 mb-2 text-xs font-medium text-neutral-500 border-b border-neutral-800">
+                    <div className="grid grid-cols-12 gap-4 pb-4 mb-2 text-xs font-medium text-n-text-2 border-b border-n-border">
                         <button
                             type="button"
                             onClick={() => handleHeaderSort("alphabetical")}
-                            className="col-span-4 pl-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                            className="col-span-4 pl-2 flex items-center gap-1 hover:text-n-text transition-colors text-left font-medium"
                         >
                             <span>Name</span>
                             {sortBy === "alphabetical" && (
@@ -427,7 +427,7 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
                         <button
                             type="button"
                             onClick={() => handleHeaderSort("modified")}
-                            className="col-span-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                            className="col-span-2 flex items-center gap-1 hover:text-n-text transition-colors text-left font-medium"
                         >
                             <span>Last modified</span>
                             {sortBy === "modified" && (
@@ -437,7 +437,7 @@ export const insideProject = ({ isShared = false }: { isShared?: boolean }) => {
                         <button
                             type="button"
                             onClick={() => handleHeaderSort("created")}
-                            className="col-span-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                            className="col-span-2 flex items-center gap-1 hover:text-n-text transition-colors text-left font-medium"
                         >
                             <span>Created</span>
                             {sortBy === "created" && (

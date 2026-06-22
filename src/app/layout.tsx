@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Unbounded, Arimo } from 'next/font/google';
+import { Unbounded, Arimo, Inter } from 'next/font/google';
 import './globals.css';
 import { Toast } from '@/components/library/Toast';
 
@@ -17,6 +17,12 @@ const arimo = Arimo({
 	weight: ["400", "500", "600", "700"],
 });
 
+const inter = Inter({
+    subsets: ["latin"],
+    variable: "--font-inter",
+    weight: ["300", "400", "500", "600", "700"],
+});
+
 export const metadata: Metadata = {
 	title: "Nara",
 	description: "Ton prochain hit mérite mieux qu'un brouillon perdu.",
@@ -28,10 +34,18 @@ export default function RootLayout({
 	children: React.ReactNode;
 }) {
     return (
-        <html lang="fr" className="dark">
+        <html lang="fr" suppressHydrationWarning>
+            <head>
+                <script dangerouslySetInnerHTML={{ __html: `
+                  try {
+                    const t = localStorage.getItem('nara-theme') || 'light';
+                    document.documentElement.classList.toggle('dark', t === 'dark');
+                  } catch(e) {}
+                `}} />
+            </head>
             {/* On applique les variables et la police par défaut (Arimo et Unbounded) */}
             <body
-                className={`${unbounded.variable} ${arimo.variable} font-arimo antialiased bg-[#050505] text-white`}
+                className={`${unbounded.variable} ${arimo.variable} ${inter.variable} font-arimo antialiased bg-n-bg text-n-text`}
             >
                 <>{children}</>
                 <Toast />

@@ -102,7 +102,7 @@ export const Songs = () => {
     };
 
     return (
-        <div className="w-full font-arimo text-white pb-10 min-h-[600px]">
+        <div className="w-full font-arimo text-n-text pb-10 min-h-[600px]">
             <LibraryHeader
                 title="All songs"
                 itemCount={sortedSongsList.length}
@@ -122,15 +122,15 @@ export const Songs = () => {
                     <button
                         type="button"
                         onClick={() => setIsFilterMenuOpen(!isFilterMenuOpen)}
-                        className="flex items-center gap-2 bg-[#151515] border border-neutral-800 hover:border-neutral-700 transition-colors px-3 py-1.5 rounded-lg text-xs font-semibold text-white cursor-pointer"
+                        className="flex items-center gap-2 bg-n-surface border border-n-border hover:border-n-border-2 transition-colors px-3 py-1.5 rounded-lg text-xs font-semibold text-n-text cursor-pointer"
                     >
                         <span>{getFilterLabel()}</span>
-                        <ChevronDown size={14} className="text-neutral-400" />
+                        <ChevronDown size={14} className="text-n-text-2" />
                     </button>
 
                     {isFilterMenuOpen && (
-                        <div className="absolute right-0 mt-2 w-48 bg-[#151515] border border-neutral-800 rounded-2xl shadow-2xl z-50 py-2.5 px-1.5 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
-                            <div className="px-3 py-1 text-[11px] font-bold text-neutral-500 uppercase tracking-wider">
+                        <div className="absolute right-0 mt-2 w-48 bg-n-surface border border-n-border rounded-2xl shadow-2xl z-50 py-2.5 px-1.5 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
+                            <div className="px-3 py-1 text-[11px] font-bold text-n-text-2 uppercase tracking-wider">
                                 Filter by origin
                             </div>
                             {[
@@ -145,14 +145,14 @@ export const Songs = () => {
                                         setFilterOrigin(option.id as any);
                                         setIsFilterMenuOpen(false);
                                     }}
-                                    className="w-full text-left px-3 py-1.5 text-xs font-medium rounded-lg text-neutral-300 hover:text-white hover:bg-white/5 flex items-center gap-2 transition-colors cursor-pointer"
+                                    className="w-full text-left px-3 py-1.5 text-xs font-medium rounded-lg text-n-text hover:text-n-text hover:bg-white/5 flex items-center gap-2 transition-colors cursor-pointer"
                                 >
                                     <div className="w-4 h-4 flex items-center justify-center shrink-0">
                                         {filterOrigin === option.id && (
                                             <Check
                                                 size={12}
                                                 strokeWidth={3}
-                                                className="text-[#D90097]"
+                                                className="text-n-accent"
                                             />
                                         )}
                                     </div>
@@ -168,7 +168,7 @@ export const Songs = () => {
             {loading ? (
                 viewMode === "grid" ? <SkeletonGrid type="song" /> : <SkeletonList />
             ) : sortedSongsList.length === 0 && searchQuery ? (
-                <div className="flex flex-col items-center justify-center py-20 text-neutral-500 border border-neutral-800/80 rounded-2xl bg-[#151515] border-dashed">
+                <div className="flex flex-col items-center justify-center py-20 text-n-text-2 border border-n-border/80 rounded-2xl bg-n-surface border-dashed">
                     <p>No songs found matching "{searchQuery}".</p>
                 </div>
             ) : viewMode === "grid" ? (
@@ -196,11 +196,11 @@ export const Songs = () => {
                 /* --- VUE LISTE (TABLEAU) --- */
                 <div className="w-full">
                     {/* En-tête du tableau */}
-                    <div className="grid grid-cols-12 gap-4 pb-4 mb-2 text-xs font-medium text-neutral-500 border-b border-neutral-800">
+                    <div className="grid grid-cols-12 gap-4 pb-4 mb-2 text-xs font-medium text-n-text-2 border-b border-n-border">
                         <button
                             type="button"
                             onClick={() => handleHeaderSort("alphabetical")}
-                            className="col-span-4 pl-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                            className="col-span-4 pl-2 flex items-center gap-1 hover:text-n-text transition-colors text-left font-medium"
                         >
                             <span>Name</span>
                             {sortBy === "alphabetical" && (
@@ -211,7 +211,7 @@ export const Songs = () => {
                         <button
                             type="button"
                             onClick={() => handleHeaderSort("modified")}
-                            className="col-span-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                            className="col-span-2 flex items-center gap-1 hover:text-n-text transition-colors text-left font-medium"
                         >
                             <span>Last modified</span>
                             {sortBy === "modified" && (
@@ -221,7 +221,7 @@ export const Songs = () => {
                         <button
                             type="button"
                             onClick={() => handleHeaderSort("created")}
-                            className="col-span-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                            className="col-span-2 flex items-center gap-1 hover:text-n-text transition-colors text-left font-medium"
                         >
                             <span>Created</span>
                             {sortBy === "created" && (

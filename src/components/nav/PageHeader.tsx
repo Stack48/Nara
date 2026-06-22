@@ -31,8 +31,8 @@ export const PageHeader = () => {
     return (
         <div className="flex items-center justify-between mb-8 shrink-0">
             <div>
-                <h1 className="text-3xl font-syne font-bold text-white">{title}</h1>
-                <p className="text-neutral-400 mt-1 text-sm">{subtitle}</p>
+                <h1 className="text-3xl font-serif font-bold text-n-text">{title}</h1>
+                <p className="text-n-text-2 mt-1 text-sm">{subtitle}</p>
             </div>
         </div>
     );
