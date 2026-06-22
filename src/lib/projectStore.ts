@@ -34,6 +34,7 @@ export interface Project {
     createdDate: Date;
     imageKey: string;
     image: any;
+    imageUrl?: string | null;
     isFavorite: boolean;
     isDeleted: boolean;
     isPermanentlyDeleted?: boolean;

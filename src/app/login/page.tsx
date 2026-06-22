@@ -23,10 +23,26 @@ export default function ConnexionPage() {
     setError("");
     try {
       await login(email, password);
-      router.push("/dashboard");
+
+      try {
+        const { getCurrentUser, fetchUserAttributes } = await import("aws-amplify/auth");
+        const { syncUserToDB } = await import("@/hooks/useAuth");
+        const user = await getCurrentUser();
+        const attrs = await fetchUserAttributes();
+        await syncUserToDB(
+          user.userId,
+          attrs.email ?? email,
+          attrs.name ?? email.split('@')[0],
+          attrs.preferred_username ?? email.split('@')[0]
+        );
+      } catch (syncErr) {
+        console.error("Failed to sync user during login:", syncErr);
+      }
+
+      window.location.href = "/dashboard";
     } catch (err: unknown) {
       if (isAlreadyAuthenticated(err)) {
-        router.push("/dashboard");
+        window.location.href = "/dashboard";
       } else {
         setError(getAuthError(err));
       }
@@ -150,7 +166,7 @@ export default function ConnexionPage() {
 
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
               <p className="text-[12px] text-gray-400">
-                Pas encore de compte ? <Link href="/inscription" className="text-[#D90097] font-semibold hover:underline decoration-[#D90097]/50 underline-offset-4">Inscrivez vous.</Link>
+                Pas encore de compte ? <Link href="/signup" className="text-[#D90097] font-semibold hover:underline decoration-[#D90097]/50 underline-offset-4">Inscrivez vous.</Link>
               </p>
               <button
                 type="submit"

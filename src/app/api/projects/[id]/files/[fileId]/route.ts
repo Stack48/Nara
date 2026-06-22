@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireRole, forbidden, unauthorized } from "@/middleware/rbac.middleware";
+import { requireRole, forbidden, unauthorized } from "@/lib/rbac";
 import { deleteFile, getSignedFileUrl } from "@/server/s3.service";
 
 // GET /api/projects/:id/files/:fileId — URL signée

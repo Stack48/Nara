@@ -40,11 +40,13 @@ export async function syncUserToDB(
     name: string,
     username: string
 ) {
-    return await prisma.user.upsert({
-        where: { cognitoId },
-        update: { email, name, username },
-        create: { cognitoId, email, name, username },
+    const res = await fetch("/api/auth/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cognitoId, email, name, username }),
     });
+    if (!res.ok) throw new Error("Erreur sync user");
+    return await res.json();
 }
 
 // CONFIRMATION CODE EMAIL

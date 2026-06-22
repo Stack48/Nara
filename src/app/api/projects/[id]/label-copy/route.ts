@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireRole, forbidden, unauthorized } from "@/middleware/rbac.middleware";
+import { requireRole, forbidden, unauthorized } from "@/lib/rbac";
 import { syncLabelCopy } from "@/server/bridge-audio.service";
 import { z } from "zod";
 

@@ -252,14 +252,14 @@ function InspectorSelect({
 				aria-expanded={isOpen}
 				onMouseDown={(event): void => event.preventDefault()}
 				onClick={(): void => setIsOpen((current) => !current)}
-				className="flex h-6.5 w-full items-center justify-between gap-1 rounded-[6px] border border-white/[0.08] bg-black/40 px-2 text-[11px] font-medium text-white/90 outline-none transition-all hover:bg-black/60 focus:border-[#DA069A] focus:ring-1 focus:ring-[#DA069A]/20"
+				className="flex h-6.5 w-full items-center justify-between gap-1 rounded-[6px] border border-[var(--nara-border)] bg-[var(--nara-surface-raised)] px-2 text-[11px] font-medium text-[var(--nara-text-primary)] outline-none transition-all hover:bg-[var(--nara-surface-soft)] focus:border-[#b4783c] focus:ring-1 focus:ring-[#b4783c]/20"
 			>
 				<span className="truncate text-left">{selectedLabel}</span>
 				<ChevronDown
 					aria-hidden="true"
 					size={11}
 					strokeWidth={2}
-					className={`shrink-0 text-white/40 transition-transform duration-200 ${
+					className={`shrink-0 text-[var(--nara-text-primary)]/40 transition-transform duration-200 ${
 						isOpen ? "rotate-180" : ""
 					}`}
 				/>
@@ -268,7 +268,7 @@ function InspectorSelect({
 			{isOpen && (
 				<div
 					role="listbox"
-					className="absolute left-0 bottom-[calc(100%+6px)] z-[100] min-w-[120px] max-h-[160px] overflow-y-auto rounded-xl border border-white/[0.08] bg-[#141418]/95 py-1 shadow-[0_8px_30px_rgb(0,0,0,0.5)] backdrop-blur-2xl backdrop-saturate-150"
+					className="absolute left-0 bottom-[calc(100%+6px)] z-[100] min-w-[120px] max-h-[160px] overflow-y-auto rounded-xl border border-[var(--nara-border)] bg-[var(--nara-surface-raised)]/95 py-1 shadow-[0_8px_30px_rgb(0,0,0,0.5)] backdrop-blur-2xl backdrop-saturate-150"
 					style={{
 						scrollbarWidth: "thin",
 						scrollbarColor: "rgba(255,255,255,0.08) transparent",
@@ -290,8 +290,8 @@ function InspectorSelect({
 								}}
 								className={`flex w-full items-center gap-2 whitespace-nowrap px-2.5 py-1 text-left text-[11px] font-medium transition-colors cursor-pointer ${
 									isSelected
-										? "bg-[#DA069A]/15 text-white"
-										: "text-[#D9D9DE] hover:bg-white/[0.06]"
+										? "bg-[#b4783c]/15 text-[var(--nara-text-primary)]"
+										: "text-[var(--nara-text-primary)] hover:bg-white/[0.06]"
 								}`}
 							>
 								<span className="flex-1 truncate">
@@ -301,7 +301,7 @@ function InspectorSelect({
 									<Check
 										size={10}
 										strokeWidth={2.5}
-										className="shrink-0 text-[#DA069A]"
+										className="shrink-0 text-[#b4783c]"
 									/>
 								)}
 							</button>
@@ -355,16 +355,16 @@ function LyricsInspectorPanelCard({
 	const visibleChips = isExpanded ? panel.chips : panel.chips.slice(0, 8);
 
 	return (
-		<section className="min-w-0 bg-white/[0.02] border border-white/[0.05] rounded-xl px-3 py-2 select-none hover:bg-white/[0.035] hover:border-white/[0.08] transition-all duration-300 flex flex-col gap-2 mx-2.5 my-1">
+		<section className="min-w-0 bg-[var(--nara-surface-soft)] border border-[var(--nara-border)] rounded-xl px-3 py-2 select-none hover:bg-[var(--nara-surface-soft)] hover:border-[var(--nara-border)] transition-all duration-300 flex flex-col gap-2 mx-2.5 my-1">
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-2">
-					<Icon size={14} strokeWidth={2} className="text-white/60" />
-					<h3 className="text-[11px] font-bold tracking-wide uppercase text-white/40">
+					<Icon size={14} strokeWidth={2} className="text-[var(--nara-text-primary)]/60" />
+					<h3 className="text-[11px] font-bold tracking-wide uppercase text-[var(--nara-text-primary)]/40">
 						{panel.title}
 					</h3>
 				</div>
 				{panel.loading && (
-					<span className="text-[10px] text-[#DA069A] font-medium animate-pulse">
+					<span className="text-[10px] text-[#b4783c] font-medium animate-pulse">
 						Chargement...
 					</span>
 				)}
@@ -396,7 +396,7 @@ function LyricsInspectorPanelCard({
 									key={`${panel.id}-${field.label}`}
 									className="grid min-w-0 gap-1"
 								>
-									<span className="truncate text-[10px] font-semibold text-white/50 tracking-tight">
+									<span className="truncate text-[10px] font-semibold text-[var(--nara-text-primary)]/50 tracking-tight">
 										{field.label}
 									</span>
 									{isSyllables ? (
@@ -445,7 +445,7 @@ function LyricsInspectorPanelCard({
 								key={`${panel.id}-${field.label}`}
 								className="grid min-w-0 gap-1"
 							>
-								<span className="truncate text-[10px] font-semibold text-white/50 tracking-tight">
+								<span className="truncate text-[10px] font-semibold text-[var(--nara-text-primary)]/50 tracking-tight">
 									{field.label}
 								</span>
 								<input
@@ -481,7 +481,7 @@ function LyricsInspectorPanelCard({
 											);
 										}
 									}}
-									className="h-6.5 w-full rounded-[6px] border border-white/[0.08] bg-black/40 px-2.5 text-[11px] font-medium text-white/90 outline-none transition-all placeholder-white/20 focus:border-[#DA069A] focus:ring-1 focus:ring-[#DA069A]/20"
+									className="h-6.5 w-full rounded-[6px] border border-[var(--nara-border)] bg-[var(--nara-surface-raised)] px-2.5 text-[11px] font-medium text-[var(--nara-text-primary)] outline-none transition-all placeholder-white/20 focus:border-[#b4783c] focus:ring-1 focus:ring-[#b4783c]/20"
 								/>
 							</label>
 						);
@@ -508,7 +508,7 @@ function LyricsInspectorPanelCard({
 								onClick={(): void =>
 									onChipClick(panel.id, chip)
 								}
-								className="h-[22px] max-w-full min-w-0 truncate rounded-full bg-white/[0.04] border border-white/[0.05] hover:bg-[#DA069A]/10 hover:border-[#DA069A]/20 hover:text-[#DA069A] active:scale-95 px-3 text-[10px] font-semibold text-white/70 transition-all cursor-pointer shadow-sm"
+								className="h-[22px] max-w-full min-w-0 truncate rounded-full bg-[var(--nara-surface-soft)] border border-[var(--nara-border)] hover:bg-[#b4783c]/10 hover:border-[#b4783c]/20 hover:text-[#b4783c] active:scale-95 px-3 text-[10px] font-semibold text-[var(--nara-text-secondary)] transition-all cursor-pointer shadow-sm"
 							>
 								{chip}
 							</button>
@@ -522,7 +522,7 @@ function LyricsInspectorPanelCard({
 					type="button"
 					onMouseDown={(event): void => event.preventDefault()}
 					onClick={(): void => setIsExpanded(!isExpanded)}
-					className="flex w-full items-center justify-end gap-1 text-[10px] font-bold text-[#DA069A] hover:text-[#E60091] transition-colors mt-0.5"
+					className="flex w-full items-center justify-end gap-1 text-[10px] font-bold text-[#b4783c] hover:text-[#d28c46] transition-colors mt-0.5"
 				>
 					{isExpanded ? "Voir moins" : "Voir plus"}
 					<ChevronRight
@@ -546,7 +546,7 @@ function LyricsInspectorRail({
 	onTogglePanel: (panelId: LyricsInspectorPanelId) => void;
 }): ReactElement {
 	return (
-		<nav className="w-[40px] shrink-0 flex flex-col items-center gap-1 rounded-xl border border-white/[0.08] bg-[#141418]/65 p-1.5 shadow-[0_16px_50px_-12px_rgba(0,0,0,0.55)] backdrop-blur-2xl backdrop-saturate-150">
+		<nav className="w-[40px] shrink-0 flex flex-col items-center gap-1 rounded-xl border border-[var(--nara-border)] bg-[var(--nara-surface-raised)]/65 p-1.5 shadow-[0_16px_50px_-12px_rgba(0,0,0,0.55)] backdrop-blur-2xl backdrop-saturate-150">
 			{tools.map((tool: LyricsInspectorRailTool): ReactElement => {
 				const Icon: LucideIcon = tool.icon;
 				const isActive: boolean = visiblePanelIds.has(tool.id);
@@ -563,8 +563,8 @@ function LyricsInspectorRail({
 						}}
 						className={`inline-flex h-8 w-8 items-center justify-center rounded-[8px] border transition-all duration-200 active:scale-90 ${
 							isActive
-								? "bg-white/[0.10] text-white border-white/[0.06]"
-								: "border-transparent text-white/40 hover:bg-white/[0.05] hover:text-white"
+								? "bg-white/[0.10] text-[var(--nara-text-primary)] border-white/[0.06]"
+								: "border-transparent text-[var(--nara-text-primary)]/40 hover:bg-[var(--nara-surface-soft)] hover:text-[var(--nara-text-primary)]"
 						}`}
 					>
 						<Icon size={15} strokeWidth={2} />
@@ -1002,7 +1002,7 @@ export function LyricsInspector({
 	return (
 		<aside className="flex h-full min-h-0 items-start gap-2 overflow-visible">
 			{hasVisiblePanels && (
-				// <div className="flex max-h-full min-h-0 w-[286px] min-w-0 flex-col overflow-hidden rounded-[12px] border border-white/[0.08] bg-[#0D0D10]/70  backdrop-blur-2xl backdrop-saturate-150">
+				// <div className="flex max-h-full min-h-0 w-[286px] min-w-0 flex-col overflow-hidden rounded-[12px] border border-[var(--nara-border)] bg-[var(--nara-shell-bg)]/70  backdrop-blur-2xl backdrop-saturate-150">
 				// <div className="flex max-h-full min-h-0 w-[286px] min-w-0 flex-col overflow-hidden rounded-[12px]   backdrop-blur-2xl backdrop-saturate-150">
 				<div className="flex max-h-full min-h-0 w-[286px] min-w-0 flex-col overflow-hidden rounded-[12px]">
 					<div
@@ -1040,23 +1040,23 @@ export function LyricsInspector({
 			/>
 
 			{modalWord && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-					<div className="w-full max-w-sm rounded-2xl border border-white/[0.08] bg-[#1a1a20] p-6 shadow-2xl flex flex-col gap-4">
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--nara-surface-soft)] backdrop-blur-sm p-4">
+					<div className="w-full max-w-sm rounded-2xl border border-[var(--nara-border)] bg-[#1a1a20] p-6 shadow-2xl flex flex-col gap-4">
 						<div className="flex items-center justify-between">
-							<h3 className="text-sm font-bold text-white tracking-wide">
+							<h3 className="text-sm font-bold text-[var(--nara-text-primary)] tracking-wide">
 								Mot introuvable
 							</h3>
 							<button
 								onClick={() => setModalWord(null)}
-								className="text-white/40 hover:text-white transition-colors"
+								className="text-[var(--nara-text-primary)]/40 hover:text-[var(--nara-text-primary)] transition-colors"
 							>
 								<X size={16} strokeWidth={2} />
 							</button>
 						</div>
 
-						<p className="text-[13px] leading-relaxed text-white/60">
+						<p className="text-[13px] leading-relaxed text-[var(--nara-text-primary)]/60">
 							Le mot{" "}
-							<strong className="text-white font-semibold">
+							<strong className="text-[var(--nara-text-primary)] font-semibold">
 								"{modalWord}"
 							</strong>{" "}
 							n'a pas été trouvé dans notre base de données
@@ -1065,7 +1065,7 @@ export function LyricsInspector({
 
 						<div className="flex flex-col gap-3 pt-2">
 							<div>
-								<label className="text-[11px] font-bold text-white/50 uppercase tracking-wider mb-1.5 block">
+								<label className="text-[11px] font-bold text-[var(--nara-text-primary)]/50 uppercase tracking-wider mb-1.5 block">
 									Description (Obligatoire)
 								</label>
 								<input
@@ -1078,13 +1078,13 @@ export function LyricsInspector({
 										}))
 									}
 									placeholder="Courte définition..."
-									className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 text-[13px] text-white placeholder:text-white/20 focus:outline-none focus:border-[#DA069A]/50 focus:bg-white/[0.05] transition-all"
+									className="w-full bg-[var(--nara-surface-soft)] border border-[var(--nara-border)] rounded-xl px-3 py-2 text-[13px] text-[var(--nara-text-primary)] placeholder:text-[var(--nara-text-primary)]/20 focus:outline-none focus:border-[#b4783c]/50 focus:bg-[var(--nara-surface-soft)] transition-all"
 								/>
 							</div>
 
 							<div className="flex gap-3">
 								<div className="flex-1">
-									<label className="text-[11px] font-bold text-white/50 uppercase tracking-wider mb-1.5 block">
+									<label className="text-[11px] font-bold text-[var(--nara-text-primary)]/50 uppercase tracking-wider mb-1.5 block">
 										Synonymes
 									</label>
 									<input
@@ -1097,11 +1097,11 @@ export function LyricsInspector({
 											}))
 										}
 										placeholder="Séparés par des virgules"
-										className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 text-[12px] text-white placeholder:text-white/20 focus:outline-none focus:border-[#DA069A]/50 focus:bg-white/[0.05] transition-all"
+										className="w-full bg-[var(--nara-surface-soft)] border border-[var(--nara-border)] rounded-xl px-3 py-2 text-[12px] text-[var(--nara-text-primary)] placeholder:text-[var(--nara-text-primary)]/20 focus:outline-none focus:border-[#b4783c]/50 focus:bg-[var(--nara-surface-soft)] transition-all"
 									/>
 								</div>
 								<div className="flex-1">
-									<label className="text-[11px] font-bold text-white/50 uppercase tracking-wider mb-1.5 block">
+									<label className="text-[11px] font-bold text-[var(--nara-text-primary)]/50 uppercase tracking-wider mb-1.5 block">
 										Antonymes
 									</label>
 									<input
@@ -1114,7 +1114,7 @@ export function LyricsInspector({
 											}))
 										}
 										placeholder="Séparés par des virgules"
-										className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 text-[12px] text-white placeholder:text-white/20 focus:outline-none focus:border-[#DA069A]/50 focus:bg-white/[0.05] transition-all"
+										className="w-full bg-[var(--nara-surface-soft)] border border-[var(--nara-border)] rounded-xl px-3 py-2 text-[12px] text-[var(--nara-text-primary)] placeholder:text-[var(--nara-text-primary)]/20 focus:outline-none focus:border-[#b4783c]/50 focus:bg-[var(--nara-surface-soft)] transition-all"
 									/>
 								</div>
 							</div>
@@ -1130,7 +1130,7 @@ export function LyricsInspector({
 										antonyms: "",
 									});
 								}}
-								className="flex-1 rounded-xl bg-white/[0.04] border border-white/[0.08] py-2.5 text-[12px] font-semibold text-white/70 hover:bg-white/[0.08] hover:text-white transition-all active:scale-95"
+								className="flex-1 rounded-xl bg-[var(--nara-surface-soft)] border border-[var(--nara-border)] py-2.5 text-[12px] font-semibold text-[var(--nara-text-secondary)] hover:bg-[var(--nara-surface-soft)] hover:text-[var(--nara-text-primary)] transition-all active:scale-95"
 							>
 								Annuler
 							</button>
@@ -1173,7 +1173,7 @@ export function LyricsInspector({
 									isSubmitting ||
 									!modalForm.description.trim()
 								}
-								className="flex-1 rounded-xl bg-[#DA069A] border border-[#DA069A]/50 py-2.5 text-[12px] font-semibold text-white shadow-[0_4px_12px_rgba(10,132,255,0.3)] hover:bg-[#E60091] transition-all active:scale-95 flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:active:scale-100"
+								className="flex-1 rounded-xl bg-[#b4783c] border border-[#b4783c]/50 py-2.5 text-[12px] font-semibold text-[var(--nara-text-primary)] shadow-[0_4px_12px_rgba(10,132,255,0.3)] hover:bg-[#d28c46] transition-all active:scale-95 flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:active:scale-100"
 							>
 								{isSubmitting ? (
 									"Envoi..."

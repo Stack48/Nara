@@ -15,6 +15,9 @@ import {
 } from "@/hooks/useLibrarySortAndFilter";
 import { ProjectCard } from "./projectCard";
 import { SongCard } from "./songCard";
+import { useApiSongs } from "@/hooks/useApiSongs";
+import { useApiProjects } from "@/hooks/useApiProjects";
+import { SkeletonGrid, SkeletonList } from "@/components/ui/SkeletonCard";
 
 export const Deleted = () => {
     const [viewMode, setViewModeState] = useState<"grid" | "list">("grid");
@@ -48,43 +51,67 @@ export const Deleted = () => {
 
     const { selectedIds, handleSelect } = useSelection();
 
-    const allSongs = useSongs();
+    const { songs: allSongs, loading: loadingSongs } = useApiSongs();
     const deletedSongs = allSongs.filter((song) => song.isDeleted);
 
-    const allProjects = useProjects();
+    const { projects: allProjects, loading: loadingProjects } = useApiProjects();
     const deletedProjects = allProjects.filter((proj) => proj.isDeleted);
+    
+    const loading = loadingSongs || loadingProjects;
 
-    const handleSongRestore = (songId: string, songTitle: string) => {
-        setSongDeleted(songId, false);
-        window.dispatchEvent(
-            new CustomEvent("show-nara-toast", {
+    const handleSongRestore = async (songId: string, songTitle: string) => {
+        try {
+            const { getCurrentUser } = await import("aws-amplify/auth");
+            const user = await getCurrentUser();
+            await fetch(`/api/songs/${songId}/delete`, {
+                method: "PATCH",
+                headers: { "x-cognito-id": user.userId },
+            });
+            window.dispatchEvent(new CustomEvent("show-nara-toast", {
                 detail: { message: `"${songTitle}" has been restored.` },
-            }),
-        );
-    };
-
-    const handleProjectRestore = (projectId: string, projectTitle: string) => {
-        setProjectDeleted(projectId, false);
-        window.dispatchEvent(
-            new CustomEvent("show-nara-toast", {
-                detail: {
-                    message: `Project "${projectTitle}" has been restored.`,
-                },
-            }),
-        );
-    };
-
-    const handlePermanentDelete = (id: string, title: string, type: "song" | "project") => {
-        if (type === "song") {
-            deleteSongPermanently(id);
-        } else {
-            deleteProjectPermanently(id);
+            }));
+            window.dispatchEvent(new CustomEvent("nara-data-updated"));
+        } catch (err) {
+            console.error("Restore error:", err);
         }
-        window.dispatchEvent(
-            new CustomEvent("show-nara-toast", {
+    };
+
+    const handleProjectRestore = async (projectId: string, projectTitle: string) => {
+        try {
+            const { getCurrentUser } = await import("aws-amplify/auth");
+            const user = await getCurrentUser();
+            await fetch(`/api/projects/${projectId}/delete`, {
+                method: "PATCH",
+                headers: { "x-cognito-id": user.userId },
+            });
+            window.dispatchEvent(new CustomEvent("show-nara-toast", {
+                detail: { message: `Project "${projectTitle}" has been restored.` },
+            }));
+            window.dispatchEvent(new CustomEvent("nara-data-updated"));
+        } catch (err) {
+            console.error("Restore error:", err);
+        }
+    };
+
+    const handlePermanentDelete = async (id: string, title: string, type: "song" | "project") => {
+        try {
+            const { getCurrentUser } = await import("aws-amplify/auth");
+            const user = await getCurrentUser();
+            const endpoint = type === "song"
+                ? `/api/songs/${id}`
+                : `/api/projects/${id}`;
+
+            await fetch(endpoint, {
+                method: "DELETE",
+                headers: { "x-cognito-id": user.userId },
+            });
+            window.dispatchEvent(new CustomEvent("show-nara-toast", {
                 detail: { message: `"${title}" permanently deleted.` },
-            }),
-        );
+            }));
+            window.dispatchEvent(new CustomEvent("nara-data-updated"));
+        } catch (err) {
+            console.error("Permanent delete error:", err);
+        }
     };
 
     const handleHeaderSort = (field: typeof sortBy) => {
@@ -145,7 +172,7 @@ export const Deleted = () => {
     const combinedViewItems = [...filteredProjects, ...filteredSongs];
 
     return (
-        <div className="w-full font-arimo text-white pb-10">
+        <div className="w-full font-arimo text-n-text pb-10 min-h-[600px]">
             <LibraryHeader
                 title="Deleted files"
                 itemCount={totalDeletedCount}
@@ -174,19 +201,38 @@ export const Deleted = () => {
                 setFilterValue={setFilterValue}
             />
 
-            {totalDeletedCount === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 text-neutral-500 border border-neutral-800/80 rounded-2xl bg-[#151515] border-dashed">
+            {loading ? (
+                <div className="flex flex-col gap-8 w-full">
+                    {(filterValue === "all" || filterValue === "projects") && (
+                        <div>
+                            <h2 className="text-sm font-bold uppercase tracking-wider text-n-text-2 mb-4 font-serif">
+                                Projects
+                            </h2>
+                            {viewMode === "grid" ? <SkeletonGrid type="project" count={5} /> : <SkeletonList count={3} />}
+                        </div>
+                    )}
+                    {(filterValue === "all" || filterValue === "songs") && (
+                        <div>
+                            <h2 className="text-sm font-bold uppercase tracking-wider text-n-text-2 mb-4 font-serif">
+                                Songs
+                            </h2>
+                            {viewMode === "grid" ? <SkeletonGrid type="song" count={4} /> : <SkeletonList count={4} />}
+                        </div>
+                    )}
+                </div>
+            ) : totalDeletedCount === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 text-n-text-2 border border-n-border/80 rounded-2xl bg-n-surface border-dashed">
                     <p>Trash is empty.</p>
                 </div>
             ) : (
                 <div className="w-full">
                     {/* Unique En-tête du tableau en haut en mode Liste */}
                     {viewMode === "list" && (
-                        <div className="grid grid-cols-12 gap-4 pb-4 mb-6 text-xs font-medium text-neutral-500 border-b border-neutral-800">
+                        <div className="grid grid-cols-12 gap-4 pb-4 mb-6 text-xs font-medium text-n-text-2 border-b border-n-border">
                             <button
                                 type="button"
                                 onClick={() => handleHeaderSort("alphabetical")}
-                                className="col-span-4 pl-2 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                                className="col-span-4 pl-2 flex items-center gap-1 hover:text-n-text transition-colors text-left font-medium"
                             >
                                 <span>Name</span>
                                 {sortBy === "alphabetical" && (
@@ -196,7 +242,7 @@ export const Deleted = () => {
                             <button
                                 type="button"
                                 onClick={() => handleHeaderSort("modified")}
-                                className="col-span-3 flex items-center gap-1 hover:text-white transition-colors text-left font-medium"
+                                className="col-span-3 flex items-center gap-1 hover:text-n-text transition-colors text-left font-medium"
                             >
                                 <span>Deleted time</span>
                                 {sortBy === "modified" && (
@@ -212,7 +258,7 @@ export const Deleted = () => {
                         {(filterValue === "all" || filterValue === "projects") &&
                             filteredProjects.length > 0 && (
                                 <div>
-                                    <h2 className="text-sm font-bold uppercase tracking-wider text-neutral-500 mb-4 font-syne">
+                                    <h2 className="text-sm font-bold uppercase tracking-wider text-n-text-2 mb-4 font-serif">
                                         Projects ({filteredProjects.length})
                                     </h2>
                                     {viewMode === "grid" ? (
@@ -227,8 +273,8 @@ export const Deleted = () => {
                                                     onSelect={(e) => handleSelect(project.id, "project", project, e, combinedViewItems)}
                                                     onRestore={handleProjectRestore}
                                                     onPermanentDelete={(id, title) =>
-                                                         handlePermanentDelete(id, title, "project")
-                                                     }
+                                                        handlePermanentDelete(id, title, "project")
+                                                    }
                                                     onContextMenu={(e) => handleProjectContextMenu(e, project)}
                                                 />
                                             ))}
@@ -247,7 +293,7 @@ export const Deleted = () => {
                                                             isLast={
                                                                 index ===
                                                                 filteredProjects.length -
-                                                                    1
+                                                                1
                                                             }
                                                             isSelected={selectedIds.includes(project.id)}
                                                             onSelect={(e) => handleSelect(project.id, "project", project, e, combinedViewItems)}
@@ -255,8 +301,8 @@ export const Deleted = () => {
                                                                 handleProjectRestore
                                                             }
                                                             onPermanentDelete={(id, title) =>
-                                                                 handlePermanentDelete(id, title, "project")
-                                                             }
+                                                                handlePermanentDelete(id, title, "project")
+                                                            }
                                                             onContextMenu={(e) => handleProjectContextMenu(e, project)}
                                                         />
                                                     ),
@@ -271,7 +317,7 @@ export const Deleted = () => {
                         {(filterValue === "all" || filterValue === "songs") &&
                             filteredSongs.length > 0 && (
                                 <div>
-                                    <h2 className="text-sm font-bold uppercase tracking-wider text-neutral-500 mb-4 font-syne">
+                                    <h2 className="text-sm font-bold uppercase tracking-wider text-n-text-2 mb-4 font-serif">
                                         Songs ({filteredSongs.length})
                                     </h2>
                                     {viewMode === "grid" ? (
@@ -287,11 +333,11 @@ export const Deleted = () => {
                                                     onSelect={(e) => handleSelect(song.id, "song", song, e, combinedViewItems)}
                                                     onRestore={handleSongRestore}
                                                     onPermanentDelete={(
-                                                         id,
-                                                         title,
-                                                     ) =>
-                                                         handlePermanentDelete(id, title, "song")
-                                                     }
+                                                        id,
+                                                        title,
+                                                    ) =>
+                                                        handlePermanentDelete(id, title, "song")
+                                                    }
                                                     onContextMenu={(e) => handleSongContextMenu(e, song)}
                                                 />
                                             ))}
@@ -310,7 +356,7 @@ export const Deleted = () => {
                                                             isLast={
                                                                 index ===
                                                                 filteredSongs.length -
-                                                                    1
+                                                                1
                                                             }
                                                             isSelected={selectedIds.includes(song.id)}
                                                             onSelect={(e) => handleSelect(song.id, "song", song, e, combinedViewItems)}
@@ -318,15 +364,15 @@ export const Deleted = () => {
                                                                 handleSongRestore
                                                             }
                                                             onPermanentDelete={(
-                                                                 id,
-                                                                 title,
-                                                             ) =>
-                                                                 handlePermanentDelete(
-                                                                     id,
-                                                                     title,
-                                                                     "song",
-                                                                 )
-                                                             }
+                                                                id,
+                                                                title,
+                                                            ) =>
+                                                                handlePermanentDelete(
+                                                                    id,
+                                                                    title,
+                                                                    "song",
+                                                                )
+                                                            }
                                                             onContextMenu={(e) => handleSongContextMenu(e, song)}
                                                         />
                                                     ),

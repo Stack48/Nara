@@ -85,7 +85,7 @@ type TimelineContextMenuState = {
 
 const defaultTrackMarkers: TrackMarker[] = [
 	{
-		accentColor: "#DA069A",
+		accentColor: "#b4783c",
 		id: "intro",
 		label: "Intro",
 		timeLabel: "0:16",
@@ -907,7 +907,7 @@ export function TrackPlayer({
 						blurLevel={0.7} // flou léger par-dessus
 						borderRadius={22} // ≈ 16px de radius
 						filterQuality={2}
-						className="w-full h-full !flex-col !items-stretch !justify-start !p-0 !bg-black/50"
+						className="w-full h-full !flex-col !items-stretch !justify-start !p-0 !bg-[var(--nara-surface-raised)]"
 					>
 						<button
 							type="button"
@@ -923,7 +923,7 @@ export function TrackPlayer({
 							onPointerCancel={handleDockPointerUp}
 							className="group z-20 flex w-full shrink-0 cursor-grab touch-none items-center justify-center pt-1.5 pb-0.5 active:cursor-grabbing"
 						>
-							<span className="h-1.5 w-10 rounded-full bg-white/20 transition-colors group-hover:bg-white/35" />
+							<span className="h-1.5 w-10 rounded-full bg-[var(--nara-border)] transition-colors group-hover:bg-[var(--nara-border-strong)]" />
 						</button>
 						<input
 							ref={fileInputRef}
@@ -944,7 +944,7 @@ export function TrackPlayer({
 						)}
 						{isCollapsed && (
 							<div className="flex flex-1 items-center gap-3 px-4 pb-3 sm:px-6">
-								<div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-[7px] border border-white/[0.08] bg-[var(--nara-surface)]">
+								<div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-[7px] border border-[var(--nara-border)] bg-[var(--nara-surface)]">
 									<Image
 										src={effectiveCoverSrc}
 										alt=""
@@ -961,7 +961,7 @@ export function TrackPlayer({
 								</span>
 								<div className="h-[4px] min-w-0 flex-1 overflow-hidden rounded-full bg-[var(--nara-track-progress-bg)]">
 									<div
-										className="h-full rounded-full bg-[#DA069A]"
+										className="h-full rounded-full bg-[#b4783c]"
 										style={{ width: `${clampedProgress}%` }}
 									/>
 								</div>
@@ -1030,7 +1030,7 @@ export function TrackPlayer({
 										onDrop={handleCoverDrop}
 										className={`group relative h-14 w-14 shrink-0 overflow-hidden rounded-[8px] border bg-[var(--nara-surface)] outline-none transition-colors ${
 											isCoverDragActive
-												? "border-[#DA069A]"
+												? "border-[#b4783c]"
 												: "border-[var(--nara-track-border)] hover:border-[var(--nara-border-strong)] focus-visible:border-[var(--nara-track-text)]"
 										}`}
 									>
@@ -1042,14 +1042,14 @@ export function TrackPlayer({
 											className="object-cover"
 											priority={false}
 										/>
-										<span className="absolute inset-0 grid place-items-center bg-[#0D0D10]/0 text-[#F3F4F6] opacity-0 transition-[background-color,opacity] group-hover:bg-[#0D0D10]/70 group-hover:opacity-100 group-focus-visible:bg-[#0D0D10]/70 group-focus-visible:opacity-100">
+										<span className="absolute inset-0 grid place-items-center bg-[var(--nara-shell-bg)]/0 text-[var(--nara-text-primary)] opacity-0 transition-[background-color,opacity] group-hover:bg-[var(--nara-shell-bg)]/70 group-hover:opacity-100 group-focus-visible:bg-[var(--nara-shell-bg)]/70 group-focus-visible:opacity-100">
 											<Upload
 												size={16}
 												strokeWidth={1.8}
 											/>
 										</span>
 										{isCoverDragActive && (
-											<span className="absolute inset-0 grid place-items-center bg-[#0D0D10]/80 text-[#F3F4F6]">
+											<span className="absolute inset-0 grid place-items-center bg-[var(--nara-shell-bg)]/80 text-[var(--nara-text-primary)]">
 												<FileAudio
 													size={18}
 													strokeWidth={1.8}
@@ -1128,7 +1128,7 @@ export function TrackPlayer({
 												const isTopLane: boolean =
 													index % 2 === 0;
 												const accentColor: string =
-													"#DA069A";
+													"#b4783c";
 
 												return (
 													<Fragment
@@ -1203,7 +1203,7 @@ export function TrackPlayer({
 											className="absolute left-0 right-0 top-1/2 z-0 h-[5px] -translate-y-1/2 rounded-full bg-[var(--nara-track-progress-bg)]"
 										>
 											<div
-												className="h-full rounded-full bg-[#DA069A]"
+												className="h-full rounded-full bg-[#b4783c]"
 												style={{
 													width: `${clampedProgress}%`,
 												}}
@@ -1367,7 +1367,7 @@ export function TrackPlayer({
 											: null,
 								);
 							}}
-							className="h-8 w-full rounded-[6px] border border-[var(--nara-track-border)] bg-[var(--nara-surface)] px-2 text-[12px] font-medium outline-none focus:border-[#DA069A]"
+							className="h-8 w-full rounded-[6px] border border-[var(--nara-track-border)] bg-[var(--nara-surface)] px-2 text-[12px] font-medium outline-none focus:border-[#b4783c]"
 						/>
 						<div className="mt-2 flex items-center justify-end gap-1.5">
 							<button
@@ -1381,7 +1381,7 @@ export function TrackPlayer({
 							</button>
 							<button
 								type="submit"
-								className="h-7 rounded-[6px] bg-[#DA069A] px-2.5 text-[11px] font-bold text-white transition-colors hover:bg-[#C80087]"
+								className="h-7 rounded-[6px] bg-[#b4783c] px-2.5 text-[11px] font-bold text-[var(--nara-text-primary)] transition-colors hover:bg-[#8b5a2b]"
 							>
 								Ajouter
 							</button>
@@ -1394,11 +1394,11 @@ export function TrackPlayer({
 					role="dialog"
 					aria-modal="true"
 					aria-label="Choisir une piste"
-					className="fixed inset-0 z-999 flex items-end bg-[#0A0A0C]/70 px-6 py-6"
+					className="fixed inset-0 z-999 flex items-end bg-[var(--nara-shell-bg)]/70 px-6 py-6"
 					onClick={(): void => setIsPickerOpen(false)}
 				>
 					<div
-						className="w-full max-w-[380px] rounded-[10px] border border-[#2C2C32] z-999 p-3 text-[#F3F4F6] shadow-[0_8px_24px_rgba(0,0,0,0.28)]"
+						className="w-full max-w-[380px] rounded-[10px] border border-[var(--nara-border)] z-999 p-3 text-[var(--nara-text-primary)] shadow-[0_8px_24px_rgba(0,0,0,0.28)]"
 						onClick={(event): void => event.stopPropagation()}
 					>
 						<div className="mb-3 flex items-center justify-between z-999">
@@ -1409,7 +1409,7 @@ export function TrackPlayer({
 								type="button"
 								aria-label="Fermer"
 								onClick={(): void => setIsPickerOpen(false)}
-								className="inline-flex h-7 w-7 items-center justify-center rounded-[6px] text-[#A1A1AA] transition-colors hover:bg-[#222229] hover:text-white"
+								className="inline-flex h-7 w-7 items-center justify-center rounded-[6px] text-[var(--nara-text-secondary)] transition-colors hover:bg-[var(--nara-surface-soft)] hover:text-[var(--nara-text-primary)]"
 							>
 								<X size={15} strokeWidth={1.8} />
 							</button>
@@ -1418,24 +1418,24 @@ export function TrackPlayer({
 						<button
 							type="button"
 							onClick={openFileDialog}
-							className="flex w-full items-center gap-3 rounded-[8px] border border-[#2C2C32] bg-[#0D0D10] px-3 py-2.5 text-left transition-colors hover:border-[#4A4A52] hover:bg-[#111116]"
+							className="flex w-full items-center gap-3 rounded-[8px] border border-[var(--nara-border)] bg-[var(--nara-shell-bg)] px-3 py-2.5 text-left transition-colors hover:border-[var(--nara-border-strong)] hover:bg-[var(--nara-surface)]"
 						>
 							<FileAudio
 								size={18}
 								strokeWidth={1.8}
-								className="text-[#DA069A]"
+								className="text-[#b4783c]"
 							/>
 							<span className="min-w-0">
 								<span className="block text-[12px] font-semibold">
 									Depuis fichiers
 								</span>
-								<span className="block text-[11px] text-[#A1A1AA]">
+								<span className="block text-[11px] text-[var(--nara-text-secondary)]">
 									mp3, wav, m4a, ogg, mp4
 								</span>
 							</span>
 						</button>
 
-						<div className="mt-3 border-t border-[#2C2C32] pt-3">
+						<div className="mt-3 border-t border-[var(--nara-border)] pt-3">
 							<div className="mb-2 flex items-center gap-2 text-[12px] font-semibold">
 								<Library size={15} strokeWidth={1.8} />
 								Music Assets
@@ -1452,7 +1452,7 @@ export function TrackPlayer({
 												onClick={(): void =>
 													selectTrack(asset, true)
 												}
-												className="flex items-center gap-2 rounded-[7px] px-2 py-2 text-left transition-colors hover:bg-[#222229]"
+												className="flex items-center gap-2 rounded-[7px] px-2 py-2 text-left transition-colors hover:bg-[var(--nara-surface-soft)]"
 											>
 												<Music
 													size={15}
@@ -1466,7 +1466,7 @@ export function TrackPlayer({
 									)}
 								</div>
 							) : (
-								<p className="rounded-[7px] border border-dashed border-[#2C2C32] px-3 py-3 text-[11px] text-[#A1A1AA]">
+								<p className="rounded-[7px] border border-dashed border-[var(--nara-border)] px-3 py-3 text-[11px] text-[var(--nara-text-secondary)]">
 									Aucune piste sauvegardee pour l instant.
 								</p>
 							)}

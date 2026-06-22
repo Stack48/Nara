@@ -6,6 +6,8 @@ import { SendHorizontal } from "lucide-react";
 export type LineComment = {
 	id: string;
 	author: string;
+	username?: string;
+	avatarUrl?: string | null;
 	initial: string;
 	body: string;
 	time: string;
@@ -81,17 +83,28 @@ export default function LineCommentOverlay({
 									className="min-h-[76px] rounded-[8px] border border-[var(--nara-comment-card-border)] bg-[var(--nara-comment-card-bg)] px-3 py-2.5"
 								>
 									<div className="flex items-start gap-2.5">
-										<span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[var(--nara-comment-avatar-border)] bg-transparent text-[11px] font-medium text-[var(--nara-comment-text)]">
-											{comment.initial}
+										<span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[var(--nara-comment-avatar-border)] bg-transparent text-[11px] font-medium text-[var(--nara-comment-text)] overflow-hidden">
+											{comment.avatarUrl ? (
+												<img src={comment.avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+											) : (
+												comment.initial
+											)}
 										</span>
 										<div className="min-w-0 flex-1">
-											<div className="flex items-center justify-between gap-3">
-												<span className="text-[14px] font-semibold leading-6 text-[var(--nara-comment-text)]">
-													{comment.author}
-												</span>
-												<span className="text-[11px] font-medium text-[var(--nara-comment-muted)]">
-													{comment.time}
-												</span>
+											<div className="flex flex-col">
+												<div className="flex items-center justify-between gap-3">
+													<span className="text-[14px] font-semibold leading-6 text-[var(--nara-comment-text)]">
+														{comment.author}
+													</span>
+													<span className="text-[11px] font-medium text-[var(--nara-comment-muted)]">
+														{comment.time}
+													</span>
+												</div>
+												{comment.username && comment.username !== comment.author && (
+													<span className="text-[10px] text-[var(--nara-comment-muted)] -mt-0.5">
+														@{comment.username}
+													</span>
+												)}
 											</div>
 											<p className="mt-2 max-w-[270px] text-[10px] leading-[1.35] text-[var(--nara-comment-body)]">
 												{comment.body}

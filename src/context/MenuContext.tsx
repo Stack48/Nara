@@ -29,7 +29,7 @@ import {
     Project,
     createProject,
 } from "@/lib/projectStore";
-import { useProjects } from "@/lib/projectStore";
+import { useApiProjects } from "@/hooks/useApiProjects";
 import { useRouter } from "next/navigation";
 
 interface MenuContextProps {
@@ -61,7 +61,7 @@ export const MenuContext = ({
     onRestore,
     onPermanentDelete,
 }: MenuContextProps) => {
-    const allProjects = useProjects();
+    const { projects: allProjects } = useApiProjects();
     const activeProjects = allProjects.filter((p) => !p.isDeleted);
     const menuRef = useRef<HTMLDivElement>(null);
     const [submenuOpen, setSubmenuOpen] = useState(false);
@@ -125,7 +125,7 @@ export const MenuContext = ({
     const handleOpen = () => {
         onClose();
         if (itemType === "song") {
-            router.push(`/songs/${id}`);
+            router.push(`/write/${id}`);
         } else {
             router.push(`/projects/${id}`);
         }
@@ -146,21 +146,29 @@ export const MenuContext = ({
         }
     };
 
-    const handleFavorite = () => {
+    const handleFavorite = async () => {
         onClose();
-        if (itemType === "song") {
-            toggleSongFavorite(id);
-        } else {
-            toggleProjectFavorite(id);
+        try {
+            const { getCurrentUser } = await import("aws-amplify/auth");
+            const user = await getCurrentUser();
+            const endpoint = itemType === "song"
+                ? `/api/songs/${id}/favorite`
+                : `/api/projects/${id}/favorite`;
+
+            console.log("🔥 calling:", endpoint, "cognitoId:", user.userId, "id:", id);
+
+            const res = await fetch(endpoint, {
+                method: "PATCH",
+                headers: { "x-cognito-id": user.userId },
+            });
+
+            const data = await res.json();
+            console.log("🔥 response:", res.status, data);
+
+            window.dispatchEvent(new CustomEvent("nara-data-updated"));
+        } catch (err) {
+            console.error("Favorite error:", err);
         }
-        const action = isFavorite
-            ? "Removed from Favorites"
-            : "Added to Favorites";
-        window.dispatchEvent(
-            new CustomEvent("show-nara-toast", {
-                detail: { message: `${action}!` },
-            }),
-        );
     };
 
     const handleDuplicate = () => {
@@ -224,18 +232,27 @@ export const MenuContext = ({
         );
     };
 
-    const handleDeleteToTrash = () => {
+    const handleDeleteToTrash = async () => {
         onClose();
-        if (itemType === "song") {
-            setSongDeleted(id, true);
-        } else {
-            setProjectDeleted(id, true);
-        }
-        window.dispatchEvent(
-            new CustomEvent("show-nara-toast", {
+        try {
+            const { getCurrentUser } = await import("aws-amplify/auth");
+            const user = await getCurrentUser();
+            const endpoint = itemType === "song"
+                ? `/api/songs/${id}/delete`
+                : `/api/projects/${id}/delete`;
+
+            await fetch(endpoint, {
+                method: "PATCH",
+                headers: { "x-cognito-id": user.userId },
+            });
+
+            window.dispatchEvent(new CustomEvent("show-nara-toast", {
                 detail: { message: `"${title}" moved to Trash.` },
-            }),
-        );
+            }));
+            window.dispatchEvent(new CustomEvent("nara-data-updated"));
+        } catch (err) {
+            console.error("Delete error:", err);
+        }
     };
 
     const handleMoveToProject = (pid: string, ptitle: string) => {
@@ -272,7 +289,7 @@ export const MenuContext = ({
         return (
             <div
                 ref={menuRef}
-                className="fixed w-48 bg-[#151515]/95 border border-neutral-800 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] z-[999] py-2 backdrop-blur-md animate-in fade-in zoom-in-95 duration-100 font-arimo select-none"
+                className="fixed w-48 bg-n-surface/95 border border-n-border rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] z-[999] py-2 backdrop-blur-md animate-in fade-in zoom-in-95 duration-100 font-arimo select-none"
                 style={{
                     top: `${adjustedCoords.y}px`,
                     left: `${adjustedCoords.x}px`,
@@ -283,9 +300,9 @@ export const MenuContext = ({
                         onClose();
                         if (onRestore) onRestore(id, title);
                     }}
-                    className="w-full text-left px-3.5 py-2 text-xs font-semibold text-neutral-300 hover:text-white hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
+                    className="w-full text-left px-3.5 py-2 text-xs font-semibold text-n-text hover:text-n-text hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
                 >
-                    <RotateCcw size={14} className="text-neutral-500" />
+                    <RotateCcw size={14} className="text-n-text-2" />
                     <span>
                         Restore {itemType === "song" ? "Song" : "Project"}
                     </span>
@@ -310,7 +327,7 @@ export const MenuContext = ({
         return (
             <div
                 ref={menuRef}
-                className="fixed w-48 bg-[#151515]/95 border border-neutral-800 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] z-[999] py-2 backdrop-blur-md animate-in fade-in zoom-in-95 duration-100 font-arimo select-none"
+                className="fixed w-48 bg-n-surface/95 border border-n-border rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] z-[999] py-2 backdrop-blur-md animate-in fade-in zoom-in-95 duration-100 font-arimo select-none"
                 style={{
                     top: `${adjustedCoords.y}px`,
                     left: `${adjustedCoords.x}px`,
@@ -319,9 +336,9 @@ export const MenuContext = ({
                 {/* 1. Open Lyric Editor */}
                 <button
                     onClick={handleOpen}
-                    className="w-full text-left px-3.5 py-2 text-xs font-semibold text-neutral-300 hover:text-white hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
+                    className="w-full text-left px-3.5 py-2 text-xs font-semibold text-n-text hover:text-n-text hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
                 >
-                    <Music size={14} className="text-neutral-500" />
+                    <Music size={14} className="text-n-text-2" />
                     <span>Open Lyric Editor</span>
                 </button>
 
@@ -339,9 +356,9 @@ export const MenuContext = ({
                                 }),
                             );
                         }}
-                        className="w-full text-left px-3.5 py-2 text-xs font-semibold text-neutral-300 hover:text-white hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
+                        className="w-full text-left px-3.5 py-2 text-xs font-semibold text-n-text hover:text-n-text hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
                     >
-                        <Edit2 size={14} className="text-neutral-500" />
+                        <Edit2 size={14} className="text-n-text-2" />
                         <span>Edit</span>
                     </button>
                 )}
@@ -349,23 +366,23 @@ export const MenuContext = ({
                 {/* 3. Duplicate */}
                 <button
                     onClick={handleDuplicate}
-                    className="w-full text-left px-3.5 py-2 text-xs font-semibold text-neutral-300 hover:text-white hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
+                    className="w-full text-left px-3.5 py-2 text-xs font-semibold text-n-text hover:text-n-text hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
                 >
-                    <Copy size={14} className="text-neutral-500" />
+                    <Copy size={14} className="text-n-text-2" />
                     <span>Duplicate</span>
                 </button>
 
                 {/* 4. Favorite */}
                 <button
                     onClick={handleFavorite}
-                    className="w-full text-left px-3.5 py-2 text-xs font-semibold text-neutral-300 hover:text-white hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
+                    className="w-full text-left px-3.5 py-2 text-xs font-semibold text-n-text hover:text-n-text hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
                 >
                     <Heart
                         size={14}
                         className={
                             isFavorite
                                 ? "text-red-500 fill-red-500"
-                                : "text-neutral-500"
+                                : "text-n-text-2"
                         }
                     />
                     <span>
@@ -393,31 +410,31 @@ export const MenuContext = ({
                                 }),
                             );
                         }}
-                        className="w-full text-left px-3.5 py-2 text-xs font-semibold text-neutral-300 hover:text-white hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
+                        className="w-full text-left px-3.5 py-2 text-xs font-semibold text-n-text hover:text-n-text hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
                     >
-                        <FolderSymlink size={14} className="text-neutral-500" />
+                        <FolderSymlink size={14} className="text-n-text-2" />
                         <span>Move to...</span>
                     </button>
                 )}
 
                 {/* Divider */}
-                <hr className="border-neutral-800 my-1 mx-2" />
+                <hr className="border-n-border my-1 mx-2" />
 
                 {/* 6. Share */}
                 <button
                     onClick={handleShare}
-                    className="w-full text-left px-3.5 py-2 text-xs font-semibold text-neutral-300 hover:text-white hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
+                    className="w-full text-left px-3.5 py-2 text-xs font-semibold text-n-text hover:text-n-text hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
                 >
-                    <Share2 size={14} className="text-neutral-500" />
+                    <Share2 size={14} className="text-n-text-2" />
                     <span>Share</span>
                 </button>
 
                 {/* 7. Download */}
                 <button
                     onClick={handleDownload}
-                    className="w-full text-left px-3.5 py-2 text-xs font-semibold text-neutral-300 hover:text-white hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
+                    className="w-full text-left px-3.5 py-2 text-xs font-semibold text-n-text hover:text-n-text hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
                 >
-                    <Download size={14} className="text-neutral-500" />
+                    <Download size={14} className="text-n-text-2" />
                     <span>Download</span>
                 </button>
 
@@ -445,7 +462,7 @@ export const MenuContext = ({
         return (
             <div
                 ref={menuRef}
-                className="fixed w-48 bg-[#151515]/95 border border-neutral-800 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] z-[999] py-2 backdrop-blur-md animate-in fade-in zoom-in-95 duration-100 font-arimo select-none"
+                className="fixed w-48 bg-n-surface/95 border border-n-border rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] z-[999] py-2 backdrop-blur-md animate-in fade-in zoom-in-95 duration-100 font-arimo select-none"
                 style={{
                     top: `${adjustedCoords.y}px`,
                     left: `${adjustedCoords.x}px`,
@@ -454,9 +471,9 @@ export const MenuContext = ({
                 {/* 1. Open Project */}
                 <button
                     onClick={handleOpen}
-                    className="w-full text-left px-3.5 py-2 text-xs font-semibold text-neutral-300 hover:text-white hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
+                    className="w-full text-left px-3.5 py-2 text-xs font-semibold text-n-text hover:text-n-text hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
                 >
-                    <FolderOpen size={14} className="text-neutral-500" />
+                    <FolderOpen size={14} className="text-n-text-2" />
                     <span>Open Project</span>
                 </button>
 
@@ -474,9 +491,9 @@ export const MenuContext = ({
                                 }),
                             );
                         }}
-                        className="w-full text-left px-3.5 py-2 text-xs font-semibold text-neutral-300 hover:text-white hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
+                        className="w-full text-left px-3.5 py-2 text-xs font-semibold text-n-text hover:text-n-text hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
                     >
-                        <Edit2 size={14} className="text-neutral-500" />
+                        <Edit2 size={14} className="text-n-text-2" />
                         <span>Edit</span>
                     </button>
                 )}
@@ -484,23 +501,23 @@ export const MenuContext = ({
                 {/* 3. Duplicate */}
                 <button
                     onClick={handleDuplicate}
-                    className="w-full text-left px-3.5 py-2 text-xs font-semibold text-neutral-300 hover:text-white hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
+                    className="w-full text-left px-3.5 py-2 text-xs font-semibold text-n-text hover:text-n-text hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
                 >
-                    <Copy size={14} className="text-neutral-500" />
+                    <Copy size={14} className="text-n-text-2" />
                     <span>Duplicate</span>
                 </button>
 
                 {/* 4. Favorite */}
                 <button
                     onClick={handleFavorite}
-                    className="w-full text-left px-3.5 py-2 text-xs font-semibold text-neutral-300 hover:text-white hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
+                    className="w-full text-left px-3.5 py-2 text-xs font-semibold text-n-text hover:text-n-text hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
                 >
                     <Heart
                         size={14}
                         className={
                             isFavorite
                                 ? "text-red-500 fill-red-500"
-                                : "text-neutral-500"
+                                : "text-n-text-2"
                         }
                     />
                     <span>
@@ -509,23 +526,23 @@ export const MenuContext = ({
                 </button>
 
                 {/* Divider */}
-                <hr className="border-neutral-800 my-1 mx-2" />
+                <hr className="border-n-border my-1 mx-2" />
 
                 {/* 5. Share */}
                 <button
                     onClick={handleShare}
-                    className="w-full text-left px-3.5 py-2 text-xs font-semibold text-neutral-300 hover:text-white hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
+                    className="w-full text-left px-3.5 py-2 text-xs font-semibold text-n-text hover:text-n-text hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
                 >
-                    <Share2 size={14} className="text-neutral-500" />
+                    <Share2 size={14} className="text-n-text-2" />
                     <span>Share</span>
                 </button>
 
                 {/* 6. Download */}
                 <button
                     onClick={handleDownload}
-                    className="w-full text-left px-3.5 py-2 text-xs font-semibold text-neutral-300 hover:text-white hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
+                    className="w-full text-left px-3.5 py-2 text-xs font-semibold text-n-text hover:text-n-text hover:bg-white/5 flex items-center gap-2.5 transition-colors cursor-pointer"
                 >
-                    <Download size={14} className="text-neutral-500" />
+                    <Download size={14} className="text-n-text-2" />
                     <span>Download</span>
                 </button>
 

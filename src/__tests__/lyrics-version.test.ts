@@ -13,7 +13,7 @@ jest.mock("@/lib/prisma", () => ({
     },
 }));
 
-jest.mock("@/middleware/rbac.middleware", () => ({
+jest.mock("@/lib/rbac", () => ({
     requireRole: jest.fn(),
     forbidden: jest.fn((msg) => Response.json({ error: msg }, { status: 403 })),
     unauthorized: jest.fn(() => Response.json({ error: "Non authentifié" }, { status: 401 })),
@@ -101,7 +101,7 @@ describe("Lyrics Versioning", () => {
 
     // ✅ Restauration — LEAD_PAROLIER autorisé
     it("restauration autorisée pour LEAD_PAROLIER", async () => {
-        const { requireRole } = require("@/middleware/rbac.middleware");
+        const { requireRole } = require("@/lib/rbac");
         (requireRole as jest.Mock).mockResolvedValue({ authorized: true, role: "LEAD_PAROLIER" });
 
         const { authorized } = await requireRole("cognitoId", "projectId", "LEAD_PAROLIER");
@@ -110,7 +110,7 @@ describe("Lyrics Versioning", () => {
 
     // ✅ Restauration — PAROLIER refusé
     it("restauration refusée pour PAROLIER", async () => {
-        const { requireRole } = require("@/middleware/rbac.middleware");
+        const { requireRole } = require("@/lib/rbac");
         (requireRole as jest.Mock).mockResolvedValue({ authorized: false });
 
         const { authorized } = await requireRole("cognitoId", "projectId", "LEAD_PAROLIER");
