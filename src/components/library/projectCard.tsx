@@ -8,22 +8,13 @@ import { useRouter } from "next/navigation";
 import { useRef } from "react";
 
 import { ALL_AVATARS, getOwnerAvatar } from "@/lib/avatars";
+import { formatRelativeDeleted, getDaysLeftLabel, getDaysLeftTone } from "@/lib/trashTime";
 
 const isValidImageSrc = (img: any): boolean => {
     if (!img) return false;
     if (typeof img === "string") return img.trim() !== "";
     if (typeof img === "object") return !!img.src;
     return false;
-};
-
-const formatDeletedTime = (timeStr: string) => {
-    if (!timeStr) return "Deleted recently";
-    const lower = timeStr.toLowerCase();
-    if (lower.startsWith("deleted")) return timeStr;
-    if (lower.startsWith("edited")) {
-        return timeStr.replace(/^[Ee]dited\s+/, "Deleted ");
-    }
-    return `Deleted ${timeStr}`;
 };
 
 export interface ProjectCardProps {
@@ -212,9 +203,16 @@ export const ProjectCard = ({
                     {/* Section Collaborateurs / Owner / Trashed Info */}
                     <div className="mt-3">
                         {isDeletedView ? (
-                            <div className="pt-3 border-t border-white/10">
+                            <div className="pt-3 border-t border-white/10 flex flex-col gap-0.5">
                                 <span className="text-[11px] font-medium text-neutral-400">
-                                    {formatDeletedTime(project.lastModified)}
+                                    {formatRelativeDeleted(project.deletedAt)}
+                                </span>
+                                <span className={
+                                    getDaysLeftTone(project.deletedAt) === "danger"  ? "text-[10px] font-semibold text-red-400"
+                                  : getDaysLeftTone(project.deletedAt) === "warning" ? "text-[10px] font-semibold text-amber-400"
+                                  : "text-[10px] font-semibold text-neutral-500"
+                                }>
+                                    {getDaysLeftLabel(project.deletedAt)}
                                 </span>
                             </div>
                         ) : isSharedView || project.isShared ? (
@@ -354,9 +352,18 @@ export const ProjectCard = ({
             {/* Layout adaptable en colonnes selon le contexte */}
             {isDeletedView ? (
                 <>
-                    {/* Deleted time */}
-                    <div className="col-span-3 text-xs text-white truncate">
-                        {formatDeletedTime(project.lastModified)}
+                    {/* Deleted time + jours restants */}
+                    <div className="col-span-3 flex flex-col">
+                        <span className="text-xs text-white truncate">
+                            {formatRelativeDeleted(project.deletedAt)}
+                        </span>
+                        <span className={
+                            getDaysLeftTone(project.deletedAt) === "danger"  ? "text-[11px] font-semibold text-red-400"
+                          : getDaysLeftTone(project.deletedAt) === "warning" ? "text-[11px] font-semibold text-amber-400"
+                          : "text-[11px] font-semibold text-neutral-500"
+                        }>
+                            {getDaysLeftLabel(project.deletedAt)}
+                        </span>
                     </div>
 
                     {/* Collaborators */}

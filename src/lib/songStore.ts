@@ -33,6 +33,7 @@ export interface Song {
     projectName: string;
     isFavorite: boolean;
     isDeleted: boolean;
+    deletedAt?: string; // ISO — date de mise a la corbeille
     isShared?: boolean;
     owner?: string;
     position?: number;
@@ -444,6 +445,7 @@ export interface Mappings {
         origin: "standalone" | "project";
         isFavorite: boolean;
         isDeleted: boolean;
+        deletedAt?: string;
         isPermanentlyDeleted?: boolean;
         title: string;
         description?: string;
@@ -668,6 +670,12 @@ export const setSongDeleted = (songId: string, isDeleted: boolean) => {
     const currentMappings = getSongProjectMappings();
     if (currentMappings[songId]) {
         currentMappings[songId].isDeleted = isDeleted;
+        // Mémorise la date de suppression (et l'efface au rétablissement)
+        if (isDeleted) {
+            currentMappings[songId].deletedAt = new Date().toISOString();
+        } else {
+            delete currentMappings[songId].deletedAt;
+        }
         localStorage.setItem(
             LOCAL_STORAGE_KEY,
             JSON.stringify(currentMappings),
@@ -870,6 +878,7 @@ export const useSongs = (): Song[] => {
                     origin: songMapping.origin,
                     isFavorite: !!songMapping.isFavorite,
                     isDeleted: !!songMapping.isDeleted,
+                    deletedAt: songMapping.deletedAt,
                     isShared: !!song.isShared,
                     owner: song.owner || "",
                     description: songMapping.description || "",

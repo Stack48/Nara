@@ -16,12 +16,19 @@ import {
 import { ProjectCard } from "./projectCard";
 import { SongCard } from "./songCard";
 
+// AJOUT EXCLUSIF : Importation de la modale sans altérer le visuel de la page
+import { PermanentDeleteFileModal } from "@/components/library/PermanentDeleteFileModal";
+
 export const Deleted = () => {
     const [viewMode, setViewModeState] = useState<"grid" | "list">("grid");
     const [searchQuery, setSearchQuery] = useState("");
     const [sortBy, setSortBy] = useState<SortByOption>("modified");
     const [sortOrder, setSortOrder] = useState<SortOrderOption>("desc");
     const [filterValue, setFilterValue] = useState<string>("all");
+
+    // AJOUT : États pour intercepter la suppression définitive
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [pendingDelete, setPendingDelete] = useState<{ id: string; title: string; type: "song" | "project" } | null>(null);
 
     const setViewMode = (mode: "grid" | "list") => {
         setViewModeState(mode);
@@ -74,7 +81,17 @@ export const Deleted = () => {
         );
     };
 
+    // MODIFICATION : Au lieu de supprimer direct, on ouvre la modale de validation
     const handlePermanentDelete = (id: string, title: string, type: "song" | "project") => {
+        setPendingDelete({ id, title, type });
+        setIsModalOpen(true);
+    };
+
+    // AJOUT : Exécution réelle de la suppression une fois la modale validée
+    const confirmPermanentDelete = () => {
+        if (!pendingDelete) return;
+        
+        const { id, title, type } = pendingDelete;
         if (type === "song") {
             deleteSongPermanently(id);
         } else {
@@ -85,6 +102,8 @@ export const Deleted = () => {
                 detail: { message: `"${title}" permanently deleted.` },
             }),
         );
+        setIsModalOpen(false);
+        setPendingDelete(null);
     };
 
     const handleHeaderSort = (field: typeof sortBy) => {
@@ -227,7 +246,7 @@ export const Deleted = () => {
                                                     onSelect={(e) => handleSelect(project.id, "project", project, e, combinedViewItems)}
                                                     onRestore={handleProjectRestore}
                                                     onPermanentDelete={(id, title) =>
-                                                         handlePermanentDelete(id, title, "project")
+                                                         handlePermanentDelete(id, title || project.title, "project")
                                                      }
                                                     onContextMenu={(e) => handleProjectContextMenu(e, project)}
                                                 />
@@ -255,7 +274,7 @@ export const Deleted = () => {
                                                                 handleProjectRestore
                                                             }
                                                             onPermanentDelete={(id, title) =>
-                                                                 handlePermanentDelete(id, title, "project")
+                                                                 handlePermanentDelete(id, project.title, "project")
                                                              }
                                                             onContextMenu={(e) => handleProjectContextMenu(e, project)}
                                                         />
@@ -321,11 +340,7 @@ export const Deleted = () => {
                                                                  id,
                                                                  title,
                                                              ) =>
-                                                                 handlePermanentDelete(
-                                                                     id,
-                                                                     title,
-                                                                     "song",
-                                                                 )
+                                                                 handlePermanentDelete(id, title, "song")
                                                              }
                                                             onContextMenu={(e) => handleSongContextMenu(e, song)}
                                                         />
@@ -361,6 +376,17 @@ export const Deleted = () => {
                     }}
                 />
             )}
+
+            {/* INJECTION DISCRÈTE : La modale s'ouvrira en surcouche uniquement lors de l'action */}
+            <PermanentDeleteFileModal
+                isOpen={isModalOpen}
+                fileName={pendingDelete?.title || ""}
+                onClose={() => {
+                    setIsModalOpen(false);
+                    setPendingDelete(null);
+                }}
+                onConfirm={confirmPermanentDelete}
+            />
         </div>
     );
 };

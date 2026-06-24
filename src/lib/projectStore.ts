@@ -36,6 +36,7 @@ export interface Project {
     image: any;
     isFavorite: boolean;
     isDeleted: boolean;
+    deletedAt?: string; // ISO — date de mise a la corbeille
     isPermanentlyDeleted?: boolean;
     isShared?: boolean;
     owner?: string;
@@ -163,6 +164,7 @@ interface StoredProjects {
         imageKey: string;
         isFavorite: boolean;
         isDeleted: boolean;
+        deletedAt?: string;
         isPermanentlyDeleted?: boolean;
         isShared?: boolean;
         owner?: string;
@@ -318,6 +320,12 @@ export const setProjectDeleted = (projectId: string, isDeleted: boolean) => {
     const current = getProjectsFromStorage();
     if (current[projectId]) {
         current[projectId].isDeleted = isDeleted;
+        // Mémorise la date de suppression (et l'efface au rétablissement)
+        if (isDeleted) {
+            current[projectId].deletedAt = new Date().toISOString();
+        } else {
+            delete current[projectId].deletedAt;
+        }
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(current));
         window.dispatchEvent(new CustomEvent(EVENT_NAME));
 
@@ -441,6 +449,7 @@ export const useProjects = (): Project[] => {
                           : null,
                     isFavorite: !!proj.isFavorite,
                     isDeleted: !!proj.isDeleted,
+                    deletedAt: proj.deletedAt,
                     isShared: !!proj.isShared,
                     owner: proj.owner || "",
                     description: proj.description || "",
