@@ -16,7 +16,7 @@ export async function GET(
     if (!authorized) return forbidden();
 
     const files = await prisma.file.findMany({
-        where: { projectId: params.id },
+        where: { projectId: params.id, deletedAt: null },
         include: {
             uploader: { select: { id: true, name: true, username: true } },
         },
