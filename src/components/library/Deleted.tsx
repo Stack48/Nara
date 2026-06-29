@@ -18,6 +18,7 @@ import { SongCard } from "./songCard";
 import { useApiSongs } from "@/hooks/useApiSongs";
 import { useApiProjects } from "@/hooks/useApiProjects";
 import { SkeletonGrid, SkeletonList } from "@/components/ui/SkeletonCard";
+import { DeletedFiles } from "@/components/library/trash/DeletedFiles";
 
 export const Deleted = () => {
     const [viewMode, setViewModeState] = useState<"grid" | "list">("grid");
@@ -385,6 +386,9 @@ export const Deleted = () => {
                     </div>
                 </div>
             )}
+             <div className="mt-10">
+                <DeletedFiles />
+            </div>
 
             {contextMenu && (
                 <MenuContext

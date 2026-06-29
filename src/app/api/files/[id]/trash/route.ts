@@ -4,9 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { requireRole, forbidden, unauthorized } from "@/lib/rbac";
 import { trashFile } from "@/server/trash.service";
 
-// Rôle minimum requis. Calé sur ta route files existante (DELETE projects/:id/files/:fileId).
-// Si ta version utilise un autre libellé (ex. "LEAD_LYRICIST"), remplace ici à l'identique.
-const ROLE_REQUIRED = "LEAD_PAROLIER";
+
+const ROLE_REQUIRED = "LEAD_LYRICIST";
 
 // POST /api/files/:id/trash — envoie le fichier à la corbeille
 export async function POST(

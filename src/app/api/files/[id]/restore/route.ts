@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireRole, forbidden, unauthorized } from "@/lib/rbac";
 import { restoreFile } from "@/server/trash.service";
 
-const ROLE_REQUIRED = "LEAD_PAROLIER";
+const ROLE_REQUIRED = "LEAD_LYRICIST";
 
 // POST /api/files/:id/restore — restaure un fichier depuis la corbeille
 export async function POST(
