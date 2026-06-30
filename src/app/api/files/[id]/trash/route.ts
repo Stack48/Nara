@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { requireRole, forbidden, unauthorized } from "@/lib/rbac";
 import { trashFile } from "@/server/trash.service";
 
-
 const ROLE_REQUIRED = "LEAD_LYRICIST";
 
 // POST /api/files/:id/trash — envoie le fichier à la corbeille

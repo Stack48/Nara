@@ -1,22 +1,30 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { getCurrentUser } from "aws-amplify/auth";
+import "@/lib/amplify";
 import type { TrashedFile } from "@/types/trash";
-import { authHeaders } from "@/lib/devIdentity";
 
-const API_BASE = "/api/files";
 const ENDPOINTS = {
-    list: `${API_BASE}/trash`,
-    restore: (id: string) => `${API_BASE}/${id}/restore`,
-    permanent: (id: string) => `${API_BASE}/${id}/permanent`,
+    list: `/api/trash/files`,
+    restore: (id: string) => `/api/files/${id}/restore`,
+    permanent: (id: string) => `/api/files/${id}/permanent`,
 };
 
 function toast(message: string) {
-    // Réutilise le système de toast existant (cf. Layout.tsx).
     if (typeof window !== "undefined") {
         window.dispatchEvent(
             new CustomEvent("show-nara-toast", { detail: { message } }),
         );
+    }
+}
+
+async function authHeaders(): Promise<Record<string, string>> {
+    try {
+        const user = await getCurrentUser();
+        return { "x-cognito-id": user.userId };
+    } catch {
+        return {};
     }
 }
 
@@ -42,7 +50,7 @@ export function useTrashedFiles(): UseTrashedFiles {
         try {
             const res = await fetch(ENDPOINTS.list, {
                 cache: "no-store",
-                headers: { ...authHeaders() },
+                headers: await authHeaders(),
             });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data: TrashedFile[] = await res.json();
@@ -66,13 +74,13 @@ export function useTrashedFiles(): UseTrashedFiles {
         try {
             const res = await fetch(ENDPOINTS.restore(id), {
                 method: "POST",
-                headers: { ...authHeaders() },
+                headers: await authHeaders(),
             });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             toast(`"${target?.name ?? "File"}" restored.`);
         } catch (e) {
             console.error("[trash] restore error", e);
-            if (target) setFiles((prev) => [target, ...prev]); // rollback
+            if (target) setFiles((prev) => [target, ...prev]);
             toast("Restore failed. Please try again.");
         } finally {
             setPendingId(null);
@@ -86,13 +94,13 @@ export function useTrashedFiles(): UseTrashedFiles {
         try {
             const res = await fetch(ENDPOINTS.permanent(id), {
                 method: "DELETE",
-                headers: { ...authHeaders() },
+                headers: await authHeaders(),
             });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             toast(`"${target?.name ?? "File"}" permanently deleted.`);
         } catch (e) {
             console.error("[trash] permanent delete error", e);
-            if (target) setFiles((prev) => [target, ...prev]); // rollback
+            if (target) setFiles((prev) => [target, ...prev]);
             toast("Deletion failed. Please try again.");
         } finally {
             setPendingId(null);

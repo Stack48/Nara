@@ -1,10 +1,11 @@
-// src/app/api/files/trash/route.ts
+// src/app/api/trash/files/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { unauthorized } from "@/lib/rbac";
 
-// GET /api/files/trash
+// GET /api/trash/files
 // Liste tous les fichiers en corbeille (deletedAt != null) des projets
+// auxquels l'utilisateur a accès (propriétaire OU membre).
 export async function GET(request: NextRequest) {
     const cognitoId = request.headers.get("x-cognito-id");
     if (!cognitoId) return unauthorized();
@@ -31,7 +32,6 @@ export async function GET(request: NextRequest) {
         orderBy: { deletedAt: "desc" },
     });
 
-   
     const result = files.map((f) => ({
         id: f.id,
         name: f.originalName,
