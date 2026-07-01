@@ -64,6 +64,7 @@ model User {
   markers        AudioMarker[]
   passwordResets PasswordResetRequest[]
   comments       Comment[]
+  analysisJobs   AnalysisJob[]
 }
 
 model Project {
@@ -140,6 +141,7 @@ model Lyrics {
   versions    LyricVersion[]
   markers     AudioMarker[]
   comments    Comment[]
+  analysisJobs   AnalysisJob[]
 }
 
 model Suggestion {
@@ -191,6 +193,7 @@ model File {
   uploadedBy   String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
 
   project      Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
   uploader     User          @relation(fields: [uploadedBy], references: [id])
@@ -249,4 +252,28 @@ model PasswordResetRequest {
   createdAt DateTime @default(now())
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum AnalysisStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+model AnalysisJob {
+  id          String         @id @default(cuid())
+  status      AnalysisStatus @default(PENDING)
+  score       Float?         // score global de similarité (ex. 0 à 100)
+  matches     Json?          // la liste des passages similaires trouvés
+  error       String?        // message si le job échoue
+  startedAt   DateTime?      // quand le calcul démarre
+  finishedAt  DateTime?      // quand il finit (pour vérifier le < 10s)
+  lyricsId    String         // les paroles analysées (la source)
+  requestedBy String         // qui a lancé l'analyse
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  lyrics      Lyrics @relation(fields: [lyricsId], references: [id], onDelete: Cascade)
+  requester   User   @relation(fields: [requestedBy], references: [id])
 }
