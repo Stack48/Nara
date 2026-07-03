@@ -34,6 +34,7 @@
     "aws-amplify": "^6.17.0",
     "axios": "^1.15.1",
     "bcryptjs": "^3.0.3",
+    "bullmq": "^5.79.2",
     "cookie": "^1.1.1",
     "express-rate-limit": "^8.5.2",
     "helmet": "^8.2.0",
@@ -75,5 +76,7 @@
     "ts-jest": "^29.4.11",
     "ts-node": "^10.9.2",
     "typescript": "^5"
-  }
+  },
+
+  "worker:similarity": "tsx watch src/server/similarity/similarity.worker.ts"
 }
