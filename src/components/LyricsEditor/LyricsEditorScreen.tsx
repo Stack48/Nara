@@ -5,6 +5,7 @@ import LyricsEditorWorkspace from "@/components/LyricsEditor/LyricsEditorWorkspa
 import LyricsHeader, {
 	type LyricsFormat,
 } from "@/components/LyricsEditor/LyricsHeader";
+import SealContributionButton from "@/components/LyricsEditor/SealContributionButton";
 
 const initialFormat: LyricsFormat = {
 	fontFamily: "Arimo",
@@ -76,6 +77,11 @@ export default function LyricsEditorScreen({ lyricsId, projectId }: LyricsEditor
 				lyricsId={lyricsId}
 				projectId={projectId}
 			/>
+			{lyricsId && !format.focusMode && (
+				<div className="pointer-events-none absolute bottom-6 right-6 z-50">
+					<SealContributionButton lyricsId={lyricsId} />
+				</div>
+			)}
 		</section>
 	);
 }
