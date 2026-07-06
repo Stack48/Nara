@@ -114,7 +114,7 @@ export const ShareModal = ({
         
         const inviteDetails = selectedUsers.map(name => {
             const role = userRoles[name] || "READONLY";
-            const roleLabel = role === "READONLY" ? "Lecture seule" : role === "LYRICIST" ? "LYRICIST" : "Lead LYRICIST";
+            const roleLabel = role === "READONLY" ? "Lecture seule" : role === "LYRI"LYRICIST"YRI"LYRICIST"ead LYRICIST";
             return `${name} (${roleLabel})`;
         }).join(", ");
 
