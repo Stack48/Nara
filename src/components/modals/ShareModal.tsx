@@ -105,7 +105,7 @@ export const ShareModal = ({
             setUserRoles(newRoles);
         } else {
             setSelectedUsers([...selectedUsers, userName]);
-            setUserRoles({ ...userRoles, [userName]: "LECTURE_SEULE" }); // default role
+            setUserRoles({ ...userRoles, [userName]: "READONLY" }); // default role
         }
     };
 
@@ -113,8 +113,8 @@ export const ShareModal = ({
         if (selectedUsers.length === 0) return;
         
         const inviteDetails = selectedUsers.map(name => {
-            const role = userRoles[name] || "LECTURE_SEULE";
-            const roleLabel = role === "LECTURE_SEULE" ? "Lecture seule" : role === "PAROLIER" ? "Parolier" : "Lead Parolier";
+            const role = userRoles[name] || "READONLY";
+            const roleLabel = role === "READONLY" ? "Lecture seule" : role === "LYRICIST" ? "LYRICIST" : "Lead LYRICIST";
             return `${name} (${roleLabel})`;
         }).join(", ");
 
@@ -302,13 +302,13 @@ export const ShareModal = ({
                                                     <span className="text-xs font-semibold text-n-text truncate">{userName}</span>
                                                 </div>
                                                 <select
-                                                    value={userRoles[userName] || "LECTURE_SEULE"}
+                                                    value={userRoles[userName] || "READONLY"}
                                                     onChange={(e) => setUserRoles({ ...userRoles, [userName]: e.target.value })}
                                                     className="bg-n-surface-2 border border-n-border rounded-lg text-[10.5px] py-1 px-1.5 text-neutral-350 focus:outline-none focus:border-n-border-2 font-semibold cursor-pointer"
                                                 >
-                                                    <option value="LECTURE_SEULE">Lecture seule</option>
-                                                    <option value="PAROLIER">Parolier</option>
-                                                    <option value="LEAD_PAROLIER">Lead Parolier</option>
+                                                    <option value="READONLY">Lecture seule</option>
+                                                    <option value="LYRICIST">LYRICIST</option>
+                                                    <option value="LEAD_LYRICIST">Lead LYRICIST</option>
                                                 </select>
                                             </div>
                                         );

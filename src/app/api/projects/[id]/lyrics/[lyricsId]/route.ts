@@ -23,7 +23,7 @@ export async function PATCH(
     if (!cognitoId) return unauthorized();
 
     const { authorized } = await requireRole(cognitoId, params.id, "LEAD_LYRICIST");
-    if (!authorized) return forbidden("Seul un Lead Parolier ou Admin peut modifier les lyrics");
+    if (!authorized) return forbidden("Seul un Lead LYRICIST ou Admin peut modifier les lyrics");
 
     const body = await request.json();
     const parsed = updateLyricsSchema.safeParse(body);

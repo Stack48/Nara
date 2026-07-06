@@ -14,7 +14,7 @@ describe("RBAC — hasPermission", () => {
     expect(hasPermission('ADMIN', 'READONLY')).toBe(true);
   });
 
-  // ✅ Lead Parolier
+  // ✅ Lead LYRICIST
   it('LEAD_LYRICIST peut accéder aux routes LYRICIST', () => {
     expect(hasPermission('LEAD_LYRICIST', 'LYRICIST')).toBe(true);
   });
@@ -23,7 +23,7 @@ describe("RBAC — hasPermission", () => {
     expect(hasPermission('LEAD_LYRICIST', 'ADMIN')).toBe(false);
   });
 
-  // ✅ Parolier
+  // ✅ LYRICIST
   it('LYRICIST peut accéder aux routes READONLY', () => {
     expect(hasPermission('LYRICIST', 'READONLY')).toBe(true);
   });

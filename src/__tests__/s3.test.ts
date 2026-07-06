@@ -107,21 +107,21 @@ describe("S3 Drive — Fichiers", () => {
         expect(result.id).toBe("file-1");
     });
 
-    // ✅ RBAC — LECTURE_SEULE peut lire
-    it("LECTURE_SEULE peut accéder aux fichiers", async () => {
+    // ✅ RBAC — READONLY peut lire
+    it("READONLY peut accéder aux fichiers", async () => {
         const { requireRole } = require("@/lib/rbac");
-        (requireRole as jest.Mock).mockResolvedValue({ authorized: true, role: "LECTURE_SEULE" });
+        (requireRole as jest.Mock).mockResolvedValue({ authorized: true, role: "READONLY" });
 
-        const { authorized } = await requireRole("cognitoId", "projectId", "LECTURE_SEULE");
+        const { authorized } = await requireRole("cognitoId", "projectId", "READONLY");
         expect(authorized).toBe(true);
     });
 
-    // ✅ RBAC — PAROLIER ne peut pas supprimer
-    it("PAROLIER ne peut pas supprimer un fichier", async () => {
+    // ✅ RBAC — LYRICIST ne peut pas supprimer
+    it("LYRICIST ne peut pas supprimer un fichier", async () => {
         const { requireRole } = require("@/lib/rbac");
         (requireRole as jest.Mock).mockResolvedValue({ authorized: false });
 
-        const { authorized } = await requireRole("cognitoId", "projectId", "LEAD_PAROLIER");
+        const { authorized } = await requireRole("cognitoId", "projectId", "LEAD_LYRICIST");
         expect(authorized).toBe(false);
     });
 

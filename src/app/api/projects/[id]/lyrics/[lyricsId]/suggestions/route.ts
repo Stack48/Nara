@@ -24,7 +24,7 @@ export async function POST(
     const cognitoId = getCognitoId(request);
     if (!cognitoId) return unauthorized();
 
-    const { authorized } = await requireRole(cognitoId, params.id, "PAROLIER");
+    const { authorized } = await requireRole(cognitoId, params.id, "LYRICIST");
     if (!authorized) return forbidden("Accès refusé");
 
     const body = await request.json();
@@ -51,7 +51,7 @@ export async function POST(
     return NextResponse.json(suggestion, { status: 201 });
 }
 
-// PATCH — approuve ou rejette une suggestion (LEAD_PAROLIER+)
+// PATCH — approuve ou rejette une suggestion (LEAD_LYRICIST+)
 export async function PATCH(
     request: NextRequest,
     { params }: { params: { id: string; lyricsId: string } }
@@ -59,8 +59,8 @@ export async function PATCH(
     const cognitoId = getCognitoId(request);
     if (!cognitoId) return unauthorized();
 
-    const { authorized } = await requireRole(cognitoId, params.id, "LEAD_PAROLIER");
-    if (!authorized) return forbidden("Seul un Lead Parolier ou Admin peut valider les suggestions");
+    const { authorized } = await requireRole(cognitoId, params.id, "LEAD_LYRICIST");
+    if (!authorized) return forbidden("Seul un Lead LYRICIST ou Admin peut valider les suggestions");
 
     const body = await request.json();
     const parsed = reviewSchema.safeParse(body);
