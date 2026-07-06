@@ -99,21 +99,21 @@ describe("Lyrics Versioning", () => {
         expect(snapshot.version).toBe(3);
     });
 
-    // ✅ Restauration — LEAD_PAROLIER autorisé
-    it("restauration autorisée pour LEAD_PAROLIER", async () => {
+    // ✅ Restauration — LEAD_LYRICIST autorisé
+    it("restauration autorisée pour LEAD_LYRICIST", async () => {
         const { requireRole } = require("@/lib/rbac");
-        (requireRole as jest.Mock).mockResolvedValue({ authorized: true, role: "LEAD_PAROLIER" });
+        (requireRole as jest.Mock).mockResolvedValue({ authorized: true, role: "LEAD_LYRICIST" });
 
-        const { authorized } = await requireRole("cognitoId", "projectId", "LEAD_PAROLIER");
+        const { authorized } = await requireRole("cognitoId", "projectId", "LEAD_LYRICIST");
         expect(authorized).toBe(true);
     });
 
-    // ✅ Restauration — PAROLIER refusé
-    it("restauration refusée pour PAROLIER", async () => {
+    // ✅ Restauration — LYRICIST refusé
+    it("restauration refusée pour LYRICIST", async () => {
         const { requireRole } = require("@/lib/rbac");
         (requireRole as jest.Mock).mockResolvedValue({ authorized: false });
 
-        const { authorized } = await requireRole("cognitoId", "projectId", "LEAD_PAROLIER");
+        const { authorized } = await requireRole("cognitoId", "projectId", "LEAD_LYRICIST");
         expect(authorized).toBe(false);
     });
 

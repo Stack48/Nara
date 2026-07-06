@@ -1,9 +1,7 @@
 // src/server/trash.service.ts
 import { prisma } from "@/lib/prisma";
 import { deleteFile } from "./s3.service";
-
-// Rétention configurable (jours). Défaut 30. Surchageable via .env (TRASH_RETENTION_DAYS).
-export const TRASH_RETENTION_DAYS = Number(process.env.TRASH_RETENTION_DAYS ?? 30);
+import { TRASH_RETENTION_DAYS } from "@/lib/config";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -23,10 +21,7 @@ export async function restoreFile(fileId: string) {
     });
 }
 
-/**
- * Étape 2 — suppression définitive. S3 D'ABORD, puis la DB :
- * si S3 échoue, on garde la ligne en base (pas de fichier "fantôme" en DB sans S3).
- */
+
 export async function permanentlyDeleteFile(fileId: string) {
     const file = await prisma.file.findUnique({ where: { id: fileId } });
     if (!file) return null;
@@ -36,12 +31,17 @@ export async function permanentlyDeleteFile(fileId: string) {
     return file;
 }
 
-/**
- * Purge automatique : supprime définitivement (S3 + DB) tous les fichiers
- * en corbeille depuis plus de `retentionDays` jours.
- * Tolérante aux pannes : un échec sur un fichier n'arrête pas les autres.
- */
-export async function purgeExpiredFiles(retentionDays = TRASH_RETENTION_DAYS) {
+
+export interface PurgeResult {
+    scanned: number;
+    purged: number;
+    failed: number;
+    retentionDays: number;
+}
+
+export async function purgeExpiredFiles(
+    retentionDays: number = TRASH_RETENTION_DAYS
+): Promise<PurgeResult> {
     const cutoff = new Date(Date.now() - retentionDays * DAY_MS);
 
     const expired = await prisma.file.findMany({

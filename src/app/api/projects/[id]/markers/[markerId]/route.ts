@@ -20,7 +20,7 @@ export async function PATCH(
     const cognitoId = getCognitoId(request);
     if (!cognitoId) return unauthorized();
 
-    const { authorized } = await requireRole(cognitoId, params.id, "PAROLIER");
+    const { authorized } = await requireRole(cognitoId, params.id, "LYRICIST");
     if (!authorized) return forbidden("Accès refusé");
 
     const body = await request.json();
@@ -46,8 +46,8 @@ export async function DELETE(
     const cognitoId = getCognitoId(request);
     if (!cognitoId) return unauthorized();
 
-    const { authorized } = await requireRole(cognitoId, params.id, "LEAD_PAROLIER");
-    if (!authorized) return forbidden("Seul un Lead Parolier ou Admin peut supprimer un marker");
+    const { authorized } = await requireRole(cognitoId, params.id, "LEAD_LYRICIST");
+    if (!authorized) return forbidden("Seul un Lead LYRICIST ou Admin peut supprimer un marker");
 
     await prisma.audioMarker.delete({ where: { id: params.markerId } });
 
