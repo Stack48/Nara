@@ -98,17 +98,17 @@ describe("Audio Markers", () => {
         expect(result.success).toBe(false);
     });
 
-    // ✅ LECTURE_SEULE peut voir les markers
-    it("LECTURE_SEULE peut voir les markers", async () => {
-        (requireRole as jest.Mock).mockResolvedValue({ authorized: true, role: "LECTURE_SEULE" });
-        const { authorized } = await requireRole("cognitoId", "projectId", "LECTURE_SEULE");
+    // ✅ READONLY peut voir les markers
+    it("READONLY peut voir les markers", async () => {
+        (requireRole as jest.Mock).mockResolvedValue({ authorized: true, role: "READONLY" });
+        const { authorized } = await requireRole("cognitoId", "projectId", "READONLY");
         expect(authorized).toBe(true);
     });
 
-    // ✅ PAROLIER ne peut pas supprimer
-    it("PAROLIER ne peut pas supprimer un marker", async () => {
+    // ✅ LYRICIST ne peut pas supprimer
+    it("LYRICIST ne peut pas supprimer un marker", async () => {
         (requireRole as jest.Mock).mockResolvedValue({ authorized: false });
-        const { authorized } = await requireRole("cognitoId", "projectId", "LEAD_PAROLIER");
+        const { authorized } = await requireRole("cognitoId", "projectId", "LEAD_LYRICIST");
         expect(authorized).toBe(false);
     });
 

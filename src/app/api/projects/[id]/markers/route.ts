@@ -22,7 +22,7 @@ export async function GET(
     const cognitoId = getCognitoId(request);
     if (!cognitoId) return unauthorized();
 
-    const { authorized } = await requireRole(cognitoId, params.id, "LECTURE_SEULE");
+    const { authorized } = await requireRole(cognitoId, params.id, "READONLY");
     if (!authorized) return forbidden();
 
     const markers = await prisma.audioMarker.findMany({
@@ -48,7 +48,7 @@ export async function POST(
     const cognitoId = getCognitoId(request);
     if (!cognitoId) return unauthorized();
 
-    const { authorized } = await requireRole(cognitoId, params.id, "PAROLIER");
+    const { authorized } = await requireRole(cognitoId, params.id, "LYRICIST");
     if (!authorized) return forbidden("Accès refusé");
 
     const user = await prisma.user.findUnique({ where: { cognitoId } });

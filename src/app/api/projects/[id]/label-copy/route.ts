@@ -26,7 +26,7 @@ export async function GET(
     const cognitoId = getCognitoId(request);
     if (!cognitoId) return unauthorized();
 
-    const { authorized } = await requireRole(cognitoId, params.id, "LECTURE_SEULE");
+    const { authorized } = await requireRole(cognitoId, params.id, "READONLY");
     if (!authorized) return forbidden();
 
     const labelCopy = await prisma.labelCopy.findFirst({
@@ -52,8 +52,8 @@ export async function POST(
     const cognitoId = getCognitoId(request);
     if (!cognitoId) return unauthorized();
 
-    const { authorized } = await requireRole(cognitoId, params.id, "LEAD_PAROLIER");
-    if (!authorized) return forbidden("Seul un Lead Parolier ou Admin peut créer un Label Copy");
+    const { authorized } = await requireRole(cognitoId, params.id, "LEAD_LYRICIST");
+    if (!authorized) return forbidden("Seul un Lead LYRICIST ou Admin peut créer un Label Copy");
 
     const body = await request.json();
     const parsed = labelCopySchema.safeParse(body);
