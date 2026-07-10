@@ -43,6 +43,11 @@ enum LyricsState {
   REVIEW
 }
 
+enum AlternativeSource {
+  AI
+  COMMUNITY
+}
+
 model User {
   id             String   @id @default(cuid())
   cognitoId      String   @unique @default("")
@@ -64,6 +69,9 @@ model User {
   markers        AudioMarker[]
   passwordResets PasswordResetRequest[]
   comments       Comment[]
+  chords         Chord[]
+  alternatives   Alternative[]
+  alternativeViews AlternativeView[]
 }
 
 model Project {
@@ -140,6 +148,8 @@ model Lyrics {
   versions    LyricVersion[]
   markers     AudioMarker[]
   comments    Comment[]
+  chords      Chord[]
+  alternatives Alternative[]
 }
 
 model Suggestion {
@@ -249,4 +259,54 @@ model PasswordResetRequest {
   createdAt DateTime @default(now())
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Accord musical associé à un mot d'un lyric (Marcus annote ses textes)
+model Chord {
+  id        String   @id @default(cuid())
+  word      String
+  position  Int
+  chord     String
+  sectionId String?
+  lyricsId  String
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lyrics    Lyrics   @relation(fields: [lyricsId], references: [id], onDelete: Cascade)
+  creator   User     @relation(fields: [createdBy], references: [id])
+
+  @@index([lyricsId])
+}
+
+// Versions alternatives d'une phrase (générées par IA ou soumises par la communauté)
+model Alternative {
+  id           String            @id @default(cuid())
+  phrase       String
+  alternatives String[]
+  source       AlternativeSource
+  lyricsId     String
+  authorId     String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  lyrics       Lyrics            @relation(fields: [lyricsId], references: [id], onDelete: Cascade)
+  author       User?             @relation(fields: [authorId], references: [id])
+  views        AlternativeView[]
+
+  @@index([lyricsId])
+}
+
+// Historique des alternatives consultées
+model AlternativeView {
+  id            String   @id @default(cuid())
+  alternativeId String
+  userId        String
+  viewedAt      DateTime @default(now())
+
+  alternative   Alternative @relation(fields: [alternativeId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([alternativeId])
 }
