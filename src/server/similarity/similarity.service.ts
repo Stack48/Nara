@@ -177,11 +177,7 @@ function findSimilarPassages(
         if (excerptWords.length < NGRAM_SIZE) continue;
         const excerpt = excerptWords.join(" ");
 
-        const best = findBestWindow(
-            excerpt,
-            refWords,
-            Math.max(excerptWords.length, WINDOW_SIZE)
-        );
+        const best = findBestWindow(excerpt, refWords, excerptWords.length);
 
         if (best && best.similarity >= PASSAGE_THRESHOLD) {
             passages.push({
