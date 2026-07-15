@@ -10,6 +10,7 @@ import {
 	Sparkles,
 	X,
 	Check,
+	ScanSearch,
 	type LucideIcon,
 } from "lucide-react";
 import {
@@ -19,6 +20,7 @@ import {
 	useCallback,
 	type ChangeEvent,
 	type ReactElement,
+	type ReactNode,
 } from "react";
 import { useLinguistic } from "@/hooks/useLinguistic";
 import { useRef } from "react";
@@ -73,6 +75,9 @@ export type LyricsInspectorProps = {
 	onLookupTermChange?: (term: string) => void;
 	panels?: LyricsInspectorPanel[];
 	onVisibilityChange?: (hasVisiblePanels: boolean) => void;
+		// [36-FE] Carte libre (panneau Similarités) affichée en tête de colonne
+	similarityContent?: ReactNode;
+
 };
 
 export const defaultLyricsInspectorPanels: LyricsInspectorPanel[] = [
@@ -539,11 +544,17 @@ function LyricsInspectorPanelCard({
 function LyricsInspectorRail({
 	tools,
 	visiblePanelIds,
+	isSimilarityActive,
+	onToggleSimilarity,
 	onTogglePanel,
+
+	
 }: {
 	tools: LyricsInspectorRailTool[];
 	visiblePanelIds: Set<LyricsInspectorPanelId>;
-	onTogglePanel: (panelId: LyricsInspectorPanelId) => void;
+	onTogglePanel: (panelId: LyricsInspectorPanelId) => void;	
+	isSimilarityActive?: boolean;
+	onToggleSimilarity?: () => void;
 }): ReactElement {
 	return (
 		<nav className="w-[40px] shrink-0 flex flex-col items-center gap-1 rounded-xl border border-[var(--nara-border)] bg-[var(--nara-surface-raised)]/65 p-1.5 shadow-[0_16px_50px_-12px_rgba(0,0,0,0.55)] backdrop-blur-2xl backdrop-saturate-150">
@@ -571,6 +582,23 @@ function LyricsInspectorRail({
 					</button>
 				);
 			})}
+			{/* [36-FE] Toggle du panneau Similarités */}
+			{onToggleSimilarity && (
+				<button
+					type="button"
+					onMouseDown={(event): void => event.preventDefault()}
+					aria-label={`${isSimilarityActive ? "Masquer" : "Afficher"} Similarités`}
+					aria-pressed={isSimilarityActive}
+					onClick={onToggleSimilarity}
+					className={`inline-flex h-8 w-8 items-center justify-center rounded-[8px] border transition-all duration-200 active:scale-90 ${
+						isSimilarityActive
+							? "bg-white/[0.10] text-[var(--nara-text-primary)] border-white/[0.06]"
+							: "border-transparent text-[var(--nara-text-primary)]/40 hover:bg-[var(--nara-surface-soft)] hover:text-[var(--nara-text-primary)]"
+					}`}
+				>
+					<ScanSearch size={15} strokeWidth={2} />
+				</button>
+			)}
 		</nav>
 	);
 }
@@ -581,6 +609,7 @@ export function LyricsInspector({
 	onLookupTermChange,
 	panels = defaultLyricsInspectorPanels,
 	onVisibilityChange,
+	similarityContent,
 }: LyricsInspectorProps): ReactElement {
 	const [visiblePanelIds, setVisiblePanelIds] = useState<
 		Set<LyricsInspectorPanelId>
@@ -588,6 +617,9 @@ export function LyricsInspector({
 	const [fieldValues, setFieldValues] = useState<Record<string, string>>(() =>
 		createInitialFieldValues(panels),
 	);
+		// [36-FE] Visibilité du panneau Similarités (masqué par défaut)
+	const [isSimilarityVisible, setIsSimilarityVisible] =
+		useState<boolean>(false);
 
 	const [failedLookups, setFailedLookups] = useState<Record<string, number>>(
 		{},
@@ -762,10 +794,13 @@ export function LyricsInspector({
 	);
 
 	const hasVisiblePanels: boolean = visiblePanels.length > 0;
+	// [36-FE] La carte Similarités compte comme contenu visible de la colonne
+	const isSimilarityShown: boolean =
+		isSimilarityVisible && Boolean(similarityContent);
 
-	useEffect((): void => {
-		onVisibilityChange?.(hasVisiblePanels);
-	}, [hasVisiblePanels, onVisibilityChange]);
+useEffect((): void => {
+		onVisibilityChange?.(hasVisiblePanels || isSimilarityShown);
+	}, [hasVisiblePanels, isSimilarityShown, onVisibilityChange]);
 
 	useEffect((): void => {
 		setFieldValues(createInitialFieldValues(panels));
@@ -1001,7 +1036,7 @@ export function LyricsInspector({
 
 	return (
 		<aside className="flex h-full min-h-0 items-start gap-2 overflow-visible">
-			{hasVisiblePanels && (
+			{(hasVisiblePanels || isSimilarityShown) && (
 				// <div className="flex max-h-full min-h-0 w-[286px] min-w-0 flex-col overflow-hidden rounded-[12px] border border-[var(--nara-border)] bg-[var(--nara-shell-bg)]/70  backdrop-blur-2xl backdrop-saturate-150">
 				// <div className="flex max-h-full min-h-0 w-[286px] min-w-0 flex-col overflow-hidden rounded-[12px]   backdrop-blur-2xl backdrop-saturate-150">
 				<div className="flex max-h-full min-h-0 w-[286px] min-w-0 flex-col overflow-hidden rounded-[12px]">
@@ -1013,6 +1048,7 @@ export function LyricsInspector({
 								"rgba(255,255,255,0.08) transparent",
 						}}
 					>
+						{isSimilarityShown && similarityContent}
 						{visiblePanels.map(
 							(panel): ReactElement => (
 								<LyricsInspectorPanelCard
@@ -1037,6 +1073,12 @@ export function LyricsInspector({
 				tools={railTools}
 				visiblePanelIds={visiblePanelIds}
 				onTogglePanel={handleTogglePanel}
+				isSimilarityActive={isSimilarityVisible}
+				onToggleSimilarity={
+					similarityContent
+						? (): void => setIsSimilarityVisible((v) => !v)
+						: undefined
+				}
 			/>
 
 			{modalWord && (

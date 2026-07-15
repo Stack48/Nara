@@ -2,6 +2,13 @@
 
 import "@/lib/amplify";
 import { io as socketIO, Socket } from "socket.io-client";
+import { SimilarityPanel } from "./SimilarityPanel";
+import {
+	useSimilarityAnalysis,
+	type SimilarPassage,
+} from "@/hooks/useSimilarityAnalysis";
+import { SimilarityHighlightOverlay } from "./SimilarityHighlightOverlay";
+import { computeSimilarityHighlights } from "./similarityHighlights";
 
 import type { JSONContent } from "@tiptap/core";
 import {
@@ -206,7 +213,8 @@ type RealtimeSnapshot = {
 		| null;
 	presences: RemotePresence[];
 };
-
+const similarityProjectId = "cmqv0pd5q0001qm0z3llwqfdw";
+const similarityLyricsId = "cmr3iu3dy0001od1dfxajxcf7";
 const storageKey = lyricsEditorDocumentStorageKey;
 const commentsStorageKey = lyricsEditorCommentsStorageKey;
 const defaultTrackDurationSeconds = 270;
@@ -2430,6 +2438,23 @@ export default function LyricsEditorWorkspace({
 	const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
 	const presenceSessionIdRef = useRef<string>(createPresenceSessionId());
 	const socketRef = useRef<Socket | null>(null);
+	const {
+		errorMessage: similarityError,
+		isAnalyzing,
+		job: similarityJob,
+		startAnalysis,
+	} = useSimilarityAnalysis({
+		projectId: projectId ?? similarityProjectId,
+		lyricsId: lyricsId ?? similarityLyricsId,
+	});
+
+	const handleIgnorePassage = useCallback(
+		(referenceId: string, passage: SimilarPassage): void => {
+			// TODO [36-FE] étape 4 : persistance + masquage du signalement
+			console.log("Ignorer :", referenceId, passage.inputExcerpt);
+		},
+		[],
+	);
 
 	useEffect(() => {
 		if (!lyricsId) return;
@@ -2632,6 +2657,20 @@ export default function LyricsEditorWorkspace({
 		(): RhymeHighlightsByLineId => createRhymeHighlights(document.sections),
 		[document.sections],
 	);
+const similarityHighlightsByLineId = useMemo(() => {
+		const result =
+			similarityJob?.status === "COMPLETED" && similarityJob.matches
+				? computeSimilarityHighlights(
+						document.sections,
+						similarityJob.matches,
+					)
+				: ({} as Record<string, { startIndex: number; endIndex: number }[]>);
+		return result;
+	}, [document.sections, similarityJob]);
+   
+
+
+
 	const lineFocusSignature = useMemo(
 		(): string =>
 			document.sections
@@ -2656,6 +2695,8 @@ export default function LyricsEditorWorkspace({
 			trackMarkerPositionsBySectionId,
 		],
 	);
+
+
 	const shouldRenderInspectorTools: boolean = format.showInspectorTools;
 	const shouldRenderTrackPanel: boolean = format.showTrackPanel;
 	const workspaceGridTemplateClass = "xl:grid-cols-[minmax(0,1fr)]";
@@ -4182,6 +4223,21 @@ export default function LyricsEditorWorkspace({
 										text={line.text}
 									/>
 								)}
+
+								{(similarityHighlightsByLineId[line.id]
+									?.length ?? 0) > 0 && (
+									<SimilarityHighlightOverlay
+										lineStyle={editorLineStyle}
+										ranges={
+											similarityHighlightsByLineId[
+												line.id
+											] ?? []
+										}
+										text={line.text}
+									/>
+								)}
+
+
 								{shouldShowSyllables &&
 									line.text.trim().length > 0 && (
 										<div
@@ -5967,6 +6023,15 @@ export default function LyricsEditorWorkspace({
 							lookupRequest={inspectorLookupRequest}
 							onLookupTermChange={handleLookupTermChange}
 							onVisibilityChange={setHasVisibleInspectorPanels}
+							similarityContent={
+								<SimilarityPanel
+									errorMessage={similarityError}
+									isAnalyzing={isAnalyzing}
+									job={similarityJob}
+									onIgnorePassage={handleIgnorePassage}
+									onStartAnalysis={startAnalysis}								
+									/>
+							}
 						/>
 					</div>
 				</div>

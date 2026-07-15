@@ -1,4 +1,4 @@
-import LyricsEditorScreen from "@/components/LyricsEditor/LyricsEditorScreen";
+import LyricsEditorScreen from "@/components/lyricsEditor/LyricsEditorScreen";
 
 export default function LyricsEditorPage() {
 	return <LyricsEditorScreen />;
