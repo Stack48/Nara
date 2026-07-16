@@ -9,6 +9,7 @@ import {
 } from "@/hooks/useSimilarityAnalysis";
 import { SimilarityHighlightOverlay } from "./SimilarityHighlightOverlay";
 import { computeSimilarityHighlights } from "./similarityHighlights";
+import { exportLyricsAsTxt, exportLyricsAsJson } from "./lyricsExport";
 
 import type { JSONContent } from "@tiptap/core";
 import {
@@ -24,6 +25,8 @@ import {
 	Search,
 	SendHorizontal,
 	Trash2,
+	Download,
+	FileJson,
 } from "lucide-react";
 import {
 	useCallback,
@@ -2456,6 +2459,29 @@ export default function LyricsEditorWorkspace({
 		[ignorePassage],
 	);
 
+	const handleExportTxt = useCallback((): void => {
+		exportLyricsAsTxt({
+			title: document.title,
+			sections: document.sections.map((section) => ({
+				title: section.title,
+				lines: getVisibleSectionLines(section),
+			})),
+		});
+	}, [document]);
+
+	const handleExportJson = useCallback((): void => {
+		exportLyricsAsJson(
+			{
+				title: document.title,
+				sections: document.sections.map((section) => ({
+					title: section.title,
+					lines: getVisibleSectionLines(section),
+				})),
+			},
+			similarityJob,
+		);
+	}, [document, similarityJob]);
+
 	useEffect(() => {
 		if (!lyricsId) return;
 
@@ -4610,6 +4636,22 @@ const similarityHighlightsByLineId = useMemo(() => {
 									{saveState === "saved"
 										? "Sauvegarde"
 										: "Sauvegarder"}
+								</button>
+								<button
+									type="button"
+									onClick={handleExportTxt}
+									className="inline-flex h-6 items-center gap-1.5 rounded-[4px] border border-[#2C2C32] px-2 text-[10px] font-semibold text-[#2C2C32] transition-colors hover:border-[#4A4A52] hover:bg-[#202027]"
+								>
+									<Download size={12} strokeWidth={1.8} />
+									.txt
+								</button>
+								<button
+									type="button"
+									onClick={handleExportJson}
+									className="inline-flex h-6 items-center gap-1.5 rounded-[4px] border border-[#2C2C32] px-2 text-[10px] font-semibold text-[#2C2C32] transition-colors hover:border-[#4A4A52] hover:bg-[#202027]"
+								>
+									<FileJson size={12} strokeWidth={1.8} />
+									.json
 								</button>
 								{isDirty && (
 									<span className="text-[10px] font-medium text-[var(--nara-text-secondary)]">
