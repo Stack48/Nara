@@ -122,6 +122,8 @@ export function computeSimilarityHighlights(
 
 	matches.forEach((match: ReferenceMatch): void => {
 		match.passages.forEach((passage): void => {
+			if (passage.ignored) return;
+
 			let current: (SimilarityHighlightRange & { lineId: string }) | null =
 				null;
 

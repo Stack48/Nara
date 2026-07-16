@@ -61,6 +61,7 @@ export interface SimilarPassage {
     similarity: number;        // 0..100
     inputWordStart: number;    // position (en mots) dans le texte analysé
     inputWordEnd: number;
+    ignored?: boolean;
 }
 
 export interface ReferenceMatch {

@@ -117,7 +117,9 @@ export function SimilarityPanel({
 					)}
 
 					<ul className="mt-2 flex flex-col gap-1.5">
-						{match.passages.map((passage: SimilarPassage) => (
+						{match.passages
+							.filter((passage: SimilarPassage) => !passage.ignored)
+							.map((passage: SimilarPassage) => (
 							<li
 								className="rounded-[6px] border border-[var(--nara-border)] bg-[var(--nara-surface-soft)] p-2"
 								key={`${match.referenceId}-${passage.inputWordStart}-${passage.inputWordEnd}`}

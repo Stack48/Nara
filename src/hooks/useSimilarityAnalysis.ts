@@ -25,6 +25,17 @@ type UseSimilarityAnalysisOptions = {
 	projectId: string;
 };
 
+async function getCognitoHeaders(): Promise<Record<string, string>> {
+	try {
+		const { getCurrentUser } = await import("aws-amplify/auth");
+		const user = await getCurrentUser();
+		return { "x-cognito-id": user.userId };
+	} catch {
+		// Pas de session Amplify (dev sans login) → fallback variable d'env
+		return getAuthHeaders();
+	}
+}
+
 export function useSimilarityAnalysis({
 	lyricsId,
 	projectId,
@@ -107,6 +118,38 @@ export function useSimilarityAnalysis({
 			setErrorMessage("Impossible de lancer l'analyse");
 		}
 	}, [lyricsId, projectId, pollJob]);
+	const ignorePassage = useCallback(
+		async (referenceId: string, passage: SimilarPassage): Promise<void> => {
+			if (!job) return;
 
-	return { errorMessage, isAnalyzing, job, startAnalysis };
+			try {
+				const response = await fetch(
+					`/api/projects/${projectId}/lyrics/${lyricsId}/similarity/${job.id}/ignore`,
+					{
+						method: "PATCH",
+						headers: {
+							"Content-Type": "application/json",
+							...(await getCognitoHeaders()),
+						},
+						body: JSON.stringify({
+							referenceId,
+							inputWordStart: passage.inputWordStart,
+							inputWordEnd: passage.inputWordEnd,
+						}),
+					},
+				);
+
+				if (!response.ok) return;
+
+				const updated: AnalysisJobResult = await response.json();
+				setJob(updated);
+			} catch {
+				// silencieux : l'UI garde l'état actuel si l'appel échoue
+			}
+		},
+		[job, lyricsId, projectId],
+	);
+
+		return { errorMessage, ignorePassage, isAnalyzing, job, startAnalysis };
+
 }

@@ -2440,6 +2440,7 @@ export default function LyricsEditorWorkspace({
 	const socketRef = useRef<Socket | null>(null);
 	const {
 		errorMessage: similarityError,
+		ignorePassage,
 		isAnalyzing,
 		job: similarityJob,
 		startAnalysis,
@@ -2448,12 +2449,11 @@ export default function LyricsEditorWorkspace({
 		lyricsId: lyricsId ?? similarityLyricsId,
 	});
 
-	const handleIgnorePassage = useCallback(
+    const handleIgnorePassage = useCallback(
 		(referenceId: string, passage: SimilarPassage): void => {
-			// TODO [36-FE] étape 4 : persistance + masquage du signalement
-			console.log("Ignorer :", referenceId, passage.inputExcerpt);
+			void ignorePassage(referenceId, passage);
 		},
-		[],
+		[ignorePassage],
 	);
 
 	useEffect(() => {
