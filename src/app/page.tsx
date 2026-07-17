@@ -1,25 +1,11 @@
-import { Header } from "@/components/Header";
-import { Hero } from "@/components/landing/Hero";
-import { Features } from "@/components/landing/features/Features";
-import { Avis } from "@/components/landing/Avis";
-import { Pv } from "@/components/landing/Pv";
-import { Faq } from "@/components/landing/Faq";
-import { Cta } from "@/components/landing/Cta";
-import { Footer } from "@/components/Footer";
+import { HeroV2 } from "@/components/landing/v2/HeroV2";
+import { Faq } from "@/components/landing/v2/Faq";
 
 export default function Page() {
 	return (
 		<>
-			<Header />
-			<main>
-				<Hero />
-				<Pv />
-				<Features />
-				<Avis />
-				<Cta />
-				<Faq />
-			</main>
-			<Footer />
+			<HeroV2 />
+			<Faq />
 		</>
 	);
 }
