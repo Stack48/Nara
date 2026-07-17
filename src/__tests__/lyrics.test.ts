@@ -33,17 +33,17 @@ describe("Lyrics API", () => {
     });
 
     // GET lyrics — lecture seule autorisée
-    it("GET lyrics autorisé pour LECTURE_SEULE", async () => {
-        (requireRole as jest.Mock).mockResolvedValue({ authorized: true, role: "LECTURE_SEULE" });
+    it("GET lyrics autorisé pour READONLY", async () => {
+        (requireRole as jest.Mock).mockResolvedValue({ authorized: true, role: "READONLY" });
         (prisma.lyrics.findMany as jest.Mock).mockResolvedValue([]);
 
-        const { authorized } = await requireRole("cognitoId", "projectId", "LECTURE_SEULE");
+        const { authorized } = await requireRole("cognitoId", "projectId", "READONLY");
         expect(authorized).toBe(true);
     });
 
-    // POST lyrics — PAROLIER autorisé
-    it("POST lyrics autorisé pour PAROLIER", async () => {
-        (requireRole as jest.Mock).mockResolvedValue({ authorized: true, role: "PAROLIER" });
+    // POST lyrics — LYRICIST autorisé
+    it("POST lyrics autorisé pour LYRICIST", async () => {
+        (requireRole as jest.Mock).mockResolvedValue({ authorized: true, role: "LYRICIST" });
 
         const mockLyrics = {
             id: "1",
@@ -59,11 +59,11 @@ describe("Lyrics API", () => {
         expect(result).toEqual(mockLyrics);
     });
 
-    // PATCH lyrics — PAROLIER refusé
-    it("PATCH lyrics refusé pour PAROLIER", async () => {
+    // PATCH lyrics — LYRICIST refusé
+    it("PATCH lyrics refusé pour LYRICIST", async () => {
         (requireRole as jest.Mock).mockResolvedValue({ authorized: false });
 
-        const { authorized } = await requireRole("cognitoId", "projectId", "LEAD_PAROLIER");
+        const { authorized } = await requireRole("cognitoId", "projectId", "LEAD_LYRICIST");
         expect(authorized).toBe(false);
     });
 
@@ -102,7 +102,7 @@ describe("Lyrics API", () => {
         expect(lyrics[2].sectionType).toBe("REFRAIN");
     });
 
-    // Suggestion soumise par PAROLIER
+    // Suggestion soumise par LYRICIST
     it("suggestion créée avec status PENDING", async () => {
         (prisma.suggestion.create as jest.Mock).mockResolvedValue({
             id: "1",

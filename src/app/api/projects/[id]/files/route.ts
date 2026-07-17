@@ -12,11 +12,11 @@ export async function GET(
     const cognitoId = request.headers.get("x-cognito-id");
     if (!cognitoId) return unauthorized();
 
-    const { authorized } = await requireRole(cognitoId, params.id, "LECTURE_SEULE");
+    const { authorized } = await requireRole(cognitoId, params.id, "READONLY");
     if (!authorized) return forbidden();
 
     const files = await prisma.file.findMany({
-        where: { projectId: params.id },
+        where: { projectId: params.id, deletedAt: null },
         include: {
             uploader: { select: { id: true, name: true, username: true } },
         },
@@ -42,7 +42,7 @@ export async function POST(
     const cognitoId = request.headers.get("x-cognito-id");
     if (!cognitoId) return unauthorized();
 
-    const { authorized } = await requireRole(cognitoId, params.id, "PAROLIER");
+    const { authorized } = await requireRole(cognitoId, params.id, "LYRICIST");
     if (!authorized) return forbidden("Accès refusé");
 
     const user = await prisma.user.findUnique({ where: { cognitoId } });

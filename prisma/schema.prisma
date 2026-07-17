@@ -191,6 +191,7 @@ model File {
   uploadedBy   String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
 
   project      Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
   uploader     User          @relation(fields: [uploadedBy], references: [id])
