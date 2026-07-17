@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState, type ReactElement } from "react";
-import LyricsEditorWorkspace from "@/components/LyricsEditor/LyricsEditorWorkspace";
+import LyricsEditorWorkspace from "@/components/lyricsEditor/LyricsEditorWorkspace";
 import LyricsHeader, {
 	type LyricsFormat,
-} from "@/components/LyricsEditor/LyricsHeader";
+} from "@/components/lyricsEditor/LyricsHeader";
 
 const initialFormat: LyricsFormat = {
 	fontFamily: "Arimo",

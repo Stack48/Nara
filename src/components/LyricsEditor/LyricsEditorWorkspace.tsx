@@ -2,6 +2,14 @@
 
 import "@/lib/amplify";
 import { io as socketIO, Socket } from "socket.io-client";
+import { SimilarityPanel } from "./SimilarityPanel";
+import {
+	useSimilarityAnalysis,
+	type SimilarPassage,
+} from "@/hooks/useSimilarityAnalysis";
+import { SimilarityHighlightOverlay } from "./SimilarityHighlightOverlay";
+import { computeSimilarityHighlights } from "./similarityHighlights";
+import { exportLyricsAsTxt, exportLyricsAsJson } from "./lyricsExport";
 
 import type { JSONContent } from "@tiptap/core";
 import {
@@ -17,6 +25,8 @@ import {
 	Search,
 	SendHorizontal,
 	Trash2,
+	Download,
+	FileJson,
 } from "lucide-react";
 import {
 	useCallback,
@@ -206,7 +216,8 @@ type RealtimeSnapshot = {
 		| null;
 	presences: RemotePresence[];
 };
-
+const similarityProjectId = "cmqv0pd5q0001qm0z3llwqfdw";
+const similarityLyricsId = "cmr3iu3dy0001od1dfxajxcf7";
 const storageKey = lyricsEditorDocumentStorageKey;
 const commentsStorageKey = lyricsEditorCommentsStorageKey;
 const defaultTrackDurationSeconds = 270;
@@ -2430,6 +2441,46 @@ export default function LyricsEditorWorkspace({
 	const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
 	const presenceSessionIdRef = useRef<string>(createPresenceSessionId());
 	const socketRef = useRef<Socket | null>(null);
+	const {
+		errorMessage: similarityError,
+		ignorePassage,
+		isAnalyzing,
+		job: similarityJob,
+		startAnalysis,
+	} = useSimilarityAnalysis({
+		projectId: projectId ?? similarityProjectId,
+		lyricsId: lyricsId ?? similarityLyricsId,
+	});
+
+    const handleIgnorePassage = useCallback(
+		(referenceId: string, passage: SimilarPassage): void => {
+			void ignorePassage(referenceId, passage);
+		},
+		[ignorePassage],
+	);
+
+	const handleExportTxt = useCallback((): void => {
+		exportLyricsAsTxt({
+			title: document.title,
+			sections: document.sections.map((section) => ({
+				title: section.title,
+				lines: getVisibleSectionLines(section),
+			})),
+		});
+	}, [document]);
+
+	const handleExportJson = useCallback((): void => {
+		exportLyricsAsJson(
+			{
+				title: document.title,
+				sections: document.sections.map((section) => ({
+					title: section.title,
+					lines: getVisibleSectionLines(section),
+				})),
+			},
+			similarityJob,
+		);
+	}, [document, similarityJob]);
 
 	useEffect(() => {
 		if (!lyricsId) return;
@@ -2632,6 +2683,20 @@ export default function LyricsEditorWorkspace({
 		(): RhymeHighlightsByLineId => createRhymeHighlights(document.sections),
 		[document.sections],
 	);
+const similarityHighlightsByLineId = useMemo(() => {
+		const result =
+			similarityJob?.status === "COMPLETED" && similarityJob.matches
+				? computeSimilarityHighlights(
+						document.sections,
+						similarityJob.matches,
+					)
+				: ({} as Record<string, { startIndex: number; endIndex: number }[]>);
+		return result;
+	}, [document.sections, similarityJob]);
+   
+
+
+
 	const lineFocusSignature = useMemo(
 		(): string =>
 			document.sections
@@ -2656,6 +2721,8 @@ export default function LyricsEditorWorkspace({
 			trackMarkerPositionsBySectionId,
 		],
 	);
+
+
 	const shouldRenderInspectorTools: boolean = format.showInspectorTools;
 	const shouldRenderTrackPanel: boolean = format.showTrackPanel;
 	const workspaceGridTemplateClass = "xl:grid-cols-[minmax(0,1fr)]";
@@ -4182,6 +4249,21 @@ export default function LyricsEditorWorkspace({
 										text={line.text}
 									/>
 								)}
+
+								{(similarityHighlightsByLineId[line.id]
+									?.length ?? 0) > 0 && (
+									<SimilarityHighlightOverlay
+										lineStyle={editorLineStyle}
+										ranges={
+											similarityHighlightsByLineId[
+												line.id
+											] ?? []
+										}
+										text={line.text}
+									/>
+								)}
+
+
 								{shouldShowSyllables &&
 									line.text.trim().length > 0 && (
 										<div
@@ -4554,6 +4636,22 @@ export default function LyricsEditorWorkspace({
 									{saveState === "saved"
 										? "Sauvegarde"
 										: "Sauvegarder"}
+								</button>
+								<button
+									type="button"
+									onClick={handleExportTxt}
+									className="inline-flex h-6 items-center gap-1.5 rounded-[4px] border border-[#2C2C32] px-2 text-[10px] font-semibold text-[#2C2C32] transition-colors hover:border-[#4A4A52] hover:bg-[#202027]"
+								>
+									<Download size={12} strokeWidth={1.8} />
+									.txt
+								</button>
+								<button
+									type="button"
+									onClick={handleExportJson}
+									className="inline-flex h-6 items-center gap-1.5 rounded-[4px] border border-[#2C2C32] px-2 text-[10px] font-semibold text-[#2C2C32] transition-colors hover:border-[#4A4A52] hover:bg-[#202027]"
+								>
+									<FileJson size={12} strokeWidth={1.8} />
+									.json
 								</button>
 								{isDirty && (
 									<span className="text-[10px] font-medium text-[var(--nara-text-secondary)]">
@@ -5967,6 +6065,15 @@ export default function LyricsEditorWorkspace({
 							lookupRequest={inspectorLookupRequest}
 							onLookupTermChange={handleLookupTermChange}
 							onVisibilityChange={setHasVisibleInspectorPanels}
+							similarityContent={
+								<SimilarityPanel
+									errorMessage={similarityError}
+									isAnalyzing={isAnalyzing}
+									job={similarityJob}
+									onIgnorePassage={handleIgnorePassage}
+									onStartAnalysis={startAnalysis}								
+									/>
+							}
 						/>
 					</div>
 				</div>

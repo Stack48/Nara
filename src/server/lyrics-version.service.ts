@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
+import { extractTipTapText } from "@/server/text/extract-text";
 // Crée un snapshot automatique
 export async function createSnapshot(
   lyricsId: string,
@@ -33,8 +34,8 @@ export function calculateDiff(
   oldContent: Record<string, unknown>,
   newContent: Record<string, unknown>
 ): { added: string[]; removed: string[]; unchanged: string[] } {
-  const oldText = extractText(oldContent);
-  const newText = extractText(newContent);
+  const oldText = extractTipTapText(oldContent);
+  const newText = extractTipTapText(newContent);
 
   const oldLines = oldText.split("\n").filter(Boolean);
   const newLines = newText.split("\n").filter(Boolean);

@@ -1,4 +1,4 @@
-import LyricsEditorScreen from "@/components/LyricsEditor/LyricsEditorScreen";
+import LyricsEditorScreen from "@/components/lyricsEditor/LyricsEditorScreen";
 import { prisma } from "@/lib/prisma";
 
 export default async function WritePage({
