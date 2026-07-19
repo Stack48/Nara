@@ -15,7 +15,9 @@
     "db:studio": "prisma studio",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "worker:similarity": "tsx watch src/server/similarity/similarity.worker.ts",
+    "db:seed-references": "tsx prisma/seed-references.ts"
   },
   "dependencies": {
     "@aws-amplify/adapter-nextjs": "^1.7.3",
@@ -24,6 +26,7 @@
     "@aws-sdk/client-s3": "^3.1066.0",
     "@aws-sdk/client-secrets-manager": "^3.1056.0",
     "@aws-sdk/s3-request-presigner": "^3.1066.0",
+    "@floating-ui/dom": "^1.7.6",
     "@prisma/client": "^6.7.0",
     "@socket.io/redis-adapter": "^8.3.0",
     "@tiptap/core": "^3.26.0",
@@ -34,6 +37,7 @@
     "aws-amplify": "^6.17.0",
     "axios": "^1.15.1",
     "bcryptjs": "^3.0.3",
+    "bullmq": "^5.79.2",
     "cookie": "^1.1.1",
     "express-rate-limit": "^8.5.2",
     "helmet": "^8.2.0",
@@ -74,6 +78,7 @@
     "tailwindcss": "^4.3.0",
     "ts-jest": "^29.4.11",
     "ts-node": "^10.9.2",
+    "tsx": "^4.23.0",
     "typescript": "^5"
   }
 }

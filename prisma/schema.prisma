@@ -64,6 +64,7 @@ model User {
   markers        AudioMarker[]
   passwordResets PasswordResetRequest[]
   comments       Comment[]
+  analysisJobs   AnalysisJob[]
   authorshipCertificates AuthorshipCertificate[]
 }
 
@@ -141,6 +142,7 @@ model Lyrics {
   versions    LyricVersion[]
   markers     AudioMarker[]
   comments    Comment[]
+  analysisJobs   AnalysisJob[]
   authorshipCertificates AuthorshipCertificate[]
 }
 
@@ -282,4 +284,44 @@ model PasswordResetRequest {
   createdAt DateTime @default(now())
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum AnalysisStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+// Base de lyrics référencés (corpus de comparaison)
+model ReferenceLyric {
+  id             String   @id @default(cuid())
+  title          String
+  artist         String?
+  normalizedText String   // texte nettoyé : minuscules, sans accents ni ponctuation
+  ngramHashes    String[] // trigrammes précalculés → pré-filtrage rapide (< 10s)
+  wordCount      Int
+  createdAt      DateTime @default(now())
+}
+
+// Job d'analyse de similarité (à la demande, relançable)
+model AnalysisJob {
+  id          String         @id @default(cuid())
+  status      AnalysisStatus @default(PENDING)
+  inputText   String?        // snapshot du texte analysé → job reproductible
+  score       Float?         // score global 0..100
+  matches     Json?          // passages similaires par référence
+  error       String?
+  attempts    Int            @default(0)
+  startedAt   DateTime?
+  finishedAt  DateTime?      // permet de vérifier le < 10s
+  lyricsId    String
+  requestedBy String
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  lyrics    Lyrics @relation(fields: [lyricsId], references: [id], onDelete: Cascade)
+  requester User   @relation(fields: [requestedBy], references: [id])
+
+  @@index([lyricsId, createdAt])
 }
