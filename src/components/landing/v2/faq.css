@@ -1,0 +1,386 @@
+/* Défilement doux vers la section depuis le lien "Fonctionnalités" */
+@media (prefers-reduced-motion: no-preference) {
+	html {
+		scroll-behavior: smooth;
+	}
+}
+
+/* ------------------------------------------------------------------
+   FAQ (section "Fonctionnalités") — styles scopés sous .nara-faq
+   Palette volontairement neutre : aucun terracotta ici.
+   Le seul élément terracotta de la page est le bouton "Essayer" du hero.
+------------------------------------------------------------------- */
+
+.nara-faq {
+	--f-bg: #0a0a0c;
+	--f-bg2: #111113;
+	--f-surface: #161619;
+	--f-ink: #ffffff;
+	--f-muted: #93939c;
+	--f-faint: #5c5c64;
+	--f-line: rgba(255, 255, 255, 0.09);
+	--f-rail: rgba(255, 255, 255, 0.72);
+	--f-sheen: rgba(255, 255, 255, 0.05);
+
+	position: relative;
+	background: var(--f-bg);
+	color: var(--f-ink);
+	padding: 96px 0 88px;
+	overflow: hidden;
+	scroll-margin-top: 0;
+}
+
+/* Le projet bascule le thème via .dark sur <html> */
+:root:not(.dark) .nara-faq {
+	--f-bg: #fafafb;
+	--f-bg2: #f3f3f5;
+	--f-surface: #ffffff;
+	--f-ink: #0d0d11;
+	--f-muted: #6b6b74;
+	--f-faint: #a6a6ae;
+	--f-line: #e8e8ec;
+	--f-rail: rgba(13, 13, 17, 0.6);
+	--f-sheen: rgba(13, 13, 17, 0.035);
+}
+
+.nara-faq__bg {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: 0;
+	overflow: hidden;
+}
+.nara-faq__veil {
+	position: absolute;
+	left: 50%;
+	top: -420px;
+	transform: translateX(-50%);
+	width: 1200px;
+	height: 820px;
+	border-radius: 50%;
+	filter: blur(120px);
+	opacity: 0.5;
+	background: radial-gradient(closest-side, var(--f-sheen), transparent 72%);
+}
+
+.nara-faq__inner {
+	position: relative;
+	z-index: 1;
+	width: 100%;
+	max-width: 1440px;
+	margin: 0 auto;
+	padding: 0 clamp(20px, 5vw, 72px);
+}
+
+/* ---- animations ---- */
+@keyframes nara-faq-rise {
+	from {
+		opacity: 0;
+		transform: translateY(12px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+@keyframes nara-faq-eq {
+	0%,
+	100% {
+		transform: scaleY(0.35);
+	}
+	50% {
+		transform: scaleY(1);
+	}
+}
+
+/* ---- filtres ---- */
+.nara-faq__tools {
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	flex-wrap: wrap;
+	padding-bottom: 22px;
+	opacity: 0;
+}
+.nara-faq.is-in .nara-faq__tools {
+	animation: nara-faq-rise 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+.nara-faq__chip {
+	border: 1px solid var(--f-line);
+	border-radius: 100px;
+	padding: 8px 17px;
+	font-size: 13px;
+	color: var(--f-muted);
+	background: transparent;
+	cursor: pointer;
+	font-family: inherit;
+	transition: color 0.2s, border-color 0.2s, background 0.2s, transform 0.2s;
+}
+.nara-faq__chip:hover {
+	color: var(--f-ink);
+	border-color: var(--f-muted);
+	transform: translateY(-1px);
+}
+.nara-faq__chip.is-on {
+	background: var(--f-ink);
+	border-color: var(--f-ink);
+	color: var(--f-bg);
+	font-weight: 600;
+}
+.nara-faq__count {
+	margin-left: auto;
+	font-size: 12px;
+	color: var(--f-faint);
+}
+
+/* ---- accordéon ---- */
+.nara-faq__list {
+	border-top: 1px solid var(--f-line);
+}
+.nara-faq__qa {
+	position: relative;
+	border-bottom: 1px solid var(--f-line);
+	opacity: 0;
+}
+.nara-faq.is-in .nara-faq__qa {
+	animation: nara-faq-rise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+	animation-delay: calc(0.08s + var(--i) * 0.06s);
+}
+.nara-faq__qa::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: var(--f-bg2);
+	opacity: 0;
+	transition: opacity 0.28s ease;
+	pointer-events: none;
+}
+.nara-faq__qa:hover::before {
+	opacity: 1;
+}
+.nara-faq__qa.is-open::before {
+	opacity: 0;
+}
+.nara-faq__qa.is-open {
+	background: var(--f-surface);
+}
+
+/* indicateur "en cours de lecture" */
+.nara-faq__eq {
+	position: absolute;
+	left: 8px;
+	top: 34px;
+	z-index: 2;
+	display: flex;
+	align-items: flex-end;
+	gap: 2.5px;
+	height: 15px;
+	opacity: 0;
+	transform: translateY(2px);
+	transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.nara-faq__qa.is-open .nara-faq__eq {
+	opacity: 1;
+	transform: none;
+}
+.nara-faq__eq i {
+	width: 2px;
+	height: 100%;
+	border-radius: 2px;
+	background: var(--f-rail);
+	transform-origin: bottom;
+	transform: scaleY(0.35);
+}
+.nara-faq__qa.is-open .nara-faq__eq i {
+	animation: nara-faq-eq 1.15s ease-in-out infinite;
+}
+.nara-faq__qa.is-open .nara-faq__eq i:nth-child(2) {
+	animation-delay: 0.22s;
+}
+.nara-faq__qa.is-open .nara-faq__eq i:nth-child(3) {
+	animation-delay: 0.44s;
+}
+
+.nara-faq__head {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	align-items: center;
+	gap: 18px;
+	width: 100%;
+	padding: 27px 20px 27px 30px;
+	background: transparent;
+	border: none;
+	cursor: pointer;
+	text-align: left;
+	font-family: inherit;
+	color: inherit;
+}
+.nara-faq__head:focus-visible {
+	outline: 2px solid var(--f-ink);
+	outline-offset: -3px;
+	border-radius: 4px;
+}
+.nara-faq__q {
+	flex: 1;
+	font-size: clamp(16px, 1.6vw, 20px);
+	font-weight: 620;
+	letter-spacing: -0.018em;
+	color: var(--f-ink);
+	transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.nara-faq__qa:hover .nara-faq__q {
+	transform: translateX(3px);
+}
+.nara-faq__cat {
+	font-size: 10px;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	font-weight: 700;
+	color: var(--f-faint);
+	border: 1px solid var(--f-line);
+	border-radius: 100px;
+	padding: 4px 10px;
+	flex: none;
+	transition: color 0.25s, border-color 0.25s;
+}
+.nara-faq__qa.is-open .nara-faq__cat {
+	color: var(--f-muted);
+	border-color: var(--f-muted);
+}
+.nara-faq__mk {
+	flex: none;
+	width: 24px;
+	height: 24px;
+	position: relative;
+	color: var(--f-faint);
+	transition: color 0.25s, transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.nara-faq__qa:hover .nara-faq__mk {
+	color: var(--f-ink);
+}
+.nara-faq__qa.is-open .nara-faq__mk {
+	color: var(--f-ink);
+	transform: rotate(180deg);
+}
+.nara-faq__mk::before,
+.nara-faq__mk::after {
+	content: "";
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	background: currentColor;
+	border-radius: 2px;
+	transform: translate(-50%, -50%);
+	transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s;
+}
+.nara-faq__mk::before {
+	width: 13px;
+	height: 1.5px;
+}
+.nara-faq__mk::after {
+	width: 1.5px;
+	height: 13px;
+}
+.nara-faq__qa.is-open .nara-faq__mk::after {
+	transform: translate(-50%, -50%) rotate(90deg);
+	opacity: 0;
+}
+
+/* ouverture fluide */
+.nara-faq__body {
+	position: relative;
+	z-index: 1;
+	display: grid;
+	grid-template-rows: 0fr;
+	transition: grid-template-rows 0.42s cubic-bezier(0.3, 0.8, 0.25, 1);
+}
+.nara-faq__qa.is-open .nara-faq__body {
+	grid-template-rows: 1fr;
+}
+.nara-faq__clip {
+	overflow: hidden;
+	padding: 0 20px 0 30px;
+}
+.nara-faq__ans {
+	opacity: 0;
+	transform: translateY(-4px);
+	transition: opacity 0.3s ease 0.06s, transform 0.35s ease 0.06s;
+	font-size: 15px;
+	line-height: 1.75;
+	color: var(--f-muted);
+	max-width: 880px;
+	padding-bottom: 14px;
+}
+.nara-faq__qa.is-open .nara-faq__ans {
+	opacity: 1;
+	transform: none;
+}
+.nara-faq__qa.is-open .nara-faq__ans:last-child {
+	padding-bottom: 27px;
+}
+
+/* pied */
+.nara-faq__ask {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+	padding-top: 30px;
+	opacity: 0;
+}
+.nara-faq.is-in .nara-faq__ask {
+	animation: nara-faq-rise 0.7s ease forwards;
+	animation-delay: 0.5s;
+}
+.nara-faq__ask p {
+	font-size: 14px;
+	color: var(--f-muted);
+}
+.nara-faq__ask a {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 14px;
+	font-weight: 650;
+	color: var(--f-ink);
+	text-decoration: none;
+	transition: gap 0.25s;
+}
+.nara-faq__ask a::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	bottom: -3px;
+	height: 1px;
+	width: 100%;
+	background: currentColor;
+	transform: scaleX(0);
+	transform-origin: left;
+	transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.nara-faq__ask a:hover {
+	gap: 12px;
+}
+.nara-faq__ask a:hover::after {
+	transform: scaleX(1);
+}
+.nara-faq__ask svg {
+	width: 14px;
+	height: 14px;
+	display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.nara-faq *,
+	.nara-faq {
+		animation: none !important;
+		transition-duration: 0.01ms !important;
+	}
+	.nara-faq__tools,
+	.nara-faq__qa,
+	.nara-faq__ask {
+		opacity: 1;
+	}
+}
