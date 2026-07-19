@@ -64,6 +64,7 @@ model User {
   markers        AudioMarker[]
   passwordResets PasswordResetRequest[]
   comments       Comment[]
+  authorshipCertificates AuthorshipCertificate[]
 }
 
 model Project {
@@ -140,6 +141,7 @@ model Lyrics {
   versions    LyricVersion[]
   markers     AudioMarker[]
   comments    Comment[]
+  authorshipCertificates AuthorshipCertificate[]
 }
 
 model Suggestion {
@@ -239,6 +241,36 @@ model AuditLog {
   createdAt DateTime @default(now())
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Certificat d'auteur (coffre « Mes contributions » du ghostwriter).
+// Chaque scellement crée une VERSION immuable : empreinte SHA-256 canonique du
+// contenu écrit + horodatage. Le certificat appartient à l'AUTEUR et survit à la
+// suppression du projet (lyricsId onDelete: SetNull) — c'est tout l'objet de la
+// protection du ghostwriter.
+model AuthorshipCertificate {
+  id                    String   @id @default(cuid())
+  version               Int
+  contentHashHex        String
+  canonicalSnapshot     Json
+  projectRef            String
+  title                 String
+  tsaName               String
+  qualified             Boolean  @default(false)
+  tsrB64                String   @default("")
+  sealedAt              DateTime
+  confidentialityNotice String
+
+  lyricsId              String?
+  authorId              String
+  lyrics                Lyrics?  @relation(fields: [lyricsId], references: [id], onDelete: SetNull)
+  author                User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  createdAt             DateTime @default(now())
+
+  @@unique([authorId, projectRef, version])
+  @@index([authorId])
+  @@index([lyricsId])
 }
 
 model PasswordResetRequest {
