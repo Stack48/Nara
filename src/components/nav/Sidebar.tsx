@@ -22,6 +22,7 @@ import {
     LogOut,
     LayoutTemplate,
     Search,
+    ShieldCheck,
 } from "lucide-react";
 
 import { setSongProject } from "@/lib/songStore";
@@ -245,6 +246,7 @@ export const Sidebar = ({
     ];
 
     const bottomLinks = [
+        { label: "Mes contributions", href: "/contributions", icon: ShieldCheck },
         { label: "Shared with me", href: "/shared", icon: Users },
         { label: "Deleted", href: "/deleted", icon: Trash2 },
     ];

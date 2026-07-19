@@ -12,6 +12,7 @@ const protectedRoutes = [
     "/shared",
     "/write",
     "/settings",
+    "/contributions",
 ];
 const authRoutes = ["/login", "/signup"];
 
