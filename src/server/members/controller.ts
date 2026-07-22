@@ -64,11 +64,19 @@ export async function updateMemberRole(
     const parsed = updateRoleSchema.safeParse(body);
     if (!parsed.success) return { error: parsed.error.flatten(), status: 400 };
 
+    const member = await prisma.projectMember.findUnique({
+        where: { id: memberId },
+        include: { project: { select: { ownerId: true } } },
+    });
+    if (!member || member.projectId !== projectId) {
+        return { error: "Membre introuvable", status: 404 };
+    }
+    if (member.userId === member.project.ownerId) {
+        return { error: "Le rôle du propriétaire ne peut pas être modifié", status: 403 };
+    }
+
     const updated = await prisma.projectMember.update({
-        where: {
-            id: memberId,
-            projectId,
-        },
+        where: { id: memberId },
         data: { role: parsed.data.role },
     });
 
@@ -84,11 +92,19 @@ export async function removeMember(
     const { authorized } = await requireRole(cognitoId, projectId, "ADMIN");
     if (!authorized) return { error: "Seul un Admin peut révoquer un membre", status: 403 };
 
+    const member = await prisma.projectMember.findUnique({
+        where: { id: memberId },
+        include: { project: { select: { ownerId: true } } },
+    });
+    if (!member || member.projectId !== projectId) {
+        return { error: "Membre introuvable", status: 404 };
+    }
+    if (member.userId === member.project.ownerId) {
+        return { error: "Le propriétaire ne peut pas être révoqué", status: 403 };
+    }
+
     await prisma.projectMember.delete({
-        where: {
-            id: memberId,
-            projectId,
-        },
+        where: { id: memberId },
     });
 
     return { data: { success: true }, status: 200 };
