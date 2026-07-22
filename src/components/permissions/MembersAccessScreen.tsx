@@ -28,6 +28,7 @@ export default function MembersAccessScreen({
 		error,
 		updateLevel,
 		updateScope,
+		removeMember,
 	} = useProjectMembers(projectId, ownerId);
 
 	return (
@@ -87,6 +88,9 @@ export default function MembersAccessScreen({
 						scope: AccessScope,
 					): void => {
 						void updateScope(memberId, scope);
+					}}
+					onRemove={(memberId: string): void => {
+						void removeMember(memberId);
 					}}
 				/>
 			)}

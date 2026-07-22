@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactElement } from "react";
-import { Check, ChevronDown, Minus } from "lucide-react";
+import { Check, ChevronDown, Minus, Trash2 } from "lucide-react";
 import { AvatarWithLevel, LevelBadge } from "@/components/permissions/LevelBadge";
 import type { ProjectMemberView } from "@/hooks/useProjectMembers";
 import {
@@ -30,6 +30,7 @@ interface AccessMatrixProps {
 	canManage: boolean;
 	onLevelChange: (memberId: string, level: AccessLevel) => void;
 	onScopeChange: (memberId: string, scope: AccessScope) => void;
+	onRemove?: (memberId: string) => void;
 }
 
 function PermissionCell({
@@ -220,11 +221,12 @@ export default function AccessMatrix({
 	canManage,
 	onLevelChange,
 	onScopeChange,
+	onRemove,
 }: AccessMatrixProps): ReactElement {
 	return (
 		<section className="overflow-hidden rounded-[8px] border border-[var(--nara-border)] bg-[var(--nara-action-bg)]">
 			{/* En-tête à double étage : groupes Lyrics vs Lyrics + Musique */}
-			<div className="grid grid-cols-[minmax(180px,1.4fr)_repeat(2,72px)_112px_minmax(150px,1fr)_150px] items-end gap-x-2 border-b border-[var(--nara-border)] px-4 pb-2 pt-3">
+			<div className="grid grid-cols-[minmax(180px,1.4fr)_repeat(2,72px)_112px_minmax(150px,1fr)_150px_32px] items-end gap-x-2 border-b border-[var(--nara-border)] px-4 pb-2 pt-3">
 				<span className="text-[11px] font-medium text-[var(--nara-text-secondary)]">
 					Membre
 				</span>
@@ -251,6 +253,7 @@ export default function AccessMatrix({
 				<span className="text-right text-[11px] font-medium text-[var(--nara-text-secondary)]">
 					Niveau
 				</span>
+				<span />
 			</div>
 
 			<div className="divide-y divide-[var(--nara-border)]">
@@ -262,7 +265,7 @@ export default function AccessMatrix({
 					return (
 						<div
 							key={member.memberId}
-							className="grid min-h-[52px] grid-cols-[minmax(180px,1.4fr)_repeat(2,72px)_112px_minmax(150px,1fr)_150px] items-center gap-x-2 px-4 py-2 transition-colors hover:bg-[var(--nara-action-hover)]"
+							className="grid min-h-[52px] grid-cols-[minmax(180px,1.4fr)_repeat(2,72px)_112px_minmax(150px,1fr)_150px_32px] items-center gap-x-2 px-4 py-2 transition-colors hover:bg-[var(--nara-action-hover)]"
 						>
 							<div className="flex min-w-0 items-center gap-2.5">
 								<AvatarWithLevel
@@ -336,6 +339,31 @@ export default function AccessMatrix({
 								) : (
 									<LevelBadge level={member.level} />
 								)}
+							</span>
+
+							<span className="flex justify-end">
+								{canManage &&
+									!member.isOwner &&
+									!member.isMe &&
+									onRemove && (
+										<button
+											type="button"
+											aria-label={`Révoquer ${member.name}`}
+											title="Révoquer ce membre"
+											onClick={(): void => {
+												if (
+													window.confirm(
+														`Révoquer ${member.name} du projet ? Cette action retire immédiatement tous ses accès.`,
+													)
+												) {
+													onRemove(member.memberId);
+												}
+											}}
+											className="flex h-6 w-6 items-center justify-center rounded-[4px] text-[var(--nara-text-secondary)] transition-colors hover:bg-[#E5484D]/15 hover:text-[#E5484D]"
+										>
+											<Trash2 size={13} />
+										</button>
+									)}
 							</span>
 						</div>
 					);

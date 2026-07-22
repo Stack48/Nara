@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactElement } from "react";
+import Link from "next/link";
 import { ChevronRight, Headphones, Users, X } from "lucide-react";
 import { AvatarWithLevel } from "@/components/permissions/LevelBadge";
 import {
@@ -215,6 +216,13 @@ export default function EditorAccessPanel({
 									);
 								},
 							)}
+						<Link
+							href={`/projects/${projectId}/access`}
+							className="mt-1 flex items-center justify-between border-t border-[var(--nara-border)] px-3 py-2 text-[10px] font-semibold text-[#D90097] transition-colors hover:text-[#F23BB7]"
+						>
+							<span>Gérer tous les accès</span>
+							<ChevronRight size={12} />
+						</Link>
 					</div>
 				)}
 			</aside>

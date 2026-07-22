@@ -83,6 +83,7 @@ interface UseProjectMembersResult {
 	error: string | null;
 	updateLevel: (memberId: string, level: AccessLevel) => Promise<void>;
 	updateScope: (memberId: string, scope: AccessScope) => Promise<void>;
+	removeMember: (memberId: string) => Promise<void>;
 	refresh: () => Promise<void>;
 }
 
@@ -350,6 +351,45 @@ export function useProjectMembers(
 		[cognitoId, members, projectId],
 	);
 
+	const removeMember = useCallback(
+		async (memberId: string): Promise<void> => {
+			if (!cognitoId) {
+				return;
+			}
+
+			const previous: ProjectMemberView[] = members;
+
+			// Optimiste : la ligne disparaît tout de suite
+			setMembers(
+				(current: ProjectMemberView[]): ProjectMemberView[] =>
+					current.filter(
+						(member: ProjectMemberView): boolean =>
+							member.memberId !== memberId,
+					),
+			);
+
+			try {
+				const response: Response = await fetch(
+					`/api/projects/${projectId}/members/${memberId}`,
+					{
+						method: "DELETE",
+						headers: { "x-cognito-id": cognitoId },
+					},
+				);
+
+				if (!response.ok) {
+					throw new Error();
+				}
+
+				showToast("Membre révoqué du projet", "success");
+			} catch {
+				setMembers(previous);
+				showToast("Impossible de révoquer ce membre.", "error");
+			}
+		},
+		[cognitoId, members, projectId],
+	);
+
 	return {
 		members,
 		me,
@@ -358,6 +398,7 @@ export function useProjectMembers(
 		error,
 		updateLevel,
 		updateScope,
+		removeMember,
 		refresh: fetchMembers,
 	};
 }
