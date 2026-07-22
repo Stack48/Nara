@@ -1,4 +1,6 @@
 "use client";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 
 import {
 	Bell,
@@ -752,6 +754,8 @@ function Avatar({
 }
 
 function CollaboratorsCard(): ReactElement {
+	const params = useParams<{ id?: string }>();
+	const projectId: string | undefined = params?.id;
 	return (
 		<DashboardCard className="flex h-full flex-col p-3">
 			<CardHeader
@@ -828,7 +832,11 @@ function CollaboratorsCard(): ReactElement {
 				</div>
 			</div>
 
-			<CardFooterLink>Gerer les acces</CardFooterLink>
+			<CardFooterLink
+	href={projectId ? `/projects/${projectId}/access` : undefined}
+>
+	Gerer les acces
+</CardFooterLink>
 		</DashboardCard>
 	);
 }
@@ -1175,12 +1183,27 @@ function QuickActionsCard({
 	);
 }
 
-function CardFooterLink({ children }: { children: string }): ReactElement {
+function CardFooterLink({
+	children,
+	href,
+}: {
+	children: string;
+	href?: string;
+}): ReactElement {
+	const className: string =
+		"mt-auto flex w-full items-center justify-between border-t border-[var(--nara-border)] pt-3 text-[11px] font-semibold text-[#D90097] transition-colors hover:text-[#F23BB7]";
+
+	if (href) {
+		return (
+			<Link href={href} className={className}>
+				<span>{children}</span>
+				<ChevronRight size={14} />
+			</Link>
+		);
+	}
+
 	return (
-		<button
-			type="button"
-			className="mt-auto flex w-full items-center justify-between border-t border-[var(--nara-border)] pt-3 text-[11px] font-semibold text-[#D90097] transition-colors hover:text-[#F23BB7]"
-		>
+		<button type="button" className={className}>
 			<span>{children}</span>
 			<ChevronRight size={14} />
 		</button>

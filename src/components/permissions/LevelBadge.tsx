@@ -62,11 +62,11 @@ export function AvatarWithLevel({
 		>
 			{initials}
 			<span
-				className="absolute -bottom-0.5 -right-0.5 flex items-center justify-center rounded-full border border-[#0A0A0A]"
+				className="absolute -bottom-0.5 -right-0.5 flex items-center justify-center rounded-full border border-[var(--nara-surface)]"
 				style={{
 					width: badgeSize,
 					height: badgeSize,
-					backgroundColor: "#0A0A0A",
+					backgroundColor: "var(--nara-surface)",
 					color: definition.color,
 				}}
 				title={definition.label}

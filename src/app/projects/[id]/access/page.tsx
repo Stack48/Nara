@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactElement } from "react";
 import { useParams } from "next/navigation";
 import MembersAccessScreen from "@/components/permissions/MembersAccessScreen";
 import { resolveCognitoId } from "@/hooks/useProjectMembers";
+import { Layout } from "@/components/nav/Layout";
 
 /**
  * Route /projects/:id/access — page de gestion des membres.
@@ -37,5 +38,9 @@ export default function ProjectAccessPage(): ReactElement {
 			.catch((): void => setOwnerId(null));
 	}, [projectId]);
 
-	return <MembersAccessScreen projectId={projectId} ownerId={ownerId} />;
+	return (
+		<Layout>
+			<MembersAccessScreen projectId={projectId} ownerId={ownerId} />
+		</Layout>
+	);
 }

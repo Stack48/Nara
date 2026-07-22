@@ -14,6 +14,7 @@ import {
 	PanelLeftOpen,
 	Strikethrough,
 	Underline,
+	Users,
 	type LucideIcon,
 } from "lucide-react";
 import {
@@ -41,6 +42,7 @@ export type LyricsFormat = {
 	textOpacity: number;
 	showTrackPanel: boolean;
 	showInspectorTools: boolean;
+	showAccessPanel: boolean; 
 	focusMode: boolean;
 	hideAppChrome: boolean;
 	rhymes: boolean;
@@ -1368,6 +1370,15 @@ export default function LyricsHeader({
 			onClick: () =>
 				onFormatChange({
 					showInspectorTools: !format.showInspectorTools,
+				}),
+		},
+		{
+			label: "Accès",
+			icon: Users,
+			active: format.showAccessPanel,
+			onClick: () =>
+				onFormatChange({
+					showAccessPanel: !format.showAccessPanel,
 				}),
 		},
 		...(format.focusMode

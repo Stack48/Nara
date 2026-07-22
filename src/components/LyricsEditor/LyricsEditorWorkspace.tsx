@@ -3,6 +3,7 @@
 import "@/lib/amplify";
 import { io as socketIO, Socket } from "socket.io-client";
 import { SimilarityPanel } from "./SimilarityPanel";
+import EditorAccessPanel from "@/components/permissions/EditorAccessPanel";
 import {
 	useSimilarityAnalysis,
 	type SimilarPassage,
@@ -6116,6 +6117,14 @@ const similarityHighlightsByLineId = useMemo(() => {
 						)
 					}
 					volumePercent={trackVolumePercent}
+				/>
+			)}
+			{format.showAccessPanel && projectId && (
+				<EditorAccessPanel
+					projectId={projectId}
+					onClose={(): void =>
+						onFormatChange({ showAccessPanel: false })
+					}
 				/>
 			)}
 		</div>
