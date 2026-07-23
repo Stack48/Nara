@@ -93,3 +93,58 @@ export async function removeMember(
 
     return { data: { success: true }, status: 200 };
 }
+
+// GET — liste les invitations en attente d'un projet
+export async function getInvitations(cognitoId: string, projectId: string) {
+    const { authorized } = await requireRole(cognitoId, projectId, "LEAD_LYRICIST");
+    if (!authorized) return { error: "Accès refusé", status: 403 };
+
+    const invitations = await prisma.invitation.findMany({
+        where: {
+            projectId,
+            accepted: false,
+            expiresAt: { gt: new Date() },
+        },
+        select: {
+            id: true,
+            email: true,
+            role: true,
+            createdAt: true,
+            expiresAt: true,
+            inviter: { select: { id: true, name: true, email: true } },
+        },
+        orderBy: { createdAt: "desc" },
+    });
+
+    return { data: invitations, status: 200 };
+}
+
+// DELETE — annule une invitation en attente
+export async function cancelInvitation(cognitoId: string, invitationId: string) {
+    // L'URL ne contient pas le projectId : on le retrouve via l'invitation
+    const invitation = await prisma.invitation.findUnique({
+        where: { id: invitationId },
+    });
+
+    if (!invitation) return { error: "Invitation introuvable", status: 404 };
+
+    const { authorized } = await requireRole(
+        cognitoId,
+        invitation.projectId,
+        "LEAD_LYRICIST"
+    );
+    if (!authorized) {
+        return {
+            error: "Seul un Lead Lyricist ou Admin peut annuler une invitation",
+            status: 403,
+        };
+    }
+
+    if (invitation.accepted) {
+        return { error: "Invitation déjà acceptée", status: 409 };
+    }
+
+    await prisma.invitation.delete({ where: { id: invitationId } });
+
+    return { data: { success: true }, status: 200 };
+}
