@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole, forbidden, unauthorized } from "@/lib/rbac";
-import { deleteFile, getSignedFileUrl } from "@/server/s3.service";
+import { getSignedFileUrl } from "@/server/s3.service";
 
 // GET /api/projects/:id/files/:fileId — URL signée
 export async function GET(
@@ -43,8 +43,10 @@ export async function DELETE(
     if (!file) return NextResponse.json({ error: "Fichier introuvable" }, { status: 404 });
 
     // Supprime S3 + DB en sync
-    await deleteFile(file.s3Key);
-    await prisma.file.delete({ where: { id: params.fileId } });
+    await prisma.file.update({
+        where: { id: params.fileId },
+        data: { deletedAt: new Date() },
+    });
 
     return NextResponse.json({ success: true });
 }
