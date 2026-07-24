@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState, type ReactElement } from "react";
-import LyricsEditorWorkspace from "@/components/LyricsEditor/LyricsEditorWorkspace";
+import LyricsEditorWorkspace from "@/components/lyricsEditor/LyricsEditorWorkspace";
 import LyricsHeader, {
 	type LyricsFormat,
-} from "@/components/LyricsEditor/LyricsHeader";
-import SealContributionButton from "@/components/LyricsEditor/SealContributionButton";
+} from "@/components/lyricsEditor/LyricsHeader";
+import SealContributionButton from "@/components/lyricsEditor/SealContributionButton";
 
 const initialFormat: LyricsFormat = {
 	fontFamily: "Arimo",
@@ -19,6 +19,7 @@ const initialFormat: LyricsFormat = {
 	textColor: "var(--nara-text-primary)",
 	textOpacity: 100,
 	showTrackPanel: true,
+	showAccessPanel: false, 
 	showInspectorTools: true,
 	focusMode: false,
 	hideAppChrome: false,
