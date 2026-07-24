@@ -14,6 +14,9 @@ export const PageHeader = () => {
     // Hide on full-screen pages like lyrics editor
     if (pathname.startsWith("/write/")) return null;
 
+    // La page Projets fournit son propre en-tête complet (titre + stats + filtres)
+    if (pathname.startsWith("/projects")) return null;
+
     const getPageInfo = () => {
         if (pathname === "/") return { title: "Dashboard", subtitle: "Welcome back to your workspace" };
         if (pathname.startsWith("/projects")) return { title: "My Projects", subtitle: "All your projects and drafts" };

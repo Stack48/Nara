@@ -3,6 +3,7 @@
 
 @theme {
   --color-n-bg: var(--bg);
+  --color-n-bg-side: var(--bg-side);
   --color-n-surface: var(--surface);
   --color-n-surface-2: var(--surface-2);
   --color-n-border: var(--border);
@@ -14,10 +15,14 @@
   --color-n-cta: var(--cta);
   --color-n-cta-text: var(--cta-text);
   --color-n-cta-hover: var(--cta-hover);
+  --color-n-accent: var(--accent);
+  --color-n-accent-2: var(--accent-2);
 }
 
+/* Design System — Mode clair : neutres chauds + terracotta */
 :root {
   --bg: #F4F2EE;
+  --bg-side: #EFEAE2;
   --surface: #FFFFFF;
   --surface-2: #F0EDE8;
   --border: #E5E0D8;
@@ -29,21 +34,27 @@
   --cta: #1A1916;
   --cta-text: #F4F2EE;
   --cta-hover: #2E2C28;
+  --accent: #CB6C46;
+  --accent-2: #A85231;
 }
 
+/* Design System — Mode sombre : noir chaud, blanc chaud, terracotta rosé */
 .dark {
-  --bg: #17161A;
-  --surface: #1F1E22;
-  --surface-2: #252328;
-  --border: #2E2C32;
-  --border-2: #3A383E;
-  --hover: #2A2830;
-  --text-1: #F0EDE8;
-  --text-2: #9A9690;
-  --text-3: #6A6660;
-  --cta: #F0EDE8;
-  --cta-text: #17161A;
+  --bg: #0F0E0B;          /* Fond principal — noir chaud */
+  --bg-side: #14120E;     /* Sidebar, panneaux latéraux */
+  --surface: #1B1712;     /* Cartes, encarts */
+  --surface-2: #211D15;   /* Champs, pastilles, survol léger */
+  --border: #2A251E;      /* Filet — trace */
+  --border-2: #37312A;
+  --hover: #211D15;
+  --text-1: #F4EDE3;      /* Texte principal — blanc chaud */
+  --text-2: #A39A8C;      /* Texte secondaire */
+  --text-3: #6E6558;      /* Légendes, meta */
+  --cta: #F4EDE3;
+  --cta-text: #0F0E0B;
   --cta-hover: #FFFFFF;
+  --accent: #E28C68;      /* Terracotta rosé — accent */
+  --accent-2: #C25F3E;    /* Survol / pressé */
 }
 
 * {
