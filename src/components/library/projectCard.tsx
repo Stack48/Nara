@@ -367,7 +367,7 @@ export const ProjectCard = ({
                                     (_, i) => (
                                         <div
                                             key={i}
-                                            className="w-6 h-6 rounded-full border border-[#151515] overflow-hidden relative z-10"
+                                            className="w-6 h-6 rounded-full border border-n-surface overflow-hidden relative z-10"
                                         >
                                             <Image
                                                 src={
@@ -385,7 +385,7 @@ export const ProjectCard = ({
                                     ),
                                 )}
                                 {project.collabs > 3 && (
-                                    <div className="w-6 h-6 rounded-full border border-[#151515] bg-n-hover flex items-center justify-center relative z-10 text-[9px] font-bold text-n-text">
+                                    <div className="w-6 h-6 rounded-full border border-n-surface bg-n-hover flex items-center justify-center relative z-10 text-[9px] font-bold text-n-text">
                                         +{project.collabs - 3}
                                     </div>
                                 )}
@@ -430,7 +430,7 @@ export const ProjectCard = ({
                                 Shared by {project.owner}
                             </span>
                         ) : (
-                            <div className="w-6 h-6 rounded-full border border-[#151515] overflow-hidden relative z-10">
+                            <div className="w-6 h-6 rounded-full border border-n-surface overflow-hidden relative z-10">
                                 <Image
                                     src={
                                         getOwnerAvatar(project.owner || "") ||
@@ -468,7 +468,7 @@ export const ProjectCard = ({
                                     (_, i) => (
                                         <div
                                             key={i}
-                                            className="w-6 h-6 rounded-full border border-[#151515] overflow-hidden relative z-10"
+                                            className="w-6 h-6 rounded-full border border-n-surface overflow-hidden relative z-10"
                                         >
                                             <Image
                                                 src={
@@ -486,7 +486,7 @@ export const ProjectCard = ({
                                     ),
                                 )}
                                 {project.collabs > 3 && (
-                                    <div className="w-6 h-6 rounded-full border border-[#151515] bg-n-hover flex items-center justify-center relative z-10 text-[9px] font-bold text-n-text">
+                                    <div className="w-6 h-6 rounded-full border border-n-surface bg-n-hover flex items-center justify-center relative z-10 text-[9px] font-bold text-n-text">
                                         +{project.collabs - 3}
                                     </div>
                                 )}
@@ -523,7 +523,7 @@ export const ProjectCard = ({
                                     (_, i) => (
                                         <div
                                             key={i}
-                                            className="w-6 h-6 rounded-full border border-[#151515] overflow-hidden relative z-10"
+                                            className="w-6 h-6 rounded-full border border-n-surface overflow-hidden relative z-10"
                                         >
                                             <Image
                                                 src={
@@ -542,7 +542,7 @@ export const ProjectCard = ({
                                     ),
                                 )}
                                 {project.collabs > 3 && (
-                                    <div className="w-6 h-6 rounded-full border border-[#151515] bg-n-hover flex items-center justify-center relative z-10 text-[9px] font-bold text-n-text">
+                                    <div className="w-6 h-6 rounded-full border border-n-surface bg-n-hover flex items-center justify-center relative z-10 text-[9px] font-bold text-n-text">
                                         +{project.collabs - 3}
                                     </div>
                                 )}

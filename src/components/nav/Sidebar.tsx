@@ -22,7 +22,6 @@ import {
     LogOut,
     LayoutTemplate,
     Search,
-    ShieldCheck,
 } from "lucide-react";
 
 import { setSongProject } from "@/lib/songStore";
@@ -246,7 +245,6 @@ export const Sidebar = ({
     ];
 
     const bottomLinks = [
-        { label: "Mes contributions", href: "/contributions", icon: ShieldCheck },
         { label: "Shared with me", href: "/shared", icon: Users },
         { label: "Deleted", href: "/deleted", icon: Trash2 },
     ];
@@ -365,7 +363,7 @@ export const Sidebar = ({
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         document.documentElement.classList.remove("dark");
-                                        localStorage.setItem("theme", "light");
+                                        localStorage.setItem("nara-theme", "light");
                                     }} 
                                     className="w-full flex items-center px-4 py-2 text-sm text-n-text hover:text-n-text hover:bg-white/5 transition-colors text-left cursor-pointer"
                                 >
@@ -375,7 +373,7 @@ export const Sidebar = ({
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         document.documentElement.classList.add("dark");
-                                        localStorage.setItem("theme", "dark");
+                                        localStorage.setItem("nara-theme", "dark");
                                     }} 
                                     className="w-full flex items-center px-4 py-2 text-sm text-n-text hover:text-n-text hover:bg-white/5 transition-colors text-left cursor-pointer"
                                 >
@@ -386,7 +384,7 @@ export const Sidebar = ({
                                         e.stopPropagation();
                                         const isSystemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
                                         document.documentElement.classList.toggle("dark", isSystemDark);
-                                        localStorage.removeItem("theme");
+                                        localStorage.removeItem("nara-theme");
                                     }} 
                                     className="w-full flex items-center px-4 py-2 text-sm text-n-text hover:text-n-text hover:bg-white/5 transition-colors text-left cursor-pointer"
                                 >
