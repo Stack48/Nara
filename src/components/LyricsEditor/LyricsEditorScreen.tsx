@@ -5,8 +5,7 @@ import LyricsEditorWorkspace from "@/components/lyricsEditor/LyricsEditorWorkspa
 import LyricsHeader, {
 	type LyricsFormat,
 } from "@/components/lyricsEditor/LyricsHeader";
-} from "@/components/LyricsEditor/LyricsHeader";
-import SealContributionButton from "@/components/LyricsEditor/SealContributionButton";
+import SealContributionButton from "@/components/lyricsEditor/SealContributionButton";
 
 const initialFormat: LyricsFormat = {
 	fontFamily: "Arimo",
@@ -20,6 +19,7 @@ const initialFormat: LyricsFormat = {
 	textColor: "var(--nara-text-primary)",
 	textOpacity: 100,
 	showTrackPanel: true,
+	showAccessPanel: false, 
 	showInspectorTools: true,
 	focusMode: false,
 	hideAppChrome: false,
